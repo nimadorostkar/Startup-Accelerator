@@ -1,89 +1,133 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
+import Reveal from "./motion/Reveal";
 import { ArrowRight } from "./icons";
 import Globe from "./results/Globe";
 import TestimonialCard from "./results/TestimonialCard";
-import { KitebaseMark, LedgerlyMark, RelaywaveMark } from "./results/brands";
+import LogoMarquee from "./results/LogoMarquee";
 import { LEFT, RIGHT } from "./results/data";
 
-/* Per-card tilt/width on the wide layout, measured from the design. */
+/* Per-card layout + tilt on the wide layout, measured from the design.
+   `wrap` positions the card (and carries reveal/float motion); `tilt` rotates it. */
 const LEFT_STYLE = [
-  "xl:-rotate-[2.4deg]",
-  "xl:mt-[47px] xl:w-[90%] xl:-rotate-[0.7deg]",
-  "xl:mt-[48px] xl:w-[90%] xl:rotate-[0.6deg]",
+  { wrap: "", tilt: "xl:-rotate-[2.4deg]" },
+  { wrap: "xl:mt-[22px] xl:w-[90%]", tilt: "xl:-rotate-[0.7deg]" },
+  { wrap: "xl:mt-[22px] xl:w-[90%]", tilt: "xl:rotate-[0.6deg]" },
 ];
 const RIGHT_STYLE = [
-  "xl:-rotate-[1.4deg]",
-  "xl:mt-[48px] xl:ml-auto xl:w-[90%] xl:rotate-[1deg]",
-  "xl:mt-[49px] xl:ml-auto xl:w-[90%] xl:-rotate-[0.6deg]",
+  { wrap: "", tilt: "xl:-rotate-[1.4deg]" },
+  { wrap: "xl:mt-[22px] xl:ml-auto xl:w-[90%]", tilt: "xl:rotate-[1deg]" },
+  { wrap: "xl:mt-[22px] xl:ml-auto xl:w-[90%]", tilt: "xl:-rotate-[0.6deg]" },
 ];
+
+/* Idle float: each card breathes on its own rhythm. */
+const float = (i: number, side: number) =>
+  ({
+    "--fdur": `${5.5 + ((i + side) % 3) * 0.9}s`,
+    "--fdel": `${-(i * 1.3 + side * 0.7)}s`,
+  }) as CSSProperties;
 
 export default function Results() {
   return (
     <section
       id="results"
       aria-labelledby="results-title"
-      className="relative isolate overflow-hidden bg-white py-16 sm:py-20 xl:pt-[68px] xl:pb-[46px]"
+      className="relative isolate overflow-hidden bg-white pt-24 pb-16 sm:pt-28 sm:pb-20 xl:pt-36 xl:pb-24"
     >
-      <Globe className="pointer-events-none absolute top-6 left-1/2 -z-10 w-[640px] max-w-none -translate-x-1/2 xl:top-[43px] xl:w-[900px]" />
+      <Reveal
+        y={0}
+        className="pointer-events-none absolute top-16 left-1/2 -z-10 w-[640px] max-w-none -translate-x-1/2 xl:top-[112px] xl:w-[720px]"
+      >
+        <Globe className="h-auto w-full" />
+      </Reveal>
 
-      <div className="mx-auto box-content grid max-w-[1240px] gap-6 px-6 sm:px-10 md:grid-cols-2 lg:px-16 xl:grid-cols-[minmax(0,1fr)_440px_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,1fr)_460px_minmax(0,1fr)] xl:gap-x-0 xl:px-20 2xl:px-24">
+      <div className="mx-auto box-content grid max-w-[1080px] gap-6 px-6 sm:px-10 md:grid-cols-2 lg:px-16 xl:grid-cols-[minmax(0,1fr)_400px_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,1fr)_420px_minmax(0,1fr)] xl:gap-x-0 xl:px-24 2xl:px-28">
         {/* Center: heading, logos, CTA (first on small screens) */}
-        <div className="relative order-first mb-8 flex flex-col items-center text-center md:col-span-2 xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:mb-0 xl:-translate-y-[5px] xl:self-center xl:pt-6">
-          <h2
-            id="results-title"
-            className="text-[34px] leading-[1.1] font-bold tracking-[-0.03em] text-[#081722] sm:text-[42px] 2xl:text-[46px]"
+        <div className="relative order-first mb-8 flex min-w-0 flex-col items-center text-center md:col-span-2 xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:mb-0 xl:self-center">
+          {/* Eyebrow — same pattern as the hero */}
+          <Reveal
+            delay={0}
+            className="flex items-center gap-[0.85em] text-[11px]"
           >
-            From idea to funded,
-            <br />
-            <span className="text-[#408141]">in their words</span>
-          </h2>
+            <span
+              aria-hidden="true"
+              className="h-[1em] w-[1em] shrink-0 rounded-full bg-gold"
+            />
+            <span className="font-display font-semibold tracking-[0.18em] text-gold-deep uppercase">
+              Alumni Stories
+            </span>
+          </Reveal>
 
-          <p className="mt-[18px] max-w-[500px] text-[17px] leading-[1.6] text-[#4b505b] 2xl:text-[20px]">
-            Founders from 65+ markets and our 2026 AI cohorts on what the
-            program changed.
-          </p>
+          <Reveal delay={90}>
+            <h2
+              id="results-title"
+              className="type-heavy mt-4 text-[30px] leading-[0.95] tracking-[-0.01em] text-ink uppercase sm:text-[36px] xl:text-[30px] 2xl:text-[34px]"
+            >
+              From idea
+              <br />
+              to funded,
+              <br />
+              <span className="text-gold-deep">in their words</span>
+            </h2>
+          </Reveal>
 
-          <ul
-            aria-label="Alumni companies"
-            className="mt-[39px] flex flex-wrap items-center justify-center gap-x-8 gap-y-6 xl:gap-x-6"
+          <Reveal delay={180}>
+            <p className="mt-5 max-w-[400px] text-[15px] leading-[1.6] text-ink-soft/80">
+              Founders from 65+ markets and our 2026 AI cohorts on what the
+              program changed.
+            </p>
+          </Reveal>
+
+          <Reveal
+            delay={260}
+            y={16}
+            className="mt-7 w-full max-w-[420px] min-w-0"
           >
-            <li>
-              <RelaywaveMark className="h-9 w-auto xl:h-7" />
-              <span className="sr-only">Relaywave</span>
-            </li>
-            <li>
-              <LedgerlyMark className="text-[30px] xl:text-[24px]" />
-            </li>
-            <li>
-              <KitebaseMark className="text-[31px] leading-none xl:text-[25px]" />
-            </li>
-            <li>
-              <span className="font-display text-[30px] font-bold xl:text-[24px] tracking-[-0.05em] text-[#1c1d1f] italic">
-                Restly.
+            <LogoMarquee />
+          </Reveal>
+
+          <Reveal delay={560}>
+            <Link
+              href="#alumni"
+              className="group btn-shine mt-8 inline-flex h-12 items-center gap-4 rounded-full bg-gold-btn px-7 shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105"
+            >
+              <span className="font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase">
+                View more alumni
               </span>
-            </li>
-          </ul>
-
-          <Link
-            href="#alumni"
-            className="group mt-[42px] inline-flex h-14 items-center gap-3 rounded-xl bg-gradient-to-b from-[#579162] to-[#40814d] px-8 text-[18px] font-semibold text-white shadow-[0_10px_24px_-10px_rgba(47,110,60,0.7),inset_0_1px_0_rgba(255,255,255,0.18)] transition-[filter] duration-200 hover:brightness-110"
-          >
-            View more alumni
-            <ArrowRight className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
-          </Link>
+              <ArrowRight className="h-[18px] w-[18px] shrink-0 text-gold-ink transition-transform duration-200 group-hover:translate-x-1" />
+            </Link>
+          </Reveal>
         </div>
 
         {/* Left column */}
-        <div className="flex flex-col gap-6 xl:col-start-1 xl:row-start-1 xl:gap-0 xl:pt-[82px]">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-start-1 xl:row-start-1 xl:gap-0 xl:pt-[52px]">
           {LEFT.map((t, i) => (
-            <TestimonialCard key={t.name} t={t} className={LEFT_STYLE[i]} />
+            <Reveal
+              key={t.name}
+              delay={120 + i * 150}
+              x={-56}
+              y={12}
+              className={`float ${LEFT_STYLE[i].wrap}`}
+              style={float(i, 0)}
+            >
+              <TestimonialCard t={t} className={LEFT_STYLE[i].tilt} />
+            </Reveal>
           ))}
         </div>
 
         {/* Right column */}
-        <div className="flex flex-col gap-6 xl:col-start-3 xl:row-start-1 xl:gap-0 xl:pt-[6px]">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-start-3 xl:row-start-1 xl:gap-0">
           {RIGHT.map((t, i) => (
-            <TestimonialCard key={t.name} t={t} className={RIGHT_STYLE[i]} />
+            <Reveal
+              key={t.name}
+              delay={195 + i * 150}
+              x={56}
+              y={12}
+              className={`float ${RIGHT_STYLE[i].wrap}`}
+              style={float(i, 1)}
+            >
+              <TestimonialCard t={t} className={RIGHT_STYLE[i].tilt} />
+            </Reveal>
           ))}
         </div>
       </div>

@@ -1,3 +1,4 @@
+import type React from "react";
 import Image from "next/image";
 import Flag from "./Flag";
 import { BrandBadge } from "./brands";
@@ -35,28 +36,28 @@ export default function TestimonialCard({
 }) {
   return (
     <figure
-      className={`relative rounded-[18px] border border-[#e6eee8] bg-[linear-gradient(140deg,#f1fbf5_0%,#fff_42%)] px-6 pt-[22px] pb-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_14px_34px_-12px_rgba(20,60,35,0.12)] ${className}`}
+      className={`relative rounded-2xl border border-line bg-[linear-gradient(140deg,#fcf6ea_0%,#fff_42%)] px-5 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(0,15,22,0.04),0_14px_34px_-12px_rgba(0,15,22,0.14)] transition-[rotate,scale,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:border-gold/40 hover:shadow-[0_2px_4px_rgba(0,15,22,0.05),0_26px_50px_-16px_rgba(0,15,22,0.24)] xl:hover:rotate-0 ${className}`}
     >
-      <QuoteMark className="absolute -top-[11px] left-6 h-[19px] w-[29px] text-[#63b66c]" />
+      <QuoteMark className="pop absolute -top-[9px] left-5 h-4 w-6 origin-bottom-left text-gold" />
 
-      <blockquote className="text-[16px] leading-[1.6] text-[#252c34] 2xl:text-[17px] 2xl:leading-[1.6]">
+      <blockquote className="text-[14.5px] leading-[1.5] text-ink-soft">
         <p>{t.quote}</p>
       </blockquote>
 
-      <figcaption className="mt-4 flex flex-wrap items-center gap-x-3.5 gap-y-3">
+      <figcaption className="mt-3 flex items-center gap-x-2.5">
         <span className="relative shrink-0">
           {t.photo ? (
             <Image
               src={t.photo}
               alt=""
-              width={46}
-              height={46}
-              className="h-[46px] w-[46px] rounded-full object-cover"
+              width={34}
+              height={34}
+              className="h-[34px] w-[34px] rounded-full object-cover"
             />
           ) : (
             <span
               aria-hidden="true"
-              className="flex h-[46px] w-[46px] items-center justify-center rounded-full bg-[#e6f6ec] text-[15px] font-semibold text-[#3e784a]"
+              className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[#faefdb] font-display text-[11px] font-bold tracking-[0.04em] text-gold-deep"
             >
               {initials(t.name)}
             </span>
@@ -64,41 +65,39 @@ export default function TestimonialCard({
           {t.country && (
             <Flag
               code={t.country}
-              className="absolute -right-1 -bottom-1 h-[20px] w-[20px] rounded-full ring-2 ring-white"
+              className="absolute -right-1 -bottom-1 h-4 w-4 rounded-full ring-2 ring-white"
             />
           )}
         </span>
 
-        <span className="min-w-[10rem] flex-1 leading-tight">
-          <span className="block text-[15px] font-bold text-[#0f1a23] 2xl:text-[16px]">
+        <span className="min-w-0 flex-1 leading-tight">
+          <span className="block truncate text-[13.5px] font-bold text-ink">
             {t.name}
           </span>
-          <span className="mt-0.5 block text-[14px] text-[#8e9097] 2xl:text-[15px]">
+          <span className="block truncate text-[12.5px] text-muted">
             {t.role}
           </span>
           {t.cohort && (
-            <span className="mt-1 block font-mono text-[12px] tracking-[0.06em] text-[#8e9097] uppercase">
+            <span className="type-wide mt-0.5 block text-[9.5px] font-semibold tracking-[0.07em] text-muted uppercase">
               {t.cohort}
             </span>
           )}
         </span>
 
         {t.brand && (
-          <span className="ml-auto shrink-0 self-center">
+          <span className="ml-auto shrink-0 self-center [&>*]:max-h-5">
             <BrandBadge brand={t.brand} />
           </span>
         )}
       </figcaption>
 
       {t.outcomes && (
-        <ul
-          className="mt-[7px] flex flex-col items-start gap-[5px]"
-          aria-label="Outcomes"
-        >
-          {t.outcomes.map((o) => (
+        <ul className="mt-2.5 flex flex-wrap gap-1.5" aria-label="Outcomes">
+          {t.outcomes.map((o, i) => (
             <li
               key={o}
-              className="rounded-md border border-[#d3eedc] bg-[#f0fcf6] px-2.5 py-1 text-[13px] text-[#3f7549] 2xl:text-[14px]"
+              style={{ "--i": i } as React.CSSProperties}
+              className="chip-in rounded-full border border-[#efdcb8] bg-[#fdf6e9] px-2 py-px text-[11.5px] font-medium text-gold-deep"
             >
               {o}
             </li>

@@ -55,9 +55,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${anybody.variable} ${archivo.variable} ${dmSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-white">{children}</body>
+      <head>
+        {/* Enables scroll-reveal hidden states only when JS runs */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning className="min-h-full bg-white">
+        {children}
+      </body>
     </html>
   );
 }

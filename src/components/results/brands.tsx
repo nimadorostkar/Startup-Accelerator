@@ -107,11 +107,11 @@ export function RestlyMark({ className = "" }: { className?: string }) {
 export function BrandBadge({ brand }: { brand: BrandId }) {
   switch (brand) {
     case "northvale":
-      return <NorthvaleMark className="h-7 w-auto" />;
+      return <NorthvaleMark className="h-5 w-auto" />;
     case "kitebase":
-      return <KitebaseMark className="text-[25px] leading-none" />;
+      return <KitebaseMark className="text-[17px] leading-none" />;
     case "tidewell":
-      return <TidewellMark className="text-[13px]" />;
+      return <TidewellMark className="text-[11px]" />;
     case "restly":
       return <RestlyMark className="text-[10px]" />;
   }
