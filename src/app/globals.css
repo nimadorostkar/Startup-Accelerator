@@ -22,7 +22,22 @@
   --color-gold-ink: var(--gold-ink);
   --color-gold-light: var(--gold-light);
   --font-display: var(--font-archivo), system-ui, sans-serif;
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-heavy: var(--font-anybody), var(--font-archivo), system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+/* Expanded ultra-black: headline + stat numerals */
+.type-heavy {
+  font-family: var(--font-heavy);
+  font-weight: 900;
+  font-variation-settings: "wdth" 137;
+  -webkit-text-stroke: 0.012em currentColor;
+}
+
+/* Wide grotesque for tracked uppercase labels */
+.type-wide {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 112;
 }
 
 html,

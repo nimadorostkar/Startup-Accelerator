@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VC Summit — Landing Page
 
-## Getting Started
-
-First, run the development server:
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
+npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Production config
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable               | Purpose                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL` | Absolute site origin, e.g. `https://vcsummit.com`. Used for OG/Twitter image URLs. Defaults to `http://localhost:3000`. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Security headers, AVIF/WebP image negotiation and `poweredByHeader: false` are set in `next.config.ts`.
 
-## Learn More
+## Structure
 
-To learn more about Next.js, take a look at the following resources:
+- `src/components/Hero.tsx` — hero section
+- `src/components/Navbar.tsx`, `MobileMenu.tsx`, `nav-links.ts` — header + mobile nav
+- `src/components/Logo.tsx` — VC monogram (SVG); `src/app/icon.svg` is the favicon
+- `public/images/hero.webp` — **clean background plate**: every piece of text, button and line
+  in the hero is rendered in code. Don't replace it with an image that has UI baked in.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Layout notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Desktop (`lg+`) sizing is expressed in container-query units (`cqw`) against a
+1920px-max container, so the composition scales proportionally with the viewport and
+freezes above 1920px. Below `lg` the hero uses a dedicated mobile scale.
 
-## Deploy on Vercel
+If you swap `hero.webp`, clear Next's optimizer cache or you'll keep seeing the old image:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+rm -rf .next/dev/cache/images .next/cache/images
+```
