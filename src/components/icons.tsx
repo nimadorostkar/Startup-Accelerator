@@ -35,7 +35,12 @@ export function ChevronRight({ className = "" }: { className?: string }) {
 
 export function PlayIcon({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
       <path d="M9 6.5v11l9-5.5-9-5.5Z" />
     </svg>
   );
