@@ -17,6 +17,13 @@
   --cream: #fbf8f3; /* light section background */
   --chip: #fdf6e9;
   --chip-line: #efdcb8;
+
+  /* Dark bands + the green accent family (used by the CTA bands only) */
+  --navy: #0d1d2a;
+  --green-deep: #165432;
+  --green: #2c6e41;
+  --green-bright: #3b7f48;
+  --green-light: #d6f3cc; /* label text on --green — 5.1:1 */
 }
 
 @theme inline {
@@ -35,6 +42,11 @@
   --color-cream: var(--cream);
   --color-chip: var(--chip);
   --color-chip-line: var(--chip-line);
+  --color-navy: var(--navy);
+  --color-green-deep: var(--green-deep);
+  --color-green: var(--green);
+  --color-green-bright: var(--green-bright);
+  --color-green-light: var(--green-light);
   --font-display: var(--font-archivo), system-ui, sans-serif;
   --font-heavy: var(--font-anybody), var(--font-archivo), system-ui, sans-serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
@@ -110,7 +122,7 @@
     border: 1px solid var(--chip-line);
     background: var(--chip);
     color: var(--gold-deep);
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 600;
     line-height: 1;
     padding: 5px 10px;

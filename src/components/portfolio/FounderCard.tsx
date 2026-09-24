@@ -46,7 +46,7 @@ export default function FounderCard({ f }: { f: Founder }) {
         />
         {f.company}
       </p>
-      <p className="mt-2.5 mb-5 text-[13px] leading-[1.6] text-muted">
+      <p className="mt-2.5 mb-5 text-[14px] leading-[1.6] text-muted">
         {f.tagline[0]}
         <br />
         {f.tagline[1]}

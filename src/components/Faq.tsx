@@ -32,13 +32,13 @@ export default function Faq() {
     <section
       id="faq"
       aria-labelledby="faq-title"
-      className="bg-cream px-4 py-20 sm:px-8 sm:py-24"
+      className="bg-cream px-4 py-20 sm:px-8 sm:py-24 xl:py-28"
     >
       <div className="mx-auto max-w-[760px]">
         <Reveal>
           <h2
             id="faq-title"
-            className="text-center font-display text-[30px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-[38px]"
+            className="text-center font-display text-[30px] leading-[1.08] font-bold tracking-[-0.02em] text-ink sm:text-[40px]"
           >
             Frequently Asked{" "}
             <span className="text-gold-deep">Questions</span>

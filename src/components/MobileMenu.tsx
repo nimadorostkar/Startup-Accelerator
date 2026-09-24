@@ -66,7 +66,7 @@ export default function MobileMenu() {
             <Link
               href="#request"
               onClick={() => setOpen(false)}
-              className="font-display bg-gold-btn mt-8 inline-flex h-12 items-center justify-center rounded-full text-[11.5px] font-bold tracking-[0.12em] text-gold-ink uppercase"
+              className="font-display bg-gold-btn mt-8 inline-flex h-12 items-center justify-center rounded-full text-[12px] font-bold tracking-[0.12em] text-gold-ink uppercase"
             >
               Request Invitation
             </Link>

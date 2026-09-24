@@ -94,7 +94,7 @@ export default function Journey() {
     <section
       id="program"
       aria-labelledby="program-title"
-      className="relative isolate bg-cream px-4 pt-16 pb-20 sm:px-8 sm:pt-20 sm:pb-24 xl:pt-24 xl:pb-28"
+      className="relative isolate bg-cream px-4 py-20 sm:px-8 sm:py-24 xl:py-28"
     >
       <div className="mx-auto max-w-[1720px]">
         <div className="flex flex-col items-center text-center">
@@ -144,7 +144,7 @@ export default function Journey() {
                   <Link
                     href={`#stage-${id}`}
                     aria-label={`Learn more about ${title}`}
-                    className="mt-3.5 inline-flex items-center gap-2.5 text-[14.5px] font-semibold text-ink"
+                    className="mt-3.5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-ink"
                   >
                     <span className="bg-[linear-gradient(var(--gold),var(--gold))] bg-[length:100%_2px] bg-bottom bg-no-repeat pb-0.5">
                       Learn more

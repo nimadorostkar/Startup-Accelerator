@@ -2,13 +2,23 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight } from "../icons";
 
-type Variant = "primary" | "outline" | "outline-dark";
+type Variant = "primary" | "green" | "white" | "outline" | "outline-dark";
 
 const VARIANT: Record<Variant, { box: string; text: string; icon: string }> = {
   primary: {
     box: "btn-shine bg-gold-btn shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] hover:brightness-105",
     text: "text-gold-ink",
     icon: "text-gold-ink",
+  },
+  green: {
+    box: "bg-[linear-gradient(180deg,#569262,var(--green-bright))] shadow-[0_16px_38px_-16px_rgba(59,127,72,0.9)] hover:brightness-110",
+    text: "text-white",
+    icon: "text-white",
+  },
+  white: {
+    box: "bg-white shadow-[0_18px_40px_-18px_rgba(5,40,20,0.7)] hover:shadow-[0_22px_46px_-18px_rgba(5,40,20,0.85)]",
+    text: "text-green-deep",
+    icon: "text-green-deep",
   },
   outline: {
     box: "border border-line bg-white hover:border-gold",
@@ -53,7 +63,7 @@ export default function ButtonLink({
       >
         {children}
       </span>
-      {variant === "primary" && (
+      {(variant === "primary" || variant === "green" || variant === "white") && (
         <ArrowRight
           className={`h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:translate-x-1 ${v.icon}`}
         />

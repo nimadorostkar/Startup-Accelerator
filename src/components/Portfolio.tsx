@@ -11,18 +11,8 @@ export default function Portfolio() {
     <section
       id="accelerator"
       aria-labelledby="accelerator-title"
-      className="relative isolate overflow-hidden bg-cream px-4 pt-14 pb-12 sm:px-8 sm:pt-16 xl:pt-20 xl:pb-16"
+      className="relative isolate overflow-hidden bg-cream px-4 pt-4 pb-12 sm:px-8 sm:pt-6 xl:pb-16"
     >
-      {/* Soft gold light in the corners */}
-      <div
-        aria-hidden="true"
-        className="cta-glow absolute -top-48 -left-40 -z-10 h-[520px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.22),transparent)] blur-2xl [--glow-dir:-1]"
-      />
-      <div
-        aria-hidden="true"
-        className="cta-glow absolute -right-40 -bottom-56 -z-10 h-[520px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.2),transparent)] blur-2xl"
-      />
-
       <Reveal
         y={40}
         className="mx-auto max-w-[1720px] rounded-[28px] border border-white bg-white px-5 pt-12 pb-6 shadow-[0_2px_6px_rgba(0,15,22,0.03),0_40px_90px_-50px_rgba(0,15,22,0.25)] sm:px-8 xl:pt-14"
@@ -48,7 +38,7 @@ export default function Portfolio() {
         </div>
 
         {/* Featured founders panel */}
-        <div className="mt-10 grid gap-10 rounded-[22px] border border-line-soft bg-white px-5 py-8 shadow-[0_1px_2px_rgba(0,15,22,0.02),0_20px_50px_-40px_rgba(0,15,22,0.2)] sm:px-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-0 lg:py-9 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
+        <div className="mt-10 grid gap-10 rounded-[20px] border border-line-soft bg-white px-5 py-8 shadow-[0_1px_2px_rgba(0,15,22,0.02),0_20px_50px_-40px_rgba(0,15,22,0.2)] sm:px-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-0 lg:py-9 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
           <div className="flex flex-col justify-center lg:border-r lg:border-line-soft lg:pr-10 xl:pr-12">
             <Reveal delay={200} x={-24} y={0}>
               <Eyebrow>Featured founders</Eyebrow>

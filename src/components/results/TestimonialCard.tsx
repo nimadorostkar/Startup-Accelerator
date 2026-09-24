@@ -40,7 +40,7 @@ export default function TestimonialCard({
     >
       <QuoteMark className="pop absolute -top-[9px] left-5 h-4 w-6 origin-bottom-left text-gold" />
 
-      <blockquote className="text-[14.5px] leading-[1.5] text-ink-soft">
+      <blockquote className="text-[15px] leading-[1.5] text-ink-soft">
         <p>{t.quote}</p>
       </blockquote>
 
@@ -71,14 +71,14 @@ export default function TestimonialCard({
         </span>
 
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="block truncate text-[13.5px] font-bold text-ink">
+          <span className="block truncate text-[14px] font-bold text-ink">
             {t.name}
           </span>
-          <span className="block truncate text-[12.5px] text-muted">
+          <span className="block truncate text-[13px] text-muted">
             {t.role}
           </span>
           {t.cohort && (
-            <span className="type-wide mt-0.5 block text-[9.5px] font-semibold tracking-[0.07em] text-muted uppercase">
+            <span className="type-wide mt-0.5 block text-[10px] font-semibold tracking-[0.07em] text-muted uppercase">
               {t.cohort}
             </span>
           )}

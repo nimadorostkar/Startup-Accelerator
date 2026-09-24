@@ -122,7 +122,7 @@ export default function Hero() {
                   href="#request"
                   className="group inline-flex h-[48px] items-center justify-center gap-6 rounded-full bg-gold-btn px-8 shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105 lg:h-[2.93cqw] lg:min-h-[42px] lg:w-[15.31cqw] lg:gap-[0.9cqw] lg:px-0"
                 >
-                  <span className="font-display text-[11.5px] font-bold tracking-[0.04em] whitespace-nowrap text-gold-ink uppercase lg:text-[max(10px,0.8cqw)]">
+                  <span className="font-display text-[12px] font-bold tracking-[0.04em] whitespace-nowrap text-gold-ink uppercase lg:text-[max(10px,0.8cqw)]">
                     Request Invitation
                   </span>
                   <ArrowRight className="h-[18px] w-[18px] shrink-0 text-gold-ink transition-transform duration-200 group-hover:translate-x-1 lg:h-[1.1cqw] lg:w-[1.1cqw]" />
@@ -130,7 +130,7 @@ export default function Hero() {
 
                 <Link
                   href="#summit"
-                  className="group inline-flex items-center gap-3.5 text-[11.5px] lg:gap-[1.1cqw] lg:text-[max(10px,0.8cqw)]"
+                  className="group inline-flex items-center gap-3.5 text-[12px] lg:gap-[1.1cqw] lg:text-[max(10px,0.8cqw)]"
                 >
                   <span className="font-display text-[1em] font-bold tracking-[0.1em] whitespace-nowrap text-ink uppercase">
                     View Summit

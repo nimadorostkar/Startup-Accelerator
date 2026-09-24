@@ -6,7 +6,7 @@ export default function CtaBand() {
   return (
     <section
       aria-labelledby="cta-title"
-      className="relative isolate overflow-hidden bg-ink"
+      className="relative isolate overflow-hidden bg-navy"
     >
       {/* Faint grid, fading out toward the centre */}
       <div

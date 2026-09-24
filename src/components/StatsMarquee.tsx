@@ -1,13 +1,10 @@
 /* PLACEHOLDER values — replace with VC Summit's real numbers before launch.
-   ($420B+, 180+ and 65+ match the hero's stat bar.) */
+   (The hero already shows $420B+, 180+ firms and 65+ markets, so they are not repeated here.) */
 const STATS = [
   { value: "1,200+", label: "Startups Built" },
   { value: "3,500+", label: "Mentors & Investors" },
   { value: "25,000+", label: "Founders Trained" },
   { value: "120+", label: "Company Exits" },
-  { value: "$420B+", label: "Capital Represented" },
-  { value: "180+", label: "Investment Firms" },
-  { value: "65+", label: "Markets" },
   { value: "30%", label: "Founders from Emerging Markets" },
 ];
 
@@ -39,7 +36,7 @@ export default function StatsMarquee() {
   return (
     <section
       aria-label="VC Summit in numbers"
-      className="marquee relative overflow-hidden border-b border-line-soft bg-cream"
+      className="marquee relative overflow-hidden bg-cream"
     >
       <div className="[mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]">
         <div className="marquee-track flex w-max [--marquee-dur:44s]">

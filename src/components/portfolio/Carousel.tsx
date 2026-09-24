@@ -58,10 +58,7 @@ export default function Carousel({
 
   return (
     <div className="min-w-0">
-      <div className="flex items-center justify-between gap-4">
-        <p className="type-wide hidden text-[11px] font-semibold tracking-[0.26em] text-ink-soft uppercase sm:block">
-          {label}
-        </p>
+      <div className="flex items-center justify-end gap-4">
         <div className="ml-auto flex items-center gap-4">
           <div className="hidden items-center gap-1.5 sm:flex">
             {Array.from({ length: pages }, (_, i) => (

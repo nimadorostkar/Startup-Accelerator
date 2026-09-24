@@ -32,7 +32,7 @@ export default function Results() {
     <section
       id="results"
       aria-labelledby="results-title"
-      className="relative isolate overflow-hidden bg-white pt-20 pb-20 sm:pt-24 sm:pb-24 xl:pt-32 xl:pb-28"
+      className="relative isolate overflow-hidden bg-white py-20 sm:py-24 xl:py-28"
     >
       <Reveal
         y={0}

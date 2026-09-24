@@ -101,7 +101,7 @@ const SOCIAL = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-line-soft bg-cream px-4 pt-16 pb-8 sm:px-8 xl:pt-20">
+    <footer className="border-t border-line-soft bg-cream px-4 pt-20 pb-8 sm:px-8 xl:pt-24">
       <div className="mx-auto max-w-[1720px] lg:px-6">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,300px)_1fr] lg:gap-16 xl:grid-cols-[minmax(0,340px)_1fr] xl:gap-24">
           <div>
@@ -115,7 +115,7 @@ export default function Footer() {
                 SUMMIT
               </span>
             </Link>
-            <p className="mt-6 text-[13.5px] leading-[1.75] text-muted">
+            <p className="mt-6 text-[14px] leading-[1.75] text-muted">
               VC Summit brings together the world&rsquo;s top investors,
               founders and decision makers. Our accelerator helps ambitious
               founders from 65+ markets validate ideas, ship products and raise
@@ -128,7 +128,7 @@ export default function Footer() {
                   <a
                     href="#"
                     aria-label={s.label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white text-ink-soft transition-[color,border-color,translate] duration-200 hover:-translate-y-0.5 hover:border-gold hover:text-gold-deep"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-ink-soft transition-[color,border-color,translate] duration-200 hover:-translate-y-0.5 hover:border-gold hover:text-gold-deep"
                   >
                     {s.svg}
                   </a>
@@ -151,7 +151,7 @@ export default function Footer() {
                     <li key={l.label}>
                       <Link
                         href={l.href}
-                        className="text-[13.5px] text-muted transition-colors duration-200 hover:text-gold-deep"
+                        className="text-[14px] text-muted transition-colors duration-200 hover:text-gold-deep"
                       >
                         {l.label}
                       </Link>
@@ -163,7 +163,7 @@ export default function Footer() {
           </nav>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-t border-line-soft pt-7 text-[12.5px] text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-16 flex flex-col gap-4 border-t border-line-soft pt-7 text-[13px] text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>Copyright &copy; 2026 VC Summit. All rights reserved.</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {["Terms of Use", "Privacy Policy", "Code of Conduct"].map((t) => (
