@@ -139,7 +139,7 @@ export function TextArea({
       aside={
         <span
           aria-hidden="true"
-          className={`text-[12px] tabular-nums ${
+          className={`shrink-0 text-[12px] whitespace-nowrap tabular-nums ${
             length > max ? "text-danger" : short ? "text-gold-deep" : "text-muted"
           }`}
         >

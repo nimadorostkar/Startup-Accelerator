@@ -69,34 +69,40 @@ export const HEARD_FROM = [
 export const STATUSES = {
   draft: {
     label: "Draft",
+    headline: "Finish and submit",
     tone: "neutral",
     blurb: "Finish each section, then submit your application for review.",
   },
   submitted: {
     label: "Submitted",
+    headline: "In the review queue",
     tone: "gold",
     blurb:
       "Your application is in the queue. The team usually starts a review within 5 working days.",
   },
   in_review: {
     label: "In review",
+    headline: "Our team is reviewing your startup",
     tone: "gold",
     blurb:
       "Our team is validating your idea and analysing the market. We'll be in touch here.",
   },
   changes_requested: {
     label: "Changes requested",
+    headline: "The review team needs a bit more",
     tone: "warn",
     blurb:
       "The review team asked for more detail. Update your application and submit it again.",
   },
   accepted: {
     label: "Accepted",
+    headline: "You're in the cohort",
     tone: "green",
     blurb: "Congratulations — you're in. Watch your inbox for onboarding.",
   },
   declined: {
     label: "Not selected",
+    headline: "Not this cohort",
     tone: "neutral",
     blurb:
       "This cohort wasn't the right fit. You're welcome to apply again next cycle.",

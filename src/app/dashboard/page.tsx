@@ -83,23 +83,25 @@ export default async function OverviewPage() {
 
       <FeedbackNotice app={app} compact />
 
-      {/* Status */}
-      <section className="card flex flex-col gap-6 p-5 sm:flex-row sm:items-center sm:p-7">
-        <ProgressRing percent={p.percent} />
-        <div className="min-w-0 flex-1">
+      {/* Status — ring beside the heading on phones; ring | text | button from sm up */}
+      <section className="card grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4 p-5 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-x-6 sm:p-7">
+        <ProgressRing percent={p.percent} className="h-[84px] w-[84px] sm:row-span-2 sm:h-28 sm:w-28" />
+        <div className="min-w-0 sm:self-end">
           <StatusBadge status={app.status} />
-          <h2 className="mt-3 font-display text-[21px] leading-tight font-bold tracking-[-0.01em] text-ink">
+          <h2 className="mt-2.5 font-display text-[19px] leading-tight font-bold tracking-[-0.01em] text-ink sm:text-[21px]">
             {app.status === "draft"
               ? p.ready
                 ? "Ready to submit"
                 : `${p.missing.length} ${p.missing.length === 1 ? "answer" : "answers"} left before you can submit`
-              : STATUSES[app.status].label}
+              : STATUSES[app.status].headline}
           </h2>
-          <p className="mt-1.5 text-[14px] leading-[1.6] text-ink-soft/80">{statusBlurb(app.status)}</p>
         </div>
+        <p className="col-span-2 text-[14px] leading-[1.6] text-ink-soft/80 sm:col-span-1 sm:col-start-2 sm:self-start">
+          {statusBlurb(app.status)}
+        </p>
         <Link
           href={cta.href}
-          className="btn-shine group flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-full bg-gold-btn px-6 font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] hover:brightness-105"
+          className="btn-shine group col-span-2 flex h-12 items-center justify-center gap-2.5 rounded-full bg-gold-btn px-6 font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] hover:brightness-105 sm:col-span-1 sm:col-start-3 sm:row-span-2 sm:row-start-1"
         >
           {cta.label}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

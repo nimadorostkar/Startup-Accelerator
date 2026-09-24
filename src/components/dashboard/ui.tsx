@@ -102,11 +102,12 @@ export function NextStep({ href, label }: { href: string; label: string }) {
   );
 }
 
-export function ProgressRing({ percent, size = 112 }: { percent: number; size?: number }) {
+/** Size it with className (e.g. "h-28 w-28"). */
+export function ProgressRing({ percent, className = "h-28 w-28" }: { percent: number; className?: string }) {
   const r = 44;
   const c = 2 * Math.PI * r;
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
+    <div className={`@container relative shrink-0 ${className}`}>
       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="50" cy="50" r={r} fill="none" stroke="var(--line-soft)" strokeWidth="8" />
         <circle
@@ -123,8 +124,8 @@ export function ProgressRing({ percent, size = 112 }: { percent: number; size?: 
         />
       </svg>
       <span className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-[26px] leading-none font-extrabold text-ink tabular-nums">{percent}%</span>
-        <span className="mt-1 text-[11px] font-semibold text-muted">complete</span>
+        <span className="font-display text-[23cqw] leading-none font-extrabold text-ink tabular-nums">{percent}%</span>
+        <span className="mt-1 text-[max(9px,10cqw)] font-semibold text-muted">complete</span>
       </span>
     </div>
   );

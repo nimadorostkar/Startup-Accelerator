@@ -12,7 +12,7 @@ export default function StatusBadge({ status, className = "" }: { status: Status
   const { label, tone } = STATUSES[status];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] leading-none font-semibold ring-1 ring-inset ${TONES[tone]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] leading-none font-semibold whitespace-nowrap ring-1 ring-inset ${TONES[tone]} ${className}`}
     >
       <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />
       {label}

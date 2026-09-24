@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SidebarNav, TabNav, type NavItem } from "@/components/dashboard/DashboardNav";
+import FocusFromHash from "@/components/dashboard/FocusFromHash";
 import { ChatIcon, LogOutIcon } from "@/components/dashboard/icons";
 import { initials } from "@/components/dashboard/initials";
 import StatusBadge from "@/components/dashboard/StatusBadge";
@@ -39,7 +40,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         </Link>
 
         <div className="mt-7 rounded-2xl border border-line-soft bg-cream/70 p-4">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
             <span className="text-[12px] font-semibold text-muted">Application</span>
             <StatusBadge status={app.status} />
           </div>
@@ -136,6 +137,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         <main className="mx-auto w-full max-w-[1080px] px-4 pt-6 pb-16 sm:px-8 sm:pt-8 lg:px-10 lg:pt-10">
           {children}
         </main>
+        <FocusFromHash />
       </div>
     </div>
   );

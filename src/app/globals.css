@@ -170,13 +170,14 @@
     color: var(--ink-soft);
     cursor: not-allowed;
   }
-  /* Deep links from the review checklist land on the field and flag it */
-  .field-input:target {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 22%, transparent);
+  /* Deep links from the review checklist land on a field and flash it
+     (see components/dashboard/FocusFromHash.tsx) */
+  .field-input,
+  .field-choice {
+    scroll-margin-block: 140px;
   }
-  .field-choice:target {
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 22%, transparent);
+  [data-flash] {
+    animation: field-flash 2.4s ease-out;
   }
   textarea.field-input {
     height: auto;
@@ -369,6 +370,14 @@ html {
   );
   animation: shine 4.5s ease-in-out 1.8s infinite;
   pointer-events: none;
+}
+
+@keyframes field-flash {
+  0%,
+  45% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 30%, transparent);
+    border-color: var(--gold);
+  }
 }
 
 /* Mobile menu: panel fades in, links rise one after another */
