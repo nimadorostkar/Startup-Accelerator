@@ -13,6 +13,10 @@
   --gold-deep: #9c6a19; /* gold text on white — 4.7:1, WCAG AA */
   --muted: #6b7079;
   --line: #ece4d6;
+  --line-soft: #efebe3; /* card borders */
+  --cream: #fbf8f3; /* light section background */
+  --chip: #fdf6e9;
+  --chip-line: #efdcb8;
 }
 
 @theme inline {
@@ -27,6 +31,10 @@
   --color-gold-deep: var(--gold-deep);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-cream: var(--cream);
+  --color-chip: var(--chip);
+  --color-chip-line: var(--chip-line);
   --font-display: var(--font-archivo), system-ui, sans-serif;
   --font-heavy: var(--font-anybody), var(--font-archivo), system-ui, sans-serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
@@ -38,6 +46,75 @@
   font-weight: 900;
   font-variation-settings: "wdth" 137;
   -webkit-text-stroke: 0.012em currentColor;
+}
+
+/* ---------- Shared building blocks ---------- */
+@layer components {
+  /* Section headline — same scale everywhere (utilities can still override) */
+  .title-section {
+    font-family: var(--font-heavy);
+    font-weight: 900;
+    font-variation-settings: "wdth" 137;
+    -webkit-text-stroke: 0.012em currentColor;
+    font-size: 30px;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  @media (min-width: 640px) {
+    .title-section {
+      font-size: 40px;
+    }
+  }
+
+  /* Section intro paragraph */
+  .lead {
+    font-size: 15px;
+    line-height: 1.65;
+    color: color-mix(in srgb, var(--ink-soft) 75%, transparent);
+  }
+  @media (min-width: 640px) {
+    .lead {
+      font-size: 16px;
+    }
+  }
+
+  /* White card surface shared by founder, stage and testimonial cards */
+  .card {
+    border: 1px solid var(--line-soft);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow:
+      0 1px 2px rgba(0, 15, 22, 0.03),
+      0 16px 36px -22px rgba(0, 15, 22, 0.16);
+    transition:
+      translate 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card-lift:hover {
+    translate: 0 -6px;
+    border-color: color-mix(in srgb, var(--gold) 38%, transparent);
+    box-shadow:
+      0 2px 4px rgba(0, 15, 22, 0.04),
+      0 28px 54px -24px rgba(0, 15, 22, 0.24);
+  }
+
+  /* Small gold-tinted tag */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--chip-line);
+    background: var(--chip);
+    color: var(--gold-deep);
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 5px 10px;
+  }
 }
 
 /* Wide grotesque for tracked uppercase labels */
@@ -178,6 +255,106 @@ body {
   );
   animation: shine 4.5s ease-in-out 1.8s infinite;
   pointer-events: none;
+}
+
+/* ---------- Program stage art (components/journey) ---------- */
+
+/* Lines draw themselves in once the card reveals (paths use pathLength="1") */
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.3s cubic-bezier(0.65, 0, 0.35, 1);
+  transition-delay: calc(var(--d, 0ms) + 350ms + var(--dd, 0ms));
+}
+.js .reveal:not([data-inview]) .draw {
+  stroke-dashoffset: 1;
+}
+
+/* Nodes pop in one by one */
+.node-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: scale 0.6s cubic-bezier(0.34, 1.8, 0.64, 1);
+  transition-delay: calc(var(--d, 0ms) + 450ms + var(--i, 0) * 140ms);
+}
+.js .reveal:not([data-inview]) .node-pop {
+  scale: 0;
+}
+
+.art-fade {
+  transition: opacity 1s ease;
+  transition-delay: calc(var(--d, 0ms) + 300ms + var(--dd, 0ms));
+}
+.js .reveal:not([data-inview]) .art-fade {
+  opacity: 0;
+}
+
+/* Idle loops */
+@keyframes march {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+.march {
+  animation: march 1.8s linear infinite;
+}
+
+@keyframes flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -1.15;
+  }
+}
+.flow {
+  stroke-dasharray: 0.15 1;
+  animation: flow var(--dur, 2.4s) cubic-bezier(0.45, 0, 0.55, 1)
+    var(--del, 0s) infinite;
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+.spin-slow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin 40s linear infinite;
+}
+
+.reduce-only {
+  display: none;
+}
+
+/* CTA band: corner glows drift and breathe */
+@keyframes glow-drift {
+  from {
+    translate: 0 0;
+    opacity: 0.75;
+  }
+  to {
+    translate: calc(var(--glow-dir, 1) * -60px) 18px;
+    opacity: 1;
+  }
+}
+.cta-glow {
+  animation: glow-drift 7s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-only,
+  .flow {
+    display: none;
+  }
+  .reduce-only {
+    display: inline;
+  }
+  .march,
+  .spin-slow {
+    animation: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

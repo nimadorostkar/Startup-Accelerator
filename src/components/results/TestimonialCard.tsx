@@ -97,7 +97,7 @@ export default function TestimonialCard({
             <li
               key={o}
               style={{ "--i": i } as React.CSSProperties}
-              className="chip-in rounded-full border border-[#efdcb8] bg-[#fdf6e9] px-2 py-px text-[11.5px] font-medium text-gold-deep"
+              className="chip chip-in"
             >
               {o}
             </li>

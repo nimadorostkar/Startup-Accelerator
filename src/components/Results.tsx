@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
-import Link from "next/link";
 import Reveal from "./motion/Reveal";
-import { ArrowRight } from "./icons";
+import ButtonLink from "./ui/ButtonLink";
+import Eyebrow from "./ui/Eyebrow";
 import Globe from "./results/Globe";
 import TestimonialCard from "./results/TestimonialCard";
 import LogoMarquee from "./results/LogoMarquee";
@@ -32,11 +32,11 @@ export default function Results() {
     <section
       id="results"
       aria-labelledby="results-title"
-      className="relative isolate overflow-hidden bg-white pt-24 pb-16 sm:pt-28 sm:pb-20 xl:pt-36 xl:pb-24"
+      className="relative isolate overflow-hidden bg-white pt-20 pb-20 sm:pt-24 sm:pb-24 xl:pt-32 xl:pb-28"
     >
       <Reveal
         y={0}
-        className="pointer-events-none absolute top-16 left-1/2 -z-10 w-[640px] max-w-none -translate-x-1/2 xl:top-[112px] xl:w-[720px]"
+        className="pointer-events-none absolute top-16 left-1/2 -z-10 w-[640px] max-w-none -translate-x-1/2 xl:top-[96px] xl:w-[720px]"
       >
         <Globe className="h-auto w-full" />
       </Reveal>
@@ -45,23 +45,14 @@ export default function Results() {
         {/* Center: heading, logos, CTA (first on small screens) */}
         <div className="relative order-first mb-8 flex min-w-0 flex-col items-center text-center md:col-span-2 xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:mb-0 xl:self-center">
           {/* Eyebrow — same pattern as the hero */}
-          <Reveal
-            delay={0}
-            className="flex items-center gap-[0.85em] text-[11px]"
-          >
-            <span
-              aria-hidden="true"
-              className="h-[1em] w-[1em] shrink-0 rounded-full bg-gold"
-            />
-            <span className="font-display font-semibold tracking-[0.18em] text-gold-deep uppercase">
-              Alumni Stories
-            </span>
+          <Reveal delay={0}>
+            <Eyebrow>Alumni stories</Eyebrow>
           </Reveal>
 
           <Reveal delay={90}>
             <h2
               id="results-title"
-              className="type-heavy mt-4 text-[30px] leading-[0.95] tracking-[-0.01em] text-ink uppercase sm:text-[36px] xl:text-[30px] 2xl:text-[34px]"
+              className="title-section mt-4 xl:text-[30px] 2xl:text-[34px]"
             >
               From idea
               <br />
@@ -72,7 +63,7 @@ export default function Results() {
           </Reveal>
 
           <Reveal delay={180}>
-            <p className="mt-5 max-w-[400px] text-[15px] leading-[1.6] text-ink-soft/80">
+            <p className="lead mt-5 max-w-[400px]">
               Founders from 65+ markets and our 2026 AI cohorts on what the
               program changed.
             </p>
@@ -87,15 +78,9 @@ export default function Results() {
           </Reveal>
 
           <Reveal delay={560}>
-            <Link
-              href="#alumni"
-              className="group btn-shine mt-8 inline-flex h-12 items-center gap-4 rounded-full bg-gold-btn px-7 shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105"
-            >
-              <span className="font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase">
-                View more alumni
-              </span>
-              <ArrowRight className="h-[18px] w-[18px] shrink-0 text-gold-ink transition-transform duration-200 group-hover:translate-x-1" />
-            </Link>
+            <ButtonLink href="#alumni" className="mt-8">
+              View more alumni
+            </ButtonLink>
           </Reveal>
         </div>
 

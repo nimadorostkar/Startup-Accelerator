@@ -60,3 +60,22 @@ export function PlusMark({ className = "" }: { className?: string }) {
     </svg>
   );
 }
+
+export function CalendarIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+      <path d="M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01" strokeWidth="2.2" />
+    </svg>
+  );
+}
