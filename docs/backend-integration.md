@@ -93,7 +93,7 @@ type ResetRequestResult =
 
 ## Database schema
 
-Proposed PostgreSQL schema. The profile, startup and team answers are stored as JSONB. They are always read and written as whole sections, the questions will change over time, and the queue only filters on a few fields, which are exposed as generated columns.
+Proposed PostgreSQL schema. It hasn't been run against a database yet — do that first. The profile, startup and team answers are stored as JSONB. They are always read and written as whole sections, the questions will change over time, and the queue only filters on a few fields, which are exposed as generated columns.
 
 ```sql
 create extension if not exists citext;
