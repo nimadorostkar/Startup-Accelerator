@@ -41,7 +41,7 @@ export default function Navbar() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="font-display text-[max(9px,0.67cqw)] font-semibold tracking-[0.06em] [font-variation-settings:'wdth'_90] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-gold"
+                className="font-display text-[max(9px,0.67cqw)] font-semibold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-gold"
               >
                 {link.label}
               </Link>

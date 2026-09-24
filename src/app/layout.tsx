@@ -1,22 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Anybody, Archivo, DM_Sans } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
-
-// Expanded ultra-black display face — headline and stat numerals.
-const anybody = Anybody({
-  variable: "--font-anybody",
-  subsets: ["latin"],
-  axes: ["wdth"],
-  display: "swap",
-});
-
-// Wide grotesque for tracked uppercase UI labels.
-const archivo = Archivo({
-  variable: "--font-archivo",
-  subsets: ["latin"],
-  axes: ["wdth"],
-  display: "swap",
-});
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -56,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${anybody.variable} ${archivo.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${dmSans.variable} h-full antialiased`}
     >
       <head>
         {/* Enables scroll-reveal hidden states only when JS runs */}

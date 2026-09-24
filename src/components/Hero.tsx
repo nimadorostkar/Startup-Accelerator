@@ -1,7 +1,8 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./Navbar";
-import { ArrowRight, PlayIcon, PlusMark } from "./icons";
+import { ArrowRight, PlayIcon } from "./icons";
 
 // Column padding measured from the design (dividers sit at x=310 and x=554 of 1672).
 const STAT_PAD = [
@@ -103,14 +104,22 @@ export default function Hero() {
               </p>
 
               {/* Headline */}
-              <h1 className="type-heavy mt-2 text-[9.9vw] leading-[0.86] text-ink uppercase sm:text-[8vw] md:text-[6.6vw] lg:mt-[1.28cqw] lg:-ml-[0.3cqw] lg:text-[4.96cqw] lg:leading-[0.825]">
-                <span className="block tracking-[0.02em]">Ideas</span>
-                <span className="block tracking-[-0.002em]">Fund</span>
-                <span className="block tracking-[-0.037em]">Tomorrow.</span>
+              <h1 className="mt-5 font-sans text-[11.5vw] leading-[1] font-bold tracking-[-0.025em] text-ink uppercase sm:text-[8vw] md:text-[6.4vw] lg:mt-[1.9cqw] lg:-ml-[0.2cqw] lg:text-[4.7cqw] lg:leading-[1]">
+                <span className="hero-line">
+                  <span>Ideas fund</span>
+                </span>
+                <span className="hero-line">
+                  <span
+                    className="text-gold-deep"
+                    style={{ "--hd": "140ms" } as CSSProperties}
+                  >
+                    tomorrow.
+                  </span>
+                </span>
               </h1>
 
               {/* Sub copy */}
-              <p className="mt-5 text-[15px] leading-[1.4] text-ink-soft lg:mt-[0.42cqw] lg:text-[1.04cqw] lg:leading-[1.15] lg:tracking-[0.025em]">
+              <p className="mt-5 text-[15px] leading-[1.4] text-ink-soft lg:mt-[1.15cqw] lg:text-[1.04cqw] lg:leading-[1.15] lg:tracking-[0.025em]">
                 Exclusive summit for the world&rsquo;s
                 <br />
                 top investors, founders and decision makers.
@@ -142,17 +151,6 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* Corner mark */}
-            <div className="hidden shrink-0 items-start gap-[1.05cqw] text-[0.7cqw] lg:-mt-[2.64cqw] lg:mr-[1.2cqw] lg:flex">
-              <PlusMark className="h-[3.3em] w-[3.3em] shrink-0 text-ink/70" />
-              <p className="font-display text-[1em] leading-[1.4] font-medium tracking-[0.1em] text-ink-soft uppercase">
-                Global
-                <br />
-                Investment
-                <br />
-                Forum
-              </p>
-            </div>
           </div>
 
           {/* Lower bar */}

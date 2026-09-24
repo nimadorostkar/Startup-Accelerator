@@ -47,17 +47,15 @@
   --color-green: var(--green);
   --color-green-bright: var(--green-bright);
   --color-green-light: var(--green-light);
-  --font-display: var(--font-archivo), system-ui, sans-serif;
-  --font-heavy: var(--font-anybody), var(--font-archivo), system-ui, sans-serif;
+  --font-display: var(--font-dm-sans), system-ui, sans-serif;
+  --font-heavy: var(--font-dm-sans), system-ui, sans-serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
 }
 
 /* Expanded ultra-black: headline + stat numerals */
 .type-heavy {
   font-family: var(--font-heavy);
-  font-weight: 900;
-  font-variation-settings: "wdth" 137;
-  -webkit-text-stroke: 0.012em currentColor;
+  font-weight: 800;
 }
 
 /* ---------- Shared building blocks ---------- */
@@ -65,18 +63,16 @@
   /* Section headline — same scale everywhere (utilities can still override) */
   .title-section {
     font-family: var(--font-heavy);
-    font-weight: 900;
-    font-variation-settings: "wdth" 137;
-    -webkit-text-stroke: 0.012em currentColor;
-    font-size: 30px;
-    line-height: 0.95;
-    letter-spacing: -0.01em;
+    font-weight: 800;
+    font-size: 32px;
+    line-height: 1;
+    letter-spacing: -0.02em;
     text-transform: uppercase;
     color: var(--ink);
   }
   @media (min-width: 640px) {
     .title-section {
-      font-size: 40px;
+      font-size: 46px;
     }
   }
 
@@ -132,7 +128,6 @@
 /* Wide grotesque for tracked uppercase labels */
 .type-wide {
   font-family: var(--font-display);
-  font-variation-settings: "wdth" 112;
 }
 
 html,
@@ -267,6 +262,30 @@ body {
   );
   animation: shine 4.5s ease-in-out 1.8s infinite;
   pointer-events: none;
+}
+
+/* ---------- Hero headline ---------- */
+
+/* Each line eases up and fades in, staggered by --hd */
+.hero-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+.hero-line > span {
+  display: inline-block;
+  animation: hero-rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) var(--hd, 0ms) both;
+}
+@keyframes hero-rise {
+  from {
+    translate: 0 60%;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
 }
 
 /* ---------- Program stage art (components/journey) ---------- */
