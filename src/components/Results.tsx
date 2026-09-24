@@ -20,6 +20,9 @@ const RIGHT_STYLE = [
   { wrap: "xl:mt-[22px] xl:ml-auto xl:w-[90%]", tilt: "xl:-rotate-[0.6deg]" },
 ];
 
+/* Slide width + snap point inside the phone swipe row. */
+const CARD_MOBILE = "max-md:w-[86%] max-md:max-w-[360px] max-md:shrink-0 max-md:snap-start";
+
 /* Idle float: each card breathes on its own rhythm. */
 const float = (i: number, side: number) =>
   ({
@@ -32,7 +35,7 @@ export default function Results() {
     <section
       id="results"
       aria-labelledby="results-title"
-      className="relative isolate overflow-hidden bg-white py-20 sm:py-24 xl:py-28"
+      className="relative isolate overflow-hidden bg-white pt-20 pb-12 sm:py-24 xl:py-28"
     >
       <Reveal
         y={0}
@@ -84,36 +87,46 @@ export default function Results() {
           </Reveal>
         </div>
 
-        {/* Left column */}
-        <div className="flex min-w-0 flex-col gap-6 xl:col-start-1 xl:row-start-1 xl:gap-0 xl:pt-[52px]">
-          {LEFT.map((t, i) => (
-            <Reveal
-              key={t.name}
-              delay={120 + i * 150}
-              x={-56}
-              y={12}
-              className={`float ${LEFT_STYLE[i].wrap}`}
-              style={float(i, 0)}
-            >
-              <TestimonialCard t={t} className={LEFT_STYLE[i].tilt} />
-            </Reveal>
-          ))}
-        </div>
+        {/* Phones: both columns flow into one swipeable row. md and up: the wrapper
+            dissolves and the columns sit in the grid as before. */}
+        <div className="snap-row pt-3 pb-8 [--bleed:24px] md:contents">
+          {/* Left column */}
+          <div className="flex min-w-0 flex-col gap-6 max-md:contents xl:col-start-1 xl:row-start-1 xl:gap-0 xl:pt-[52px]">
+            {LEFT.map((t, i) => (
+              <Reveal
+                key={t.name}
+                delay={120 + i * 150}
+                x={-56}
+                y={12}
+                className={`float ${CARD_MOBILE} ${LEFT_STYLE[i].wrap}`}
+                style={float(i, 0)}
+              >
+                <TestimonialCard
+                  t={t}
+                  className={`max-md:h-full ${LEFT_STYLE[i].tilt}`}
+                />
+              </Reveal>
+            ))}
+          </div>
 
-        {/* Right column */}
-        <div className="flex min-w-0 flex-col gap-6 xl:col-start-3 xl:row-start-1 xl:gap-0">
-          {RIGHT.map((t, i) => (
-            <Reveal
-              key={t.name}
-              delay={195 + i * 150}
-              x={56}
-              y={12}
-              className={`float ${RIGHT_STYLE[i].wrap}`}
-              style={float(i, 1)}
-            >
-              <TestimonialCard t={t} className={RIGHT_STYLE[i].tilt} />
-            </Reveal>
-          ))}
+          {/* Right column */}
+          <div className="flex min-w-0 flex-col gap-6 max-md:contents xl:col-start-3 xl:row-start-1 xl:gap-0">
+            {RIGHT.map((t, i) => (
+              <Reveal
+                key={t.name}
+                delay={195 + i * 150}
+                x={56}
+                y={12}
+                className={`float ${CARD_MOBILE} ${RIGHT_STYLE[i].wrap}`}
+                style={float(i, 1)}
+              >
+                <TestimonialCard
+                  t={t}
+                  className={`max-md:h-full ${RIGHT_STYLE[i].tilt}`}
+                />
+              </Reveal>
+            ))}
+          </div>
         </div>
       </div>
     </section>

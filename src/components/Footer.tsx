@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PlusMark } from "./icons";
 import { VCMark } from "./Logo";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
@@ -101,9 +102,9 @@ const SOCIAL = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-line-soft bg-cream px-4 pt-20 pb-8 sm:px-8 xl:pt-24">
+    <footer className="border-t border-line-soft bg-cream px-4 pt-14 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-8 sm:pt-20 xl:pt-24">
       <div className="mx-auto max-w-[1720px] lg:px-6">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,300px)_1fr] lg:gap-16 xl:grid-cols-[minmax(0,340px)_1fr] xl:gap-24">
+        <div className="grid gap-10 sm:gap-12 lg:grid-cols-[minmax(0,300px)_1fr] lg:gap-16 xl:grid-cols-[minmax(0,340px)_1fr] xl:gap-24">
           <div>
             <Link
               href="/"
@@ -139,31 +140,55 @@ export default function Footer() {
 
           <nav
             aria-label="Footer"
-            className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-5"
+            className="border-t border-line-soft sm:grid sm:grid-cols-3 sm:gap-x-8 sm:gap-y-10 sm:border-0 lg:grid-cols-5"
           >
             {COLUMNS.map((col) => (
               <div key={col.title}>
-                <h3 className="type-wide text-[11px] font-semibold tracking-[0.16em] text-ink uppercase">
-                  {col.title}
-                </h3>
-                <ul className="mt-5 space-y-3">
-                  {col.links.map((l) => (
-                    <li key={l.label}>
-                      <Link
-                        href={l.href}
-                        className="text-[14px] text-muted transition-colors duration-200 hover:text-gold-deep"
-                      >
-                        {l.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {/* Phones: each group collapses to a single row */}
+                <details className="group border-b border-line-soft sm:hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between py-4 [&::-webkit-details-marker]:hidden">
+                    <span className="type-wide text-[11px] font-semibold tracking-[0.16em] text-ink uppercase">
+                      {col.title}
+                    </span>
+                    <PlusMark className="h-4 w-4 text-ink-soft transition-transform duration-300 group-open:rotate-45" />
+                  </summary>
+                  <ul className="grid grid-cols-2 gap-x-6 pb-4">
+                    {col.links.map((l) => (
+                      <li key={l.label}>
+                        <Link
+                          href={l.href}
+                          className="block py-2 text-[14px] text-muted transition-colors duration-200 active:text-gold-deep"
+                        >
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+
+                <div className="hidden sm:block">
+                  <h3 className="type-wide text-[11px] font-semibold tracking-[0.16em] text-ink uppercase">
+                    {col.title}
+                  </h3>
+                  <ul className="mt-5 space-y-3">
+                    {col.links.map((l) => (
+                      <li key={l.label}>
+                        <Link
+                          href={l.href}
+                          className="text-[14px] text-muted transition-colors duration-200 hover:text-gold-deep"
+                        >
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ))}
           </nav>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-t border-line-soft pt-7 text-[13px] text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col gap-4 pt-2 sm:mt-16 sm:border-t sm:border-line-soft sm:pt-7 text-[13px] text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>Copyright &copy; 2026 VC Summit. All rights reserved.</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {["Terms of Use", "Privacy Policy", "Code of Conduct"].map((t) => (

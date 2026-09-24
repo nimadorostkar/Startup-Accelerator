@@ -41,11 +41,11 @@ export default function JoinBanner() {
         <div className="max-w-[600px]">
           <Reveal x={-24} y={0}>
             <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-green-light uppercase">
-              Applications open
-              <span aria-hidden="true" className="mx-2.5">
+              <span className="block sm:inline">Applications open</span>
+              <span aria-hidden="true" className="mx-2.5 hidden sm:inline">
                 ·
               </span>
-              Silicon Valley Fall 2026
+              <span className="block sm:inline">Silicon Valley Fall 2026</span>
             </p>
           </Reveal>
           <Reveal x={-24} y={0} delay={90}>
@@ -69,7 +69,7 @@ export default function JoinBanner() {
             x={-24}
             y={0}
             delay={260}
-            className="mt-9 flex flex-wrap gap-3"
+            className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
           >
             <ButtonLink href="#request" variant="green">
               Apply now

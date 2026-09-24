@@ -5,6 +5,7 @@ import Hero from "@/components/Hero";
 import JoinBanner from "@/components/JoinBanner";
 import LetterBanner from "@/components/LetterBanner";
 import Journey from "@/components/Journey";
+import Navbar from "@/components/Navbar";
 import Portfolio from "@/components/Portfolio";
 import Results from "@/components/Results";
 import StatsMarquee from "@/components/StatsMarquee";
@@ -13,6 +14,7 @@ import UnicornCta from "@/components/UnicornCta";
 export default function Home() {
   return (
     <>
+      <Navbar />
       <main>
         <Hero />
         <StatsMarquee />

@@ -44,7 +44,7 @@ export default function CtaBand() {
           x={24}
           y={0}
           delay={220}
-          className="flex shrink-0 flex-wrap gap-3"
+          className="flex shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap"
         >
           <ButtonLink href="#request">Apply now</ButtonLink>
           <ButtonLink href="#summit" variant="outline-dark" icon={CalendarIcon}>

@@ -38,13 +38,13 @@ export default function Portfolio() {
         </div>
 
         {/* Featured founders panel */}
-        <div className="mt-10 grid gap-10 rounded-[20px] border border-line-soft bg-white px-5 py-8 shadow-[0_1px_2px_rgba(0,15,22,0.02),0_20px_50px_-40px_rgba(0,15,22,0.2)] sm:px-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-0 lg:py-9 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
+        <div className="mt-10 grid gap-8 border-t border-line-soft pt-10 sm:gap-10 sm:rounded-[20px] sm:border sm:bg-white sm:px-8 sm:py-8 sm:shadow-[0_1px_2px_rgba(0,15,22,0.02),0_20px_50px_-40px_rgba(0,15,22,0.2)] lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-0 lg:py-9 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
           <div className="flex flex-col justify-center lg:border-r lg:border-line-soft lg:pr-10 xl:pr-12">
             <Reveal delay={200} x={-24} y={0}>
               <Eyebrow>Featured founders</Eyebrow>
             </Reveal>
             <Reveal delay={280} x={-24} y={0}>
-              <h3 className="mt-5 font-display text-[34px] leading-[1.08] font-bold tracking-[-0.02em] text-ink sm:text-[42px] lg:text-[36px] xl:text-[44px]">
+              <h3 className="mt-5 font-display text-[30px] leading-[1.08] font-bold tracking-[-0.02em] text-ink sm:text-[42px] lg:text-[36px] xl:text-[44px]">
                 Meet Our Portfolio
                 <br />
                 <span className="text-gold-deep">Founders &amp; Startups</span>
@@ -61,7 +61,7 @@ export default function Portfolio() {
               delay={440}
               x={-24}
               y={0}
-              className="mt-8 flex flex-wrap gap-3"
+              className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
             >
               <ButtonLink href="#results">Our startups</ButtonLink>
               <ButtonLink href="#program" variant="outline" icon={UsersIcon}>
@@ -79,7 +79,7 @@ export default function Portfolio() {
                   delay={300 + i * 110}
                   x={48}
                   y={0}
-                  className="w-[212px] shrink-0 snap-start"
+                  className="w-[228px] shrink-0 snap-start sm:w-[212px]"
                 >
                   <FounderCard f={f} />
                 </Reveal>

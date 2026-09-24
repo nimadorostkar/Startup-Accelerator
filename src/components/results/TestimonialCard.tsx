@@ -36,7 +36,7 @@ export default function TestimonialCard({
 }) {
   return (
     <figure
-      className={`relative rounded-2xl border border-line bg-[linear-gradient(140deg,#fcf6ea_0%,#fff_42%)] px-5 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(0,15,22,0.04),0_14px_34px_-12px_rgba(0,15,22,0.14)] transition-[rotate,scale,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:border-gold/40 hover:shadow-[0_2px_4px_rgba(0,15,22,0.05),0_26px_50px_-16px_rgba(0,15,22,0.24)] xl:hover:rotate-0 ${className}`}
+      className={`relative flex flex-col rounded-2xl border border-line bg-[linear-gradient(140deg,#fcf6ea_0%,#fff_42%)] px-5 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(0,15,22,0.04),0_14px_34px_-12px_rgba(0,15,22,0.14)] transition-[rotate,scale,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:border-gold/40 hover:shadow-[0_2px_4px_rgba(0,15,22,0.05),0_26px_50px_-16px_rgba(0,15,22,0.24)] xl:hover:rotate-0 ${className}`}
     >
       <QuoteMark className="pop absolute -top-[9px] left-5 h-4 w-6 origin-bottom-left text-gold" />
 
@@ -44,7 +44,7 @@ export default function TestimonialCard({
         <p>{t.quote}</p>
       </blockquote>
 
-      <figcaption className="mt-3 flex items-center gap-x-2.5">
+      <figcaption className="mt-auto flex items-center gap-x-2.5 pt-3">
         <span className="relative shrink-0">
           {t.photo ? (
             <Image

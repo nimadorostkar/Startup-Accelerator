@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HeaderShell from "./HeaderShell";
 import MobileMenu from "./MobileMenu";
 import { NAV_LINKS } from "./nav-links";
 import { ChevronRight } from "./icons";
@@ -6,7 +7,7 @@ import { VCMark } from "./Logo";
 
 export default function Navbar() {
   return (
-    <header className="absolute inset-x-0 top-0 z-30">
+    <HeaderShell>
       {/* Hairline under the bar */}
       <div
         aria-hidden="true"
@@ -49,7 +50,13 @@ export default function Navbar() {
           </nav>
 
           {/* CTA + mobile menu */}
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3 lg:gap-[1.6cqw]">
+            <Link
+              href="/login"
+              className="font-display hidden text-[max(9px,0.67cqw)] font-semibold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-gold lg:block"
+            >
+              Sign in
+            </Link>
             <Link
               href="#request"
               className="group hidden h-[42px] items-center justify-center gap-3 rounded-full bg-gold-light px-6 shadow-[0_10px_28px_-12px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105 sm:inline-flex lg:h-[2.57cqw] lg:min-h-[36px] lg:w-[14.71cqw] lg:justify-between lg:px-[2.1cqw]"
@@ -59,10 +66,20 @@ export default function Navbar() {
               </span>
               <ChevronRight className="h-[1.15em] w-[1.15em] shrink-0 text-gold-ink transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
+            {/* Compact CTA once the hero's own button has scrolled away */}
+            <Link
+              href="#request"
+              className="invisible inline-flex h-10 translate-y-1 items-center gap-2 rounded-full bg-gold-btn px-4 opacity-0 shadow-[0_8px_20px_-10px_rgba(214,150,67,0.9)] transition-[opacity,translate,visibility] duration-300 group-data-[past-hero]/header:visible group-data-[past-hero]/header:translate-y-0 group-data-[past-hero]/header:opacity-100 group-has-[[aria-expanded=true]]/header:invisible! group-has-[[aria-expanded=true]]/header:opacity-0! sm:hidden"
+            >
+              <span className="font-display text-[11px] font-bold tracking-[0.06em] whitespace-nowrap text-gold-ink uppercase">
+                Apply
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-gold-ink" />
+            </Link>
             <MobileMenu />
           </div>
         </div>
       </div>
-    </header>
+    </HeaderShell>
   );
 }

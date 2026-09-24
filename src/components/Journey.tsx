@@ -94,7 +94,7 @@ export default function Journey() {
     <section
       id="program"
       aria-labelledby="program-title"
-      className="relative isolate bg-cream px-4 py-20 sm:px-8 sm:py-24 xl:py-28"
+      className="relative isolate bg-cream px-4 pt-16 pb-12 sm:px-8 sm:py-24 xl:py-28"
     >
       <div className="mx-auto max-w-[1720px]">
         <div className="flex flex-col items-center text-center">
@@ -116,9 +116,15 @@ export default function Journey() {
           </Reveal>
         </div>
 
-        <ol className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:mt-14 2xl:grid-cols-6 2xl:gap-4">
+        {/* Phones: one swipeable row (next stage peeks in). sm and up: the grid. */}
+        <ol className="snap-row mt-10 pt-1 pb-8 [--bleed:16px] sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:p-0 lg:grid-cols-3 xl:mt-14 2xl:grid-cols-6 2xl:gap-4">
           {STAGES.map(({ id, eyebrow, title, body, Icon, Art, iconMove }, i) => (
-            <Reveal key={id} as="li" delay={i * 90} className="flex">
+            <Reveal
+              key={id}
+              as="li"
+              delay={i * 90}
+              className="flex w-[84%] max-w-[340px] sm:w-auto sm:max-w-none"
+            >
               <TiltCard
                 id={`stage-${id}`}
                 className="card card-lift group relative flex w-full flex-col overflow-hidden"
@@ -127,6 +133,17 @@ export default function Journey() {
                   aria-hidden="true"
                   className="absolute top-0 left-7 h-[3px] 2xl:left-6 w-10 rounded-b-full bg-gold transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-16"
                 />
+
+                {/* Stage counter — orients the swipe row on phones */}
+                <span
+                  aria-hidden="true"
+                  className="absolute top-6 right-6 font-display text-[13px] font-bold tracking-[0.04em] text-ink/30 tabular-nums sm:hidden"
+                >
+                  <span className="text-gold-deep">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  &thinsp;/&thinsp;{String(STAGES.length).padStart(2, "0")}
+                </span>
 
                 <div className="relative px-7 pt-6 2xl:px-6">
                   <Icon

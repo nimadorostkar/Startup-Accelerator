@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Navbar from "./Navbar";
 import { ArrowRight, PlayIcon } from "./icons";
 
 // Column padding measured from the design (dividers sit at x=310 and x=554 of 1672).
@@ -71,7 +70,6 @@ export default function Hero() {
         />
       </svg>
 
-      <Navbar />
 
       {/* Content */}
       <div className="mx-auto h-full w-full max-w-[1920px] @container">
@@ -91,13 +89,13 @@ export default function Hero() {
               </div>
 
               {/* Kicker */}
-              <p className="type-wide mt-4 text-[10px] font-bold tracking-[0.2em] text-ink uppercase lg:mt-[0.87cqw] lg:text-[0.7cqw] lg:tracking-[0.25em]">
+              <p className="type-wide mt-4 text-[10px] font-bold tracking-[0.16em] text-ink uppercase sm:tracking-[0.2em] lg:mt-[0.87cqw] lg:text-[0.7cqw] lg:tracking-[0.25em]">
                 <span className="whitespace-nowrap">Private Capital</span>{" "}
-                <span aria-hidden="true" className="mx-[0.95em]">
+                <span aria-hidden="true" className="mx-[0.4em] sm:mx-[0.95em]">
                   /
                 </span>{" "}
                 <span className="whitespace-nowrap">Global Network</span>{" "}
-                <span aria-hidden="true" className="mx-[0.95em]">
+                <span aria-hidden="true" className="mx-[0.4em] sm:mx-[0.95em]">
                   /
                 </span>{" "}
                 2026
@@ -119,17 +117,16 @@ export default function Hero() {
               </h1>
 
               {/* Sub copy */}
-              <p className="mt-5 text-[15px] leading-[1.4] text-ink-soft lg:mt-[1.15cqw] lg:text-[1.04cqw] lg:leading-[1.15] lg:tracking-[0.025em]">
+              <p className="mt-5 text-[16px] leading-[1.45] text-ink-soft lg:mt-[1.15cqw] lg:text-[1.04cqw] lg:leading-[1.15] lg:tracking-[0.025em]">
                 Exclusive summit for the world&rsquo;s
-                <br />
-                top investors, founders and decision makers.
+                <br className="hidden sm:block" /> top investors, founders and decision makers.
               </p>
 
               {/* CTAs */}
-              <div className="mt-7 flex flex-wrap items-center gap-5 lg:mt-[1.54cqw] lg:gap-[2.4cqw]">
+              <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5 lg:mt-[1.54cqw] lg:gap-[2.4cqw]">
                 <Link
                   href="#request"
-                  className="group inline-flex h-[48px] items-center justify-center gap-6 rounded-full bg-gold-btn px-8 shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105 lg:h-[2.93cqw] lg:min-h-[42px] lg:w-[15.31cqw] lg:gap-[0.9cqw] lg:px-0"
+                  className="group inline-flex h-[54px] w-full items-center justify-center gap-6 rounded-full sm:h-[48px] sm:w-auto bg-gold-btn px-8 shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105 lg:h-[2.93cqw] lg:min-h-[42px] lg:w-[15.31cqw] lg:gap-[0.9cqw] lg:px-0"
                 >
                   <span className="font-display text-[12px] font-bold tracking-[0.04em] whitespace-nowrap text-gold-ink uppercase lg:text-[max(10px,0.8cqw)]">
                     Request Invitation
@@ -164,7 +161,7 @@ export default function Hero() {
                     i > 0 ? "border-l border-white/30 pl-3 sm:pl-5" : ""
                   } ${i < STATS.length - 1 ? "pr-3 sm:pr-5" : ""} ${STAT_PAD[i]}`}
                 >
-                  <dt className="font-display mt-[0.6em] text-[9px] leading-[1.35] font-semibold tracking-[0.08em] text-white/90 uppercase lg:mt-[0.5em] lg:text-[max(9px,0.78cqw)] lg:whitespace-nowrap">
+                  <dt className="font-display mt-[0.6em] text-[10px] leading-[1.35] font-semibold tracking-[0.08em] text-white/90 uppercase lg:mt-[0.5em] lg:text-[max(9px,0.78cqw)] lg:whitespace-nowrap">
                     {stat.label}
                   </dt>
                   <dd className="font-display text-[22px] leading-none font-extrabold tracking-[-0.01em] text-white sm:text-[27px] lg:text-[2.35cqw]">

@@ -20,7 +20,11 @@ export default function UnicornCta() {
       <div className="mx-auto max-w-[680px]">
         <Reveal>
           <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-green-light uppercase">
-            $420B+ capital represented · 180+ investment firms
+            <span className="block sm:inline">$420B+ capital represented</span>
+            <span aria-hidden="true" className="mx-2.5 hidden sm:inline">
+              ·
+            </span>
+            <span className="block sm:inline">180+ investment firms</span>
           </p>
         </Reveal>
         <Reveal delay={90}>
@@ -38,7 +42,11 @@ export default function UnicornCta() {
           </p>
         </Reveal>
         <Reveal delay={260}>
-          <ButtonLink href="#request" variant="white" className="mt-9">
+          <ButtonLink
+            href="#request"
+            variant="white"
+            className="mt-9 w-full max-w-[400px] sm:w-auto"
+          >
             Apply now
           </ButtonLink>
         </Reveal>

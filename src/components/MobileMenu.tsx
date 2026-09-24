@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { ArrowRight } from "./icons";
 import { NAV_LINKS } from "./nav-links";
 
 export default function MobileMenu() {
@@ -50,26 +51,63 @@ export default function MobileMenu() {
       {open && (
         <div
           id="mobile-nav"
-          className="fixed inset-x-0 top-[64px] bottom-0 z-40 bg-white/95 backdrop-blur-md"
+          className="menu-in fixed inset-x-0 top-[64px] bottom-0 z-40 overflow-y-auto overscroll-contain bg-white"
         >
-          <nav className="flex flex-col px-6 pt-6">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="font-display border-b border-ink/10 py-4 text-[13px] font-semibold tracking-[0.14em] text-ink uppercase"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link
-              href="#request"
-              onClick={() => setOpen(false)}
-              className="font-display bg-gold-btn mt-8 inline-flex h-12 items-center justify-center rounded-full text-[12px] font-bold tracking-[0.12em] text-gold-ink uppercase"
+          <nav
+            aria-label="Mobile"
+            className="flex min-h-full flex-col px-6 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+          >
+            <ul>
+              {NAV_LINKS.map((link, i) => (
+                <li
+                  key={link.label}
+                  className="menu-item"
+                  style={{ "--i": i } as CSSProperties}
+                >
+                  <Link
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className="group flex items-center justify-between border-b border-ink/10 py-4 font-display text-[22px] leading-tight font-bold tracking-[-0.01em] text-ink transition-colors duration-200 active:text-gold-deep"
+                  >
+                    {link.label}
+                    <ArrowRight className="h-5 w-5 shrink-0 text-gold-deep transition-transform duration-200 group-active:translate-x-1" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <div
+              className="menu-item mt-auto pt-8"
+              style={{ "--i": NAV_LINKS.length } as CSSProperties}
             >
-              Request Invitation
-            </Link>
+              <p className="flex items-center gap-2.5 text-[11px]">
+                <span
+                  aria-hidden="true"
+                  className="h-[1em] w-[1em] shrink-0 rounded-full bg-gold"
+                />
+                <span className="font-display font-semibold tracking-[0.18em] text-gold-deep uppercase">
+                  Registration open &middot; 2026
+                </span>
+              </p>
+              <Link
+                href="#request"
+                onClick={() => setOpen(false)}
+                className="mt-4 flex h-14 items-center justify-center gap-3 rounded-full bg-gold-btn font-display text-[13px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)]"
+              >
+                Request Invitation
+                <ArrowRight className="h-[18px] w-[18px] shrink-0" />
+              </Link>
+              <p className="mt-4 text-center text-[14px] text-muted">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="font-semibold text-gold-deep"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </nav>
         </div>
       )}

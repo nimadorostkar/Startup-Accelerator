@@ -51,7 +51,7 @@ export default function ButtonLink({
   return (
     <Link
       href={href}
-      className={`group inline-flex h-12 items-center gap-3 rounded-full px-7 transition-[filter,translate,border-color,background-color] duration-200 hover:-translate-y-0.5 ${v.box} ${className}`}
+      className={`group inline-flex h-12 items-center justify-center gap-3 rounded-full px-7 transition-[filter,translate,border-color,background-color] duration-200 hover:-translate-y-0.5 ${v.box} ${className}`}
     >
       {Icon && (
         <Icon

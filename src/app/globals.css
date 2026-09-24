@@ -15,6 +15,7 @@
   --line: #ece4d6;
   --line-soft: #efebe3; /* card borders */
   --cream: #fbf8f3; /* light section background */
+  --danger: #b3261e; /* error text on white — 7.3:1 */
   --chip: #fdf6e9;
   --chip-line: #efdcb8;
 
@@ -40,6 +41,7 @@
   --color-line: var(--line);
   --color-line-soft: var(--line-soft);
   --color-cream: var(--cream);
+  --color-danger: var(--danger);
   --color-chip: var(--chip);
   --color-chip-line: var(--chip-line);
   --color-navy: var(--navy);
@@ -102,12 +104,105 @@
       border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
       transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .card-lift:hover {
-    translate: 0 -6px;
-    border-color: color-mix(in srgb, var(--gold) 38%, transparent);
-    box-shadow:
-      0 2px 4px rgba(0, 15, 22, 0.04),
-      0 28px 54px -24px rgba(0, 15, 22, 0.24);
+  /* Hover-capable pointers only, so a tap on a phone doesn't leave the card stuck up */
+  @media (hover: hover) {
+    .card-lift:hover {
+      translate: 0 -6px;
+      border-color: color-mix(in srgb, var(--gold) 38%, transparent);
+      box-shadow:
+        0 2px 4px rgba(0, 15, 22, 0.04),
+        0 28px 54px -24px rgba(0, 15, 22, 0.24);
+    }
+  }
+
+  /* Edge-to-edge swipe row for small screens: cards snap, the next one peeks in.
+     Set --bleed to the parent's side padding so the row runs to the screen edge. */
+  .snap-row {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--bleed, 16px);
+    margin-inline: calc(var(--bleed, 16px) * -1);
+    padding-inline: var(--bleed, 16px);
+    scrollbar-width: none;
+  }
+  .snap-row::-webkit-scrollbar {
+    display: none;
+  }
+  .snap-row > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  /* Auth form controls */
+  .field-input {
+    width: 100%;
+    height: 52px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+    padding-inline: 14px;
+    /* 16px keeps iOS from zooming the page in on focus */
+    font-size: 16px;
+    color: var(--ink);
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+  .field-input::placeholder {
+    color: color-mix(in srgb, var(--muted) 70%, transparent);
+  }
+  .field-input:hover {
+    border-color: color-mix(in srgb, var(--ink) 25%, transparent);
+  }
+  .field-input:focus {
+    border-color: var(--gold);
+  }
+  .field-input[aria-invalid="true"] {
+    border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+    background: color-mix(in srgb, var(--danger) 3%, #fff);
+  }
+
+  .field-input:disabled {
+    background: var(--cream);
+    color: var(--ink-soft);
+    cursor: not-allowed;
+  }
+  /* Deep links from the review checklist land on the field and flag it */
+  .field-input:target {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 22%, transparent);
+  }
+  .field-choice:target {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 22%, transparent);
+  }
+  textarea.field-input {
+    height: auto;
+    min-height: 120px;
+    padding-block: 12px;
+    line-height: 1.55;
+    resize: vertical;
+  }
+  select.field-input {
+    appearance: none;
+    padding-right: 42px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7079' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px;
+  }
+  select.field-input:disabled {
+    background-color: var(--cream);
+  }
+
+  /* Native control, brand-tinted — stays accessible and consistent across browsers */
+  .field-check {
+    height: 18px;
+    width: 18px;
+    accent-color: var(--gold-btn);
+    cursor: pointer;
   }
 
   /* Small gold-tinted tag */
@@ -135,6 +230,18 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Keep anchor targets clear of the pinned mobile header */
+@media (max-width: 1023.98px) {
+  html {
+    scroll-padding-top: 76px;
+  }
 }
 
 ::selection {
@@ -262,6 +369,26 @@ body {
   );
   animation: shine 4.5s ease-in-out 1.8s infinite;
   pointer-events: none;
+}
+
+/* Mobile menu: panel fades in, links rise one after another */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes menu-item-in {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+.menu-in {
+  animation: menu-in 0.25s ease both;
+}
+.menu-item {
+  animation: menu-item-in 0.5s cubic-bezier(0.16, 1, 0.3, 1)
+    calc(60ms + var(--i, 0) * 40ms) both;
 }
 
 /* ---------- Hero headline ---------- */

@@ -57,23 +57,24 @@ export default function Carousel({
   };
 
   return (
-    <div className="min-w-0">
-      <div className="flex items-center justify-end gap-4">
-        <div className="ml-auto flex items-center gap-4">
-          <div className="hidden items-center gap-1.5 sm:flex">
-            {Array.from({ length: pages }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`Go to page ${i + 1}`}
-                aria-current={i === page}
-                onClick={() => goTo(i)}
-                className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ${
-                  i === page ? "w-5 bg-gold" : "w-1.5 bg-ink/15 hover:bg-ink/30"
-                }`}
-              />
-            ))}
-          </div>
+    <div className="flex min-w-0 flex-col">
+      {/* Controls sit above the track on larger screens, below it (thumb reach) on phones */}
+      <div className="flex items-center justify-between gap-4 max-sm:order-last sm:justify-end">
+        <div className="flex items-center gap-1.5">
+          {Array.from({ length: pages }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Go to page ${i + 1}`}
+              aria-current={i === page}
+              onClick={() => goTo(i)}
+              className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ${
+                i === page ? "w-5 bg-gold" : "w-1.5 bg-ink/15 hover:bg-ink/30"
+              }`}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             type="button"
             aria-label="Previous founders"
@@ -102,7 +103,7 @@ export default function Carousel({
         style={{
           maskImage: `linear-gradient(90deg, ${atStart ? "#000" : "transparent"}, #000 ${atStart ? "0%" : "6%"}, #000 ${atEnd ? "100%" : "88%"}, ${atEnd ? "#000" : "transparent"})`,
         }}
-        className="-mx-3 mt-6 flex snap-x snap-mandatory scroll-px-3 gap-4 overflow-x-auto px-3 pt-2 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pt-2 pb-5 sm:-mx-3 sm:mt-6 sm:scroll-px-3 sm:px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </ul>
