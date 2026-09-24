@@ -128,23 +128,23 @@ export default function Journey() {
                   className="absolute top-0 left-7 h-[3px] 2xl:left-6 w-10 rounded-b-full bg-gold transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-16"
                 />
 
-                <div className="relative px-7 pt-8 2xl:px-6">
+                <div className="relative px-7 pt-6 2xl:px-6">
                   <Icon
-                    className={`h-7 w-7 text-gold transition-[translate,rotate,scale] duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] ${iconMove}`}
+                    className={`h-6 w-6 text-gold transition-[translate,rotate,scale] duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] ${iconMove}`}
                   />
-                  <p className="type-wide mt-6 text-[11px] font-semibold tracking-[0.14em] text-muted uppercase">
+                  <p className="type-wide mt-4 text-[11px] font-semibold tracking-[0.14em] text-muted uppercase">
                     {eyebrow}
                   </p>
-                  <h3 className="mt-2 font-display text-[22px] leading-tight 2xl:text-[21px] font-bold tracking-[-0.01em] text-ink">
+                  <h3 className="mt-1.5 font-display text-[22px] leading-tight 2xl:text-[21px] font-bold tracking-[-0.01em] text-ink">
                     {title}
                   </h3>
-                  <p className="mt-3 sm:min-h-[4.8em] text-[15px] leading-[1.6] text-ink-soft/75">
+                  <p className="mt-2.5 sm:min-h-[4.2em] text-[15px] leading-[1.5] text-ink-soft/75">
                     {body}
                   </p>
                   <Link
                     href={`#stage-${id}`}
                     aria-label={`Learn more about ${title}`}
-                    className="mt-5 inline-flex items-center gap-2.5 text-[14.5px] font-semibold text-ink"
+                    className="mt-3.5 inline-flex items-center gap-2.5 text-[14.5px] font-semibold text-ink"
                   >
                     <span className="bg-[linear-gradient(var(--gold),var(--gold))] bg-[length:100%_2px] bg-bottom bg-no-repeat pb-0.5">
                       Learn more
@@ -153,7 +153,7 @@ export default function Journey() {
                   </Link>
                 </div>
 
-                <div className="relative mt-auto h-[170px] origin-bottom pt-6 transition-[scale] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]">
+                <div className="relative mt-auto h-[130px] origin-bottom pt-4 transition-[scale] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]">
                   <Art />
                 </div>
               </TiltCard>

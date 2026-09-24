@@ -3,6 +3,7 @@ import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import JoinBanner from "@/components/JoinBanner";
+import LetterBanner from "@/components/LetterBanner";
 import Journey from "@/components/Journey";
 import Portfolio from "@/components/Portfolio";
 import Results from "@/components/Results";
@@ -16,6 +17,7 @@ export default function Home() {
         <Hero />
         <StatsMarquee />
         <Portfolio />
+        <LetterBanner />
         <Journey />
         <CtaBand />
         <Results />
