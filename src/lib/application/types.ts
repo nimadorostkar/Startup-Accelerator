@@ -202,6 +202,54 @@ export type Application = {
   submittedAt: string | null;
 };
 
+/* ---------- Reviewer-only data ----------
+   Stored next to the application but never sent to the founder: the
+   founder-facing DAL strips `review` before anything renders. */
+
+export const SCORE_AREAS = [
+  { id: "problem", label: "Problem", hint: "Real, painful, frequent — and validated?" },
+  { id: "solution", label: "Solution", hint: "Clearly better than today's alternatives?" },
+  { id: "market", label: "Market", hint: "Big enough, with a credible bottom-up estimate?" },
+  { id: "team", label: "Team", hint: "Founder–market fit, commitment, complementary skills?" },
+  { id: "traction", label: "Traction", hint: "Evidence of pull for their stage?" },
+] as const;
+export type ScoreArea = (typeof SCORE_AREAS)[number]["id"];
+
+export const RECOMMENDATIONS = [
+  { id: "accept", label: "Accept" },
+  { id: "interview", label: "Interview" },
+  { id: "decline", label: "Decline" },
+] as const;
+export type Recommendation = (typeof RECOMMENDATIONS)[number]["id"];
+
+/** One reviewer's assessment. Each reviewer keeps their own. */
+export type Scorecard = {
+  reviewerId: string;
+  reviewerName: string;
+  scores: Partial<Record<ScoreArea, number>>; // 1–5
+  recommendation: Recommendation | "";
+  summary: string;
+  updatedAt: string;
+};
+
+export type InternalNote = {
+  id: string;
+  at: string;
+  authorId: string;
+  authorName: string;
+  body: string;
+};
+
+export type ReviewData = {
+  assigneeId: string | null;
+  assigneeName: string | null;
+  scorecards: Scorecard[];
+  notes: InternalNote[];
+};
+
+/** What the store holds. Founders only ever see the `Application` part. */
+export type StoredApplication = Application & { review?: ReviewData };
+
 /* ---------- Helpers ---------- */
 
 export function stageLabel(id: string) {

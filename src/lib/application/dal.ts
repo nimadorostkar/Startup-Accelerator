@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getCurrentUser, type SessionUser } from "@/lib/auth";
 import { findApplication, updateApplication } from "./store";
-import { EDITABLE, type Application, type TimelineEvent } from "./types";
+import { EDITABLE, type Application, type StoredApplication, type TimelineEvent } from "./types";
 
 /* Data access for the dashboard. Every read and write goes through here, and
    every function resolves the user from the session itself — callers never
@@ -95,15 +95,22 @@ function blankApplication(user: SessionUser): Application {
   };
 }
 
+/** Drops reviewer-only data (scores, internal notes, assignment). */
+function founderView(stored: StoredApplication): Application {
+  const app = { ...stored };
+  delete app.review;
+  return app;
+}
+
 /** The signed-in founder's application, created on first visit. */
 export const getMyApplication = cache(async (): Promise<Application> => {
   const user = await requireUser();
   const existing = await findApplication(user.id);
-  if (existing) return existing;
-  return updateApplication(user.id, () => blankApplication(user), (a) => a);
+  if (existing) return founderView(existing);
+  return founderView(await updateApplication(user.id, () => blankApplication(user), (a) => a));
 });
 
-export function canEdit(app: Application) {
+export function canEdit(app: Pick<Application, "status">) {
   return EDITABLE.includes(app.status);
 }
 
@@ -111,11 +118,12 @@ export function event(
   kind: TimelineEvent["kind"],
   title: string,
   body?: string,
+  by: TimelineEvent["by"] = "founder",
 ): TimelineEvent {
   return {
     id: crypto.randomUUID(),
     at: new Date().toISOString(),
-    by: "founder",
+    by,
     kind,
     title,
     ...(body ? { body } : {}),
@@ -129,23 +137,26 @@ export class LockedError extends Error {
 }
 
 /**
- * The one way to change an application. With `editable: true` (the default)
+ * The one way for a founder to change their application. The change function
+ * gets the founder's view (no reviewer data); reviewer data is carried over
+ * untouched. With `editable: true` (the default)
  * the change is refused while the review team has the application — the
  * forms hide their save buttons too, but this is the check that counts.
  */
 export async function mutateMyApplication(
   fn: (app: Application) => Application,
   { editable = true }: { editable?: boolean } = {},
-): Promise<Application> {
+): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  return updateApplication(
+  await updateApplication(
     user.id,
     () => blankApplication(user),
     (current) => {
       if (editable && !canEdit(current)) throw new LockedError();
-      return { ...fn(current), updatedAt: new Date().toISOString() };
+      const next = fn(founderView(current));
+      return { ...next, review: current.review, updatedAt: new Date().toISOString() };
     },
   );
 }

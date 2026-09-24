@@ -7,6 +7,7 @@ import { initials } from "@/components/dashboard/initials";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { VCMark } from "@/components/Logo";
 import { getMyApplication, requireUser } from "@/lib/application/dal";
+import { isReviewer } from "@/lib/auth";
 import { progress } from "@/lib/application/progress";
 import { signOut } from "./actions";
 
@@ -58,6 +59,17 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         </div>
 
         <div className="mt-auto flex flex-col gap-4">
+          {isReviewer(user) && (
+            <Link
+              href="/admin"
+              className="flex h-11 items-center justify-between rounded-xl px-3 text-[13px] font-semibold text-ink-soft ring-1 ring-line-soft hover:text-ink hover:ring-gold"
+            >
+              Review panel
+              <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-gold-deep uppercase">
+                Team
+              </span>
+            </Link>
+          )}
           <Link
             href="/#faq"
             className="group flex items-start gap-3 rounded-2xl bg-navy p-4 text-white transition-[filter] hover:brightness-110"

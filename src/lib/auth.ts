@@ -54,6 +54,23 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   return null;
 });
 
+/**
+ * Who can open the admin panel. Set REVIEWER_EMAILS to a comma-separated
+ * list of support-team addresses. This trusts the session's email, so it's
+ * only as safe as your sign-in: make sure addresses are verified before a
+ * session is issued. (Move this to a role column once you have a users table.)
+ * In development the stand-in user is a reviewer too, so both sides can be
+ * tried from one browser.
+ */
+export function isReviewer(user: SessionUser) {
+  const allowed = (process.env.REVIEWER_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  if (allowed.includes(user.email.toLowerCase())) return true;
+  return process.env.NODE_ENV !== "production" && user.id === DEV_USER.id;
+}
+
 export async function endSession() {
   // TODO: also revoke the session server-side, so a copied cookie stops working.
   (await cookies()).delete(SESSION_COOKIE);
