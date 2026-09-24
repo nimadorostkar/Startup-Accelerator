@@ -15,10 +15,10 @@ export const TABS: { id: Status | "all"; label: string }[] = [
 ];
 
 export const SORTS = [
-  { id: "waiting", label: "Waiting longest" },
-  { id: "recent", label: "Recently active" },
-  { id: "score", label: "Highest score" },
-  { id: "name", label: "Startup A–Z" },
+  { id: "waiting", label: "Longest wait" },
+  { id: "recent", label: "Most recent" },
+  { id: "score", label: "Top score" },
+  { id: "name", label: "Name A–Z" },
 ] as const;
 export type SortId = (typeof SORTS)[number]["id"];
 

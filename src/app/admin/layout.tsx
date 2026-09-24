@@ -6,10 +6,15 @@ import { initials } from "@/components/dashboard/initials";
 import { VCMark } from "@/components/Logo";
 import { requireReviewer } from "@/lib/application/review";
 
-export const metadata: Metadata = {
-  title: { template: "%s — VC Summit Review", default: "Review queue — VC Summit Review" },
-  robots: { index: false, follow: false },
-};
+/* Generated after the reviewer check, so a refused visitor's 404 doesn't
+   carry a title that reveals the panel exists. */
+export async function generateMetadata(): Promise<Metadata> {
+  await requireReviewer();
+  return {
+    title: { template: "%s — VC Summit Review", default: "Review queue — VC Summit Review" },
+    robots: { index: false, follow: false },
+  };
+}
 
 /* Shell for the support team's review panel. Access is checked here for the
    header, and again inside every page and action (see lib/application/review.ts). */

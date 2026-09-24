@@ -10,7 +10,7 @@ import {
   type ReviewState,
 } from "@/app/admin/actions";
 import { DECISIONS, type Decision } from "@/lib/application/decisions";
-import { RECOMMENDATIONS, SCORE_AREAS, type Scorecard } from "@/lib/application/types";
+import { RECOMMENDATIONS, SCORE_AREAS, type Scorecard, type Status } from "@/lib/application/types";
 import FormBanner from "../auth/FormBanner";
 import { CheckIcon } from "../icons";
 
@@ -42,9 +42,16 @@ const PROMPT: Record<Decision, string> = {
   reopen: "Optional note explaining why the decision is being revisited.",
 };
 
+/** What to say when there's no decision to make yet. */
+const WAITING: Partial<Record<Status, string>> = {
+  draft: "Not submitted yet — decisions unlock once the founder submits. You can still score it and leave notes.",
+  changes_requested:
+    "Waiting on the founder. They've been asked for changes; decisions unlock again when they resubmit.",
+};
+
 /* Pick a decision → write the founder-facing message → confirm. Two steps,
    because every decision is visible to the founder immediately. */
-export function DecisionPanel({ id, available }: { id: string; available: Decision[] }) {
+export function DecisionPanel({ id, status, available }: { id: string; status: Status; available: Decision[] }) {
   const [picked, setPicked] = useState<Decision | null>(null);
   const [state, formAction, pending] = useActionState<ReviewState, FormData>(async (prev, form) => {
     const result = await decide(id, prev, form);
@@ -54,9 +61,10 @@ export function DecisionPanel({ id, available }: { id: string; available: Decisi
 
   if (!available.length)
     return (
-      <p className="text-[14px] leading-[1.55] text-muted">
-        Not submitted yet — decisions unlock once the founder submits. You can still score it and leave notes.
-      </p>
+      <>
+        <p className="text-[14px] leading-[1.55] text-muted">{WAITING[status] ?? "No decision to make right now."}</p>
+        <Result state={state} />
+      </>
     );
 
   return (

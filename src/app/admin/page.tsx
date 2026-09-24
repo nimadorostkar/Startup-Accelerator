@@ -9,7 +9,11 @@ import { listForReview, requireReviewer, type QueueRow } from "@/lib/application
 import { formatMoney, stageLabel } from "@/lib/application/types";
 
 // The layout's title template only applies to child segments, not this page.
-export const metadata: Metadata = { title: { absolute: "Review queue — VC Summit Review" } };
+// Generated after the reviewer check, like the layout's.
+export async function generateMetadata(): Promise<Metadata> {
+  await requireReviewer();
+  return { title: { absolute: "Review queue — VC Summit Review" } };
+}
 
 const date = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 

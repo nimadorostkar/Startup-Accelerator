@@ -107,7 +107,7 @@ export default async function ApplicationReviewPage({ params }: PageProps<"/admi
         {/* Tools first on phones; the right-hand column from lg up */}
         <aside className="flex flex-col gap-5 lg:order-2">
           <Box title="Decision">
-            <DecisionPanel id={id} available={availableDecisions(app.status)} />
+            <DecisionPanel id={id} status={app.status} available={availableDecisions(app.status)} />
           </Box>
 
           <Box title="Reviewer">
