@@ -6,6 +6,7 @@ import JoinBanner from "@/components/JoinBanner";
 import Journey from "@/components/Journey";
 import Portfolio from "@/components/Portfolio";
 import Results from "@/components/Results";
+import StatsMarquee from "@/components/StatsMarquee";
 import UnicornCta from "@/components/UnicornCta";
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
     <>
       <main>
         <Hero />
+        <StatsMarquee />
         <Portfolio />
         <Journey />
         <CtaBand />

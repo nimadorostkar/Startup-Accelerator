@@ -21,18 +21,19 @@ export default function JoinBanner() {
       />
 
       {/* Photo on the right half, fading into the navy panel.
-          PLACEHOLDER — replace with your own cohort/event photo. */}
+          PLACEHOLDER — third-party photo showing Founder Institute branding;
+          replace with your own cohort photo (or confirm permission) before launch. */}
       <div className="absolute inset-y-0 right-0 -z-10 w-full md:w-1/2">
         <Image
-          src="/images/hero.webp"
-          alt=""
+          src="/images/cohort.webp"
+          alt="A cohort of founders and mentors posing together at a program event"
           fill
           sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover object-[80%_80%]"
+          className="object-cover object-[60%_center]"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-r from-[#0d1d2a] via-[#0d1d2a]/40 via-20% to-transparent to-45% max-md:bg-[#0d1d2a]/80"
+          className="absolute inset-0 bg-gradient-to-r from-[#0d1d2a] via-[#0d1d2a]/35 via-15% to-transparent to-35% max-md:bg-[#0d1d2a]/80"
         />
       </div>
 

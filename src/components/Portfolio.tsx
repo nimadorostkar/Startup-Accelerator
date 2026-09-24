@@ -11,7 +11,7 @@ export default function Portfolio() {
     <section
       id="accelerator"
       aria-labelledby="accelerator-title"
-      className="relative isolate overflow-hidden bg-cream px-4 pt-20 pb-12 sm:px-8 sm:pt-24 xl:pt-28 xl:pb-16"
+      className="relative isolate overflow-hidden bg-cream px-4 pt-14 pb-12 sm:px-8 sm:pt-16 xl:pt-20 xl:pb-16"
     >
       {/* Soft gold light in the corners */}
       <div
