@@ -18,6 +18,7 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | `/newsletter/[slug]` | One newsletter article | Everyone | Public |
 | `/events` | Events calendar | Everyone | Public |
 | `/events/[slug]` | One event, with registration | Everyone | Public |
+| `/demo-day` | Demo Day: the program roadmap and how the day works | Everyone | Public |
 | `/login` | Sign in | Founders, reviewers | Public |
 | `/register` | Create account | New founders | Public |
 | `/forgot-password` | Reset password request | Founders | Public |
@@ -52,13 +53,13 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 
 | Section | Content | Mobile behaviour |
 | --- | --- | --- |
-| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups, Events → `/events`, Demo Day, Newsletter → `/newsletter`), Sign in, Apply Now | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
+| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
 | Mobile menu | Same 6 links, Apply Now, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
 | Hero | Headline, sub-copy, Apply Now, View Summit, 3 stats, Watch the highlights | Full-width CTA, no forced line breaks |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
 | Accelerator / Portfolio | Intro, featured-founder carousel | Nested card removed; carousel runs edge to edge; controls below the cards |
 | Founder letter banner | Link to the founder's letter | Unchanged |
-| Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale | Swipe row with a 01 / 06 counter instead of six stacked cards |
+| Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); the Demo Day card's **Learn more** opens `/demo-day` | Swipe row with a 01 / 06 counter instead of six stacked cards |
 | CTA band | Apply now, Join a free event | Full-width stacked buttons |
 | Alumni stories | Logo marquee, 6 testimonials | Swipe row of equal-height cards |
 | Join banner | Apply now, Attend a free event | Full-width buttons, eyebrow on two clean lines |
@@ -167,6 +168,26 @@ Code: [src/app/events/[slug]/page.tsx](<../src/app/events/[slug]/page.tsx>). Unk
 - Success: **You're registered** (or **You're already registered** if that email, in any capitalisation, already signed up for this event), plus an **Add to Google Calendar** link with the event's times.
 - Same hidden `website` bot trap as the other forms.
 - Registrations are saved to `.data/registrations.json` by [src/lib/events.ts](../src/lib/events.ts). **No confirmation emails are sent yet.**
+
+## Demo Day (`/demo-day`)
+
+Code: [src/app/demo-day/page.tsx](../src/app/demo-day/page.tsx); the roadmap is [src/components/demo-day/Roadmap.tsx](../src/components/demo-day/Roadmap.tsx). The header uses its dark variant here (`<Navbar tone="dark" />`): white text over the dark hero, back to ink once the pinned mobile bar frosts or the menu opens.
+
+| Section | Content |
+| --- | --- |
+| Hero | Dark, over the landing photo: "Stage 05 of 06 · Weeks 9–10", **Demo Day**, Reserve a seat (next Demo Day event) and See the roadmap; a card for the next Demo Day with a live countdown; four format facts (20 startups, 5-minute pitches, 180+ firms, 1:1 meetings) |
+| The program roadmap | The six stages as a winding road (desktop) or a vertical timeline (phones). Each card shows the week range, title and focus; Demo Day is the highlighted milestone with a pulsing marker; the road after it is dashed ("after the program") |
+| What it is | Copy, the "what every founder walks in with" checklist, and the cohort photo with a 180+ firms badge |
+| Before, on the day, after | Three cards: the two-week run-up, the day's agenda (taken from the next Demo Day event, with a fallback), and what happens after |
+| Five minutes, five beats | The pitch structure as a proportional bar: Problem 60s, Product 60s, Traction 90s, Team 30s, The ask 60s |
+| The room | Six network figures on a dark band (the landing page's placeholder numbers) |
+| From Demo Day to funded | Three alumni testimonials and the five featured founders with headshots |
+| Two ways in | Come and watch (→ next Demo Day event) and Pitch at the next one (→ `/dashboard`) |
+| Questions | Five-question accordion, with a link to `/contact` |
+
+- "Next Demo Day" is the soonest upcoming event of type Demo Day in [events.ts](../src/components/events/events.ts). With none scheduled, the hero card and the "come and watch" card say a date is coming and point to the newsletter and events pages. The page rebuilds hourly (`revalidate = 3600`).
+- The run-up, walk-in checklist, pitch timings and FAQ answers describe the intended format and are **placeholders to confirm** before launch, like the rest of the site's copy.
+- Demo Day event pages link here ("How Demo Day works").
 
 ## Authentication pages
 
@@ -592,6 +613,7 @@ The full plan, in order, is in [backend-integration.md](backend-integration.md#b
 - [ ] Store contact messages in the database and email them to the team (`src/lib/contact.ts`).
 - [ ] Send newsletter sign-ups to an email provider (`src/lib/newsletter.ts`), and replace the placeholder articles.
 - [ ] Store event registrations in the database, email confirmations with joining details (`src/lib/events.ts`), and replace the placeholder events.
+- [ ] Confirm the Demo Day format copy (run-up, pitch timings, what happens after) on `/demo-day`.
 - [ ] Email founders when a reviewer decides (marked TODO in `src/app/admin/actions.ts`).
 - [ ] Make "reviewer" a role on the user record instead of an email list.
 - [ ] Point the Terms of Use and Privacy Policy links (register page and footer) at real pages.
