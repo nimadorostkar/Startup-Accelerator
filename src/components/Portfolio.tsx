@@ -63,7 +63,7 @@ export default function Portfolio() {
               y={0}
               className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
             >
-              <ButtonLink href="#results">Our startups</ButtonLink>
+              <ButtonLink href="/startups">Our startups</ButtonLink>
               <ButtonLink href="#program" variant="outline" icon={UsersIcon}>
                 Join the program
               </ButtonLink>

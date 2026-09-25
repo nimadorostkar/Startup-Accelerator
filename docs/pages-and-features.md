@@ -19,6 +19,8 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | `/events` | Events calendar | Everyone | Public |
 | `/events/[slug]` | One event, with registration | Everyone | Public |
 | `/demo-day` | Demo Day: the program roadmap and how the day works | Everyone | Public |
+| `/startups` | Startup directory: every submitted application, with search and filters | Everyone | Public |
+| `/startups/[slug]` | One startup's public page | Everyone | Public |
 | `/login` | Sign in | Founders, reviewers | Public |
 | `/register` | Create account | New founders | Public |
 | `/forgot-password` | Reset password request | Founders | Public |
@@ -53,11 +55,11 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 
 | Section | Content | Mobile behaviour |
 | --- | --- | --- |
-| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
+| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups → `/startups`, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
 | Mobile menu | Same 6 links, Apply Now, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
 | Hero | Headline, sub-copy, Apply Now, View Summit, 3 stats, Watch the highlights | Full-width CTA, no forced line breaks |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
-| Accelerator / Portfolio | Intro, featured-founder carousel | Nested card removed; carousel runs edge to edge; controls below the cards |
+| Accelerator / Portfolio | Intro, featured-founder carousel; **Our startups** opens `/startups` | Nested card removed; carousel runs edge to edge; controls below the cards |
 | Founder letter banner | Link to the founder's letter | Unchanged |
 | Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); the Demo Day card's **Learn more** opens `/demo-day` | Swipe row with a 01 / 06 counter instead of six stacked cards |
 | CTA band | Apply now, Join a free event | Full-width stacked buttons |
@@ -188,6 +190,36 @@ Code: [src/app/demo-day/page.tsx](../src/app/demo-day/page.tsx); the roadmap is 
 - "Next Demo Day" is the soonest upcoming event of type Demo Day in [events.ts](../src/components/events/events.ts). With none scheduled, the hero card and the "come and watch" card say a date is coming and point to the newsletter and events pages. The page rebuilds hourly (`revalidate = 3600`).
 - The run-up, walk-in checklist, pitch timings and FAQ answers describe the intended format and are **placeholders to confirm** before launch, like the rest of the site's copy.
 - Demo Day event pages link here ("How Demo Day works").
+
+## Startup directory (`/startups`)
+
+Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the application store: **every application that has been submitted appears; drafts never do.** Read on every request, so a new submission shows up immediately.
+
+| Section | Content |
+| --- | --- |
+| Intro | "The startups building with us" and four live counts: startups, in the cohort, industries, countries |
+| Filters | Search (name, one-liner, industry, country, stage, founder names), then Status, Industry and Stage lists with counts. A sidebar on desktop; horizontal chip rows on phones. Counts update as the other filters change |
+| Results | Result count, sort (Newest first, Cohort first, Name A–Z) and the card grid |
+| Card | Monogram (initials on a colour derived from the name, since applications carry no logo), name, public status, industry, one-liner, stage · country · founded, users and paying customers when given, founder initials and names, applied date |
+
+- Filters are instant (no page reload) and mirrored into the URL (`?q=&status=&industry=&stage=&sort=`), so a filtered view can be shared; the page also opens straight into a shared query.
+- **Public status** maps the review status: Accepted → **In the cohort**; In review and Changes requested → **In review**; Submitted → **Applied**; Not selected → **Not selected**. Defined in [src/lib/application/directory.ts](../src/lib/application/directory.ts).
+- Empty state when nothing matches, with a button that clears the filters; a different one when the store has no submitted applications yet.
+
+### Startup page (`/startups/[slug]`)
+
+Code: [src/app/startups/[slug]/page.tsx](<../src/app/startups/[slug]/page.tsx>). The slug is the startup's name (`greenloop`); a second startup with the same name gets `-2`. Unknown slugs return 404.
+
+- Header: back link, monogram, name, public status, one-liner, industry / stage / country chips, and links to the website, product demo and video when given.
+- Main column: active users and paying customers (when given), The problem, The solution, Who it's for, Market, Competition and edge, Headline metric, The team (why this team, worked together, hiring) and About the founder (title, location, years of experience, bio, LinkedIn). Sections with no content are left out.
+- Sidebar (sticky on desktop): facts (stage, industry, HQ, founded, business model, incorporated, team size, applied), founders and team (name, role, commitment, Founder badge, LinkedIn), and a Journey timeline.
+- "More startups": three others, same industry first.
+
+### What is public, and what is not
+
+The public view is an allowlist in [src/lib/application/public.ts](../src/lib/application/public.ts). **Shown:** startup name, one-liner, website, demo and video links, industry, stage, HQ, founded, incorporated, business model, problem, solution, target customer, market, competitors, advantage, headline metric, active users, paying customers, team names, roles, commitment and LinkedIn, why-us, worked-together, hiring needs, the applicant's name, title, location, bio, experience and LinkedIn, and the dated milestones (titles only). **Never shown:** emails, phones, equity, monthly revenue, growth rate, raised, seeking, use of funds, the deck link, how they heard of us, review messages, and all reviewer data. Widen or narrow it there, nowhere else.
+
+**Before launch, decide:** whether applicants must opt in to a public listing (the application form has no such consent today), and whether declined applications should be listed at all.
 
 ## Authentication pages
 
@@ -614,6 +646,7 @@ The full plan, in order, is in [backend-integration.md](backend-integration.md#b
 - [ ] Send newsletter sign-ups to an email provider (`src/lib/newsletter.ts`), and replace the placeholder articles.
 - [ ] Store event registrations in the database, email confirmations with joining details (`src/lib/events.ts`), and replace the placeholder events.
 - [ ] Confirm the Demo Day format copy (run-up, pitch timings, what happens after) on `/demo-day`.
+- [ ] Startup directory: add a "list my startup publicly" consent to the application, and decide whether declined applications are listed.
 - [ ] Email founders when a reviewer decides (marked TODO in `src/app/admin/actions.ts`).
 - [ ] Make "reviewer" a role on the user record instead of an email list.
 - [ ] Point the Terms of Use and Privacy Policy links (register page and footer) at real pages.
