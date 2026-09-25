@@ -24,7 +24,8 @@ export default function Hero() {
         src="/images/hero.webp"
         alt=""
         fill
-        priority
+        preload
+        quality={55}
         sizes="100vw"
         className="-z-10 object-cover object-[62%_center] lg:object-center"
       />
@@ -125,17 +126,17 @@ export default function Hero() {
               {/* CTAs */}
               <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5 lg:mt-[1.54cqw] lg:gap-[2.4cqw]">
                 <Link
-                  href="#request"
+                  href="/dashboard"
                   className="group inline-flex h-[54px] w-full items-center justify-center gap-6 rounded-full sm:h-[48px] sm:w-auto bg-gold-btn px-8 shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105 lg:h-[2.93cqw] lg:min-h-[42px] lg:w-[15.31cqw] lg:gap-[0.9cqw] lg:px-0"
                 >
                   <span className="font-display text-[12px] font-bold tracking-[0.04em] whitespace-nowrap text-gold-ink uppercase lg:text-[max(10px,0.8cqw)]">
-                    Request Invitation
+                    Apply Now
                   </span>
                   <ArrowRight className="h-[18px] w-[18px] shrink-0 text-gold-ink transition-transform duration-200 group-hover:translate-x-1 lg:h-[1.1cqw] lg:w-[1.1cqw]" />
                 </Link>
 
                 <Link
-                  href="#summit"
+                  href="/events"
                   className="group inline-flex items-center gap-3.5 text-[12px] lg:gap-[1.1cqw] lg:text-[max(10px,0.8cqw)]"
                 >
                   <span className="font-display text-[1em] font-bold tracking-[0.1em] whitespace-nowrap text-ink uppercase">

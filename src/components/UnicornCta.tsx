@@ -10,7 +10,7 @@ export default function UnicornCta() {
       {/* Soft light pools, same idea as the glows on the dark bands */}
       <div
         aria-hidden="true"
-        className="cta-glow absolute -top-40 left-1/4 -z-10 h-[360px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(170,235,170,0.14),transparent)] blur-2xl"
+        className="cta-glow absolute -top-40 left-1/4 -z-10 h-[360px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(170,235,170,0.14),transparent)]"
       />
       <div
         aria-hidden="true"
@@ -43,7 +43,7 @@ export default function UnicornCta() {
         </Reveal>
         <Reveal delay={260}>
           <ButtonLink
-            href="#request"
+            href="/dashboard"
             variant="white"
             className="mt-9 w-full max-w-[400px] sm:w-auto"
           >

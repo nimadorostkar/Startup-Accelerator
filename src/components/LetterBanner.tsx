@@ -19,7 +19,7 @@ export default function LetterBanner() {
           />
           <div
             aria-hidden="true"
-            className="cta-glow absolute -top-16 right-1/4 -z-10 h-[160px] w-[360px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.5),transparent)] blur-2xl"
+            className="cta-glow absolute -top-16 right-1/4 -z-10 h-[160px] w-[360px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.5),transparent)]"
           />
 
           <span

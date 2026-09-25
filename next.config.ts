@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
   images: {
     // Serve AVIF where supported, WebP otherwise.
     formats: ["image/avif", "image/webp"],
+    qualities: [55, 75],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

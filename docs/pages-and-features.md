@@ -12,6 +12,12 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | Route | Page | Who uses it | Access |
 | --- | --- | --- | --- |
 | `/` | Landing page | Everyone | Public |
+| `/about` | About VC Summit | Everyone | Public |
+| `/contact` | Contact form | Everyone | Public |
+| `/newsletter` | The Founder Brief: newsletter sign-up and article list | Everyone | Public |
+| `/newsletter/[slug]` | One newsletter article | Everyone | Public |
+| `/events` | Events calendar | Everyone | Public |
+| `/events/[slug]` | One event, with registration | Everyone | Public |
 | `/login` | Sign in | Founders, reviewers | Public |
 | `/register` | Create account | New founders | Public |
 | `/forgot-password` | Reset password request | Founders | Public |
@@ -40,15 +46,15 @@ A founder fills in the application in the dashboard and submits it; a reviewer p
 
 ## Landing page (`/`)
 
-The landing page kept its design on desktop; the mobile version was reworked, cutting its height at 375px from 10,365px to about 6,900px. The desktop header also has a **Sign in** link.
+The landing page kept its design on desktop; the mobile version was reworked, cutting its height at 375px from 10,365px to about 6,900px. The desktop header also has a **Sign in** link. Every **Apply now** button (header, mobile menu, hero, CTA bands, footer) links to `/dashboard`; signed-out visitors are sent to `/login`. **View Summit** (hero), **Join a free event** (CTA band), **Attend a free event** (join banner) and the footer's **Startup Events** link to `/events`.
 
 Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../src/components/).
 
 | Section | Content | Mobile behaviour |
 | --- | --- | --- |
-| Header | Logo, 7 section links, Sign in, Request Invitation | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
-| Mobile menu | 7 links, Request Invitation, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
-| Hero | Headline, sub-copy, Request Invitation, View Summit, 3 stats, Watch the highlights | Full-width CTA, no forced line breaks |
+| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups, Events → `/events`, Demo Day, Newsletter → `/newsletter`), Sign in, Apply Now | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
+| Mobile menu | Same 6 links, Apply Now, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
+| Hero | Headline, sub-copy, Apply Now, View Summit, 3 stats, Watch the highlights | Full-width CTA, no forced line breaks |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
 | Accelerator / Portfolio | Intro, featured-founder carousel | Nested card removed; carousel runs edge to edge; controls below the cards |
 | Founder letter banner | Link to the founder's letter | Unchanged |
@@ -61,6 +67,106 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 | Footer | About text, social links, 5 link groups, legal links | Link groups fold into tap-to-open sections |
 
 Across the page, hover effects only apply to devices with a mouse, so tapped cards don't stay lifted. Anchor links also stop clear of the pinned header.
+
+## About page (`/about`)
+
+Code: [src/app/about/page.tsx](../src/app/about/page.tsx). Same header and footer as the landing page; the intro band is [src/components/PageHeader.tsx](../src/components/PageHeader.tsx), shared with `/contact`.
+
+| Section | Content |
+| --- | --- |
+| Intro | "Where ideas meet capital" and a short description |
+| Mission | Mission copy beside 6 key numbers (the landing page's placeholder figures) |
+| How we work | 4 value cards: Founders first, Global by default, Structure that ships, Access to capital |
+| The program | The six stages as a numbered grid, reusing `STAGES` from `Journey.tsx`; links to `/#program` |
+| Closing CTA | The landing page's green "Turn your idea into the next unicorn" band (Apply now → `/dashboard`) |
+
+## Contact page (`/contact`)
+
+Code: [src/app/contact/page.tsx](../src/app/contact/page.tsx), form in [src/components/contact/ContactForm.tsx](../src/components/contact/ContactForm.tsx), server action in [src/app/contact/actions.ts](../src/app/contact/actions.ts).
+
+| Field | Form name | Type | Rule |
+| --- | --- | --- | --- |
+| Full name | `name` | text | Required; 2–80 characters |
+| Email | `email` | email | Required; valid format |
+| Company | `company` | text | Optional; max 120 characters |
+| What's this about? | `topic` | select | Required; one of: Applying to the program, Investing or partnerships, Mentoring, Press, Something else |
+| Message | `message` | textarea | Required; 10–2000 characters |
+
+- A hidden `website` field catches bots: if it's filled in, the form shows success but saves nothing.
+- On success the form is replaced by **Message sent** (with the sender's email) and a **Send another message** button.
+- Messages are saved to `.data/messages.json` by [src/lib/contact.ts](../src/lib/contact.ts) (through the shared [src/lib/json-file.ts](../src/lib/json-file.ts)). **Nobody is notified yet**; see [backend-integration.md](backend-integration.md#notifications).
+- Beside the form: shortcut cards to apply (`/dashboard`), the FAQ (`/#faq`) and sign in (`/login`).
+
+## Newsletter (`/newsletter`)
+
+"The Founder Brief". Code: [src/app/newsletter/page.tsx](../src/app/newsletter/page.tsx), pieces in [src/components/newsletter/](../src/components/newsletter/).
+
+| Section | Content |
+| --- | --- |
+| Hero | Headline, sign-up form, three promises (every other Thursday, 5-minute read, free), and a mock inbox card previewing the latest issue |
+| Featured | The newest article as a large card |
+| Latest issues | Topic chips (All, Fundraising, Building, AI, Founder Stories, Program News) over a 3-column grid. "All" leaves out the featured article; a topic shows every article in it |
+| Sign-up band | Dark band with a second sign-up form |
+
+- **Articles are placeholders**, written to show the layout, in [posts.ts](../src/components/newsletter/posts.ts). Replace them with real issues (or a CMS) before launch.
+- **Covers are drawn in SVG** ([Cover.tsx](../src/components/newsletter/Cover.tsx)): one motif and colour scheme per topic plus the issue number, so the pages load no images.
+- Only the topic filter and the sign-up forms run JavaScript; the cards are server-rendered. The filter is the shared [src/components/ui/FilterList.tsx](../src/components/ui/FilterList.tsx), also used by `/events`.
+
+### Article page (`/newsletter/[slug]`)
+
+Code: [src/app/newsletter/[slug]/page.tsx](<../src/app/newsletter/[slug]/page.tsx>). All articles are built as static pages; unknown slugs return 404.
+
+- Header: back link, topic, issue number, date, read time, title, summary, author.
+- Large cover, then the article (paragraphs, headings, lists, pull quotes) at a comfortable reading width.
+- A thin gold reading-progress bar at the top, driven by CSS alone (browsers without scroll-driven animations simply don't show it).
+- Sign-up card after the article, then "More from the Brief": up to 3 articles, same topic first.
+
+### Sign-up form
+
+| Field | Form name | Rule |
+| --- | --- | --- |
+| Email | `email` | Required; valid format |
+
+- Server action: [src/app/newsletter/actions.ts](../src/app/newsletter/actions.ts). Each form also sends a hidden `source` (`newsletter-hero`, `newsletter-band`, `article:<slug>`), saved with the address.
+- Success: **"You're in. The next issue goes to …"**. An address already on the list (any capitalisation) gets **"… is already on the list."**
+- Same hidden `website` bot trap as the contact form.
+- Subscribers are saved to `.data/subscribers.json` by [src/lib/newsletter.ts](../src/lib/newsletter.ts). **No emails are sent yet.**
+
+## Events (`/events`)
+
+Code: [src/app/events/page.tsx](../src/app/events/page.tsx), pieces in [src/components/events/](../src/components/events/).
+
+| Section | Content |
+| --- | --- |
+| Hero | "Meet the network in person", Browse events button, three facts (free, online and in person, number of cities this season) and a dark **Featured** card: the next Demo Day (or the next event if none), with a live countdown |
+| Upcoming events | Type chips (All, Demo Day, Workshop, Office Hours, Networking, Info Session) over a list of ticket-style cards: date stub, type, place (Online or city), time in the event's own time zone, summary, Register |
+| Recently | The 3 most recent past events, marked Ended |
+| Sign-up band | Newsletter sign-up (`source: events`), linking to `/newsletter` |
+
+- **Events are placeholders** in [events.ts](../src/components/events/events.ts). Replace them with the real calendar before launch. Venues read "shared with registered guests".
+- An event moves from Upcoming to Recently once its end time passes. The pages rebuild at most hourly (`revalidate = 3600`).
+- Times are shown in each event's own time zone (e.g. `4:00 PM – 8:00 PM PDT`).
+- The countdown shows dashes until the page loads in the browser, then ticks every second. It is hidden from screen readers because the date is always shown as text.
+
+### Event page (`/events/[slug]`)
+
+Code: [src/app/events/[slug]/page.tsx](<../src/app/events/[slug]/page.tsx>). Unknown slugs return 404.
+
+- Header: back link, type, place, title, summary (and an **Ended** badge for past events).
+- Three fact cards (date and time, place, capacity), About, What you'll get, an Agenda timeline and Who it's for.
+- Registration card beside the details (above them on phones), sticky on desktop: date, countdown and the form. Past events show **This event has ended** and a link to upcoming events instead.
+- "More events": up to 3 other upcoming events.
+
+| Field | Form name | Rule |
+| --- | --- | --- |
+| Full name | `name` | Required; 2–80 characters |
+| Email | `email` | Required; valid format |
+| Company | `company` | Optional; max 120 characters |
+
+- Server action: [src/app/events/actions.ts](../src/app/events/actions.ts). It rejects unknown events and events that have ended, whatever the page shows.
+- Success: **You're registered** (or **You're already registered** if that email, in any capitalisation, already signed up for this event), plus an **Add to Google Calendar** link with the event's times.
+- Same hidden `website` bot trap as the other forms.
+- Registrations are saved to `.data/registrations.json` by [src/lib/events.ts](../src/lib/events.ts). **No confirmation emails are sent yet.**
 
 ## Authentication pages
 
@@ -483,6 +589,9 @@ The full plan, in order, is in [backend-integration.md](backend-integration.md#b
 - [ ] Google sign-in callback at `/api/auth/callback/google`, with a random `state` value checked against a cookie.
 - [ ] Password reset: email the link, and build the `/reset-password?token=…` page to set a new password.
 - [ ] Move storage from `.data/applications.json` to a database via `src/lib/application/store.ts`.
+- [ ] Store contact messages in the database and email them to the team (`src/lib/contact.ts`).
+- [ ] Send newsletter sign-ups to an email provider (`src/lib/newsletter.ts`), and replace the placeholder articles.
+- [ ] Store event registrations in the database, email confirmations with joining details (`src/lib/events.ts`), and replace the placeholder events.
 - [ ] Email founders when a reviewer decides (marked TODO in `src/app/admin/actions.ts`).
 - [ ] Make "reviewer" a role on the user record instead of an email list.
 - [ ] Point the Terms of Use and Privacy Policy links (register page and footer) at real pages.

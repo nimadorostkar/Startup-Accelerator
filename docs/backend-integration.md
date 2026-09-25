@@ -2,7 +2,7 @@
 
 As of 2026-09-24. How to replace the two stand-ins (sign-in and file storage) with a real backend, without changing any page.
 
-The frontend is finished and talks to the backend through **two files only**: [src/lib/auth.ts](../src/lib/auth.ts) (accounts and sessions) and [src/lib/application/store.ts](../src/lib/application/store.ts) (data). Implement their contracts below and every page, form, validation rule and permission check keeps working. What each page does is in [pages-and-features.md](pages-and-features.md).
+The frontend is finished and talks to the backend through **two files only**: [src/lib/auth.ts](../src/lib/auth.ts) (accounts and sessions) and [src/lib/application/store.ts](../src/lib/application/store.ts) (data). Three small lists have their own swap points: contact messages in [src/lib/contact.ts](../src/lib/contact.ts), newsletter subscribers in [src/lib/newsletter.ts](../src/lib/newsletter.ts) and event registrations in [src/lib/events.ts](../src/lib/events.ts) (see *Notifications*). Both save through [src/lib/json-file.ts](../src/lib/json-file.ts) for now. Implement their contracts below and every page, form, validation rule and permission check keeps working. What each page does is in [pages-and-features.md](pages-and-features.md).
 
 ## Architecture today
 
@@ -285,6 +285,9 @@ None are sent yet. The decision hook is marked `TODO` in `src/app/admin/actions.
 | Request changes | Founder | The reviewer's message, and a link to `/dashboard` |
 | Accept / Decline | Founder | The decision and message |
 | Waiting 5+ days | Reviewers | Daily digest of overdue applications |
+| Contact form sent (`/contact`) | Support team | The message, topic and sender's email to reply to. Until then messages only land in `.data/messages.json`; replace `saveContactMessage` in [src/lib/contact.ts](../src/lib/contact.ts) with a database insert plus this email |
+| Newsletter sign-up (`/newsletter`, article pages) | Subscriber | Welcome email / double opt-in. Until then addresses only land in `.data/subscribers.json`; replace `addSubscriber` in [src/lib/newsletter.ts](../src/lib/newsletter.ts) with your email provider's add-contact call. It must keep returning `false` for an address already on the list |
+| Event registration (`/events/[slug]`) | Guest | Confirmation with joining details (venue address or online link) and a calendar invite; a reminder the day before. Until then registrations only land in `.data/registrations.json`; replace `addRegistration` in [src/lib/events.ts](../src/lib/events.ts). It must keep returning `false` when that email is already registered for the event |
 
 ## REST API (only if you build a separate backend service)
 

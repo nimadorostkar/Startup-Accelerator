@@ -38,7 +38,7 @@ export default function Portfolio() {
         </div>
 
         {/* Featured founders panel */}
-        <div className="mt-10 grid gap-8 border-t border-line-soft pt-10 sm:gap-10 sm:rounded-[20px] sm:border sm:bg-white sm:px-8 sm:py-8 sm:shadow-[0_1px_2px_rgba(0,15,22,0.02),0_20px_50px_-40px_rgba(0,15,22,0.2)] lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-0 lg:py-9 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
+        <div id="startups" className="mt-10 grid gap-8 border-t border-line-soft pt-10 sm:gap-10 sm:rounded-[20px] sm:border sm:bg-white sm:px-8 sm:py-8 sm:shadow-[0_1px_2px_rgba(0,15,22,0.02),0_20px_50px_-40px_rgba(0,15,22,0.2)] lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-0 lg:py-9 xl:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
           <div className="flex flex-col justify-center lg:border-r lg:border-line-soft lg:pr-10 xl:pr-12">
             <Reveal delay={200} x={-24} y={0}>
               <Eyebrow>Featured founders</Eyebrow>

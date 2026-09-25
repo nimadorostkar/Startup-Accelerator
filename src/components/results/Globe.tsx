@@ -16,6 +16,7 @@ const TILT = (14 * Math.PI) / 180; // north pole tipped toward the viewer
 const START_SPIN = (11 * Math.PI) / 180;
 const SPEED = (5 * Math.PI) / 180; // radians per second (one turn ≈ 72s)
 const deg = Math.PI / 180;
+const FRAME_MS = 50;
 
 // Program cities (lat, lon)
 const CITIES: [number, number][] = [
@@ -40,7 +41,7 @@ function project(lat: number, lon: number, spin: number) {
 }
 
 function curve(point: (t: number) => { X: number; Y: number; z: number }) {
-  const steps = 120;
+  const steps = 64;
   let d = "";
   let pen = false;
   for (let i = 0; i <= steps; i++) {
@@ -87,6 +88,9 @@ export default function Globe({ className = "" }: { className?: string }) {
     let raf = 0;
 
     const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      // The spin is slow, so ~20fps looks identical and costs a third of the work
+      if (last && now - last < FRAME_MS) return;
       if (last) spin += ((now - last) / 1000) * SPEED;
       last = now;
       const f = frame(spin);
@@ -100,7 +104,6 @@ export default function Globe({ className = "" }: { className?: string }) {
         );
         g.style.opacity = String(p.o);
       });
-      raf = requestAnimationFrame(tick);
     };
 
     const io = new IntersectionObserver(([entry]) => {

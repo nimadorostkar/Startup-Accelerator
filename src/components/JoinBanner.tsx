@@ -17,7 +17,7 @@ export default function JoinBanner() {
       {/* Green glow, bottom-left */}
       <div
         aria-hidden="true"
-        className="cta-glow absolute -bottom-44 -left-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.55),transparent)] blur-2xl [--glow-dir:-1]"
+        className="cta-glow absolute -bottom-44 -left-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.55),transparent)] [--glow-dir:-1]"
       />
 
       {/* Photo on the right half, fading into the navy panel.
@@ -28,6 +28,7 @@ export default function JoinBanner() {
           src="/images/cohort.webp"
           alt="A cohort of founders and mentors posing together at a program event"
           fill
+          quality={55}
           sizes="(min-width: 768px) 50vw, 100vw"
           className="object-cover object-[60%_center]"
         />
@@ -71,10 +72,10 @@ export default function JoinBanner() {
             delay={260}
             className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
           >
-            <ButtonLink href="#request" variant="green">
+            <ButtonLink href="/dashboard" variant="green">
               Apply now
             </ButtonLink>
-            <ButtonLink href="#summit" variant="outline-dark" icon={CalendarIcon}>
+            <ButtonLink href="/events" variant="outline-dark" icon={CalendarIcon}>
               Attend a free event
             </ButtonLink>
           </Reveal>

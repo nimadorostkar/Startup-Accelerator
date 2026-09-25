@@ -5,7 +5,11 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { ArrowRight } from "./icons";
 import { NAV_LINKS } from "./nav-links";
 
-export default function MobileMenu() {
+export default function MobileMenu({
+  buttonClassName = "text-ink",
+}: {
+  buttonClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -27,7 +31,7 @@ export default function MobileMenu() {
         aria-expanded={open}
         aria-controls="mobile-nav"
         aria-label={open ? "Close menu" : "Open menu"}
-        className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/20 text-ink transition-colors duration-200 hover:border-ink/50"
+        className={`flex h-11 w-11 items-center justify-center rounded-full border border-current/25 transition-colors duration-200 hover:border-current/60 ${buttonClassName}`}
       >
         <span className="relative block h-3.5 w-5">
           <span
@@ -90,11 +94,11 @@ export default function MobileMenu() {
                 </span>
               </p>
               <Link
-                href="#request"
+                href="/dashboard"
                 onClick={() => setOpen(false)}
                 className="mt-4 flex h-14 items-center justify-center gap-3 rounded-full bg-gold-btn font-display text-[13px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)]"
               >
-                Request Invitation
+                Apply Now
                 <ArrowRight className="h-[18px] w-[18px] shrink-0" />
               </Link>
               <p className="mt-4 text-center text-[14px] text-muted">
