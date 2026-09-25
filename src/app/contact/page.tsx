@@ -54,7 +54,7 @@ export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main id="main">
         <PageHeader
           eyebrow="Contact"
           title={

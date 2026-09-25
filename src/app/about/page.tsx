@@ -58,7 +58,7 @@ export default function AboutPage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main id="main">
         <PageHeader
           eyebrow="About VC Summit"
           title={
@@ -120,6 +120,73 @@ export default function AboutPage() {
                   </div>
                 ))}
               </dl>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Founder's letter — PLACEHOLDER copy; replace with the founder's own words and name. */}
+        <section
+          id="letter"
+          aria-labelledby="letter-title"
+          className="scroll-mt-6 relative isolate overflow-hidden bg-navy px-4 py-16 text-white sm:px-8 sm:py-24"
+        >
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-20 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:50px_50px]"
+          />
+          <div
+            aria-hidden="true"
+            className="cta-glow absolute -top-40 right-0 -z-10 h-[360px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.45),transparent)]"
+          />
+          <div className="mx-auto max-w-[760px]">
+            <Reveal>
+              <Eyebrow tone="dark">A letter from our founder</Eyebrow>
+            </Reveal>
+            <Reveal delay={90}>
+              <h2
+                id="letter-title"
+                className="mt-5 font-display text-[32px] leading-[1.08] font-bold tracking-[-0.02em] sm:text-[44px]"
+              >
+                The moment VC Summit was built for
+              </h2>
+            </Reveal>
+            <Reveal
+              delay={180}
+              className="mt-8 flex flex-col gap-5 text-[17px] leading-[1.75] text-white/80"
+            >
+              <p>
+                Every founder remembers the moment the idea stopped being a side
+                project. For most, it comes with a second feeling right behind
+                it: I have no idea how to do the next part.
+              </p>
+              <p>
+                We built VC Summit for that moment. Not to tell founders what to
+                build, but to give them the structure, the people and the
+                deadlines that turn a spreadsheet into a shipped product, and a
+                shipped product into a company that investors want to back.
+              </p>
+              <p>
+                Ten weeks is not long. It is long enough to find out whether the
+                idea is real, and to stand on a stage in front of the people who
+                fund the ones that are. If you are at that moment, we would like
+                to meet you.
+              </p>
+            </Reveal>
+            <Reveal delay={260} className="mt-8 flex items-center gap-4">
+              <span
+                aria-hidden="true"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 font-display text-[14px] font-bold text-white ring-2 ring-white/15"
+              >
+                VC
+              </span>
+              <span className="leading-tight">
+                <span className="block text-[15px] font-bold">
+                  Founder, VC Summit
+                </span>
+                <span className="block text-[13px] text-white/60">
+                  On behalf of the program team
+                </span>
+              </span>
             </Reveal>
           </div>
         </section>

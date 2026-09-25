@@ -21,6 +21,8 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | `/demo-day` | Demo Day: the program roadmap and how the day works | Everyone | Public |
 | `/startups` | Startup directory: every submitted application, with search and filters | Everyone | Public |
 | `/startups/[slug]` | One startup's public page | Everyone | Public |
+| `/privacy`, `/terms`, `/code-of-conduct` | Legal pages | Everyone | Public |
+| any other path | Branded 404 page | Everyone | Public |
 | `/login` | Sign in | Founders, reviewers | Public |
 | `/register` | Create account | New founders | Public |
 | `/forgot-password` | Reset password request | Founders | Public |
@@ -57,17 +59,17 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 | --- | --- | --- |
 | Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups → `/startups`, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
 | Mobile menu | Same 6 links, Apply Now, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
-| Hero | Headline, sub-copy, Apply Now, View Summit, 3 stats, Watch the highlights | Full-width CTA, no forced line breaks |
+| Hero | Headline, sub-copy, Apply Now, View Summit (→ `/events`), 3 stats, Inside Demo Day (→ `/demo-day`) | Full-width CTA, no forced line breaks |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
 | Accelerator / Portfolio | Intro, featured-founder carousel; **Our startups** opens `/startups` | Nested card removed; carousel runs edge to edge; controls below the cards |
-| Founder letter banner | Link to the founder's letter | Unchanged |
-| Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); the Demo Day card's **Learn more** opens `/demo-day` | Swipe row with a 01 / 06 counter instead of six stacked cards |
+| Founder letter banner | Link to the founder's letter on `/about#letter` | Unchanged |
+| Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); every card's **Learn more** opens the roadmap on `/demo-day`, the Demo Day card the page itself | Swipe row with a 01 / 06 counter instead of six stacked cards |
 | CTA band | Apply now, Join a free event | Full-width stacked buttons |
-| Alumni stories | Logo marquee, 6 testimonials | Swipe row of equal-height cards |
+| Alumni stories | Logo marquee, 6 testimonials, View more alumni (→ `/startups?status=cohort`) | Swipe row of equal-height cards |
 | Join banner | Apply now, Attend a free event | Full-width buttons, eyebrow on two clean lines |
-| FAQ | 5 questions (accordion) | Unchanged |
+| FAQ | 5 questions (accordion), "Still have a question? Ask the team" (→ `/contact`) | Unchanged |
 | Unicorn CTA | Apply now | Full-width button |
-| Footer | About text, social links, 5 link groups, legal links | Link groups fold into tap-to-open sections |
+| Footer | About text, 3 link groups (Program, Discover, Company) with real destinations only, legal links, dynamic copyright year. Social icons appear only once their profile URLs are filled in (`SOCIAL` in `Footer.tsx`) | Link groups fold into tap-to-open sections |
 
 Across the page, hover effects only apply to devices with a mouse, so tapped cards don't stay lifted. Anchor links also stop clear of the pinned header.
 
@@ -80,6 +82,7 @@ Code: [src/app/about/page.tsx](../src/app/about/page.tsx). Same header and foote
 | Intro | "Where ideas meet capital" and a short description |
 | Mission | Mission copy beside 6 key numbers (the landing page's placeholder figures) |
 | How we work | 4 value cards: Founders first, Global by default, Structure that ships, Access to capital |
+| Founder's letter (`#letter`) | Dark band the landing page's letter banner links to. **Placeholder copy**, signed "Founder, VC Summit" until the founder's own words and name are in |
 | The program | The six stages as a numbered grid, reusing `STAGES` from `Journey.tsx`; links to `/#program` |
 | Closing CTA | The landing page's green "Turn your idea into the next unicorn" band (Apply now → `/dashboard`) |
 
@@ -220,6 +223,14 @@ Code: [src/app/startups/[slug]/page.tsx](<../src/app/startups/[slug]/page.tsx>).
 The public view is an allowlist in [src/lib/application/public.ts](../src/lib/application/public.ts). **Shown:** startup name, one-liner, website, demo and video links, industry, stage, HQ, founded, incorporated, business model, problem, solution, target customer, market, competitors, advantage, headline metric, active users, paying customers, team names, roles, commitment and LinkedIn, why-us, worked-together, hiring needs, the applicant's name, title, location, bio, experience and LinkedIn, and the dated milestones (titles only). **Never shown:** emails, phones, equity, monthly revenue, growth rate, raised, seeking, use of funds, the deck link, how they heard of us, review messages, and all reviewer data. Widen or narrow it there, nowhere else.
 
 **Before launch, decide:** whether applicants must opt in to a public listing (the application form has no such consent today), and whether declined applications should be listed at all.
+
+## Legal pages, errors and search engines
+
+- **`/privacy`, `/terms`, `/code-of-conduct`** share one frame ([src/components/LegalArticle.tsx](../src/components/LegalArticle.tsx)): intro, numbered sections, a "last updated" date and a sidebar linking the three. The texts are **drafts written to match what the site actually does** (what is collected, the public startup directory, events, the newsletter). Have counsel review them and add the legal entity, address, governing law and a named reporting contact before launch. Linked from the footer and from the register form's consent line.
+- **404** ([src/app/not-found.tsx](../src/app/not-found.tsx)): branded page with the site header and footer and links to the startups, events, newsletter and contact pages. Unknown startup, event and newsletter slugs land here too.
+- **Errors** ([src/app/error.tsx](../src/app/error.tsx), [src/app/global-error.tsx](../src/app/global-error.tsx)): a "Something went wrong" page with a Try again button and the error reference. Deliberately free of the header and footer so it can't fail the same way the page did.
+- **`/robots.txt`** allows everything except `/dashboard`, `/admin` and the sign-in pages, and points at **`/sitemap.xml`**, which lists every public page, article, event and startup. Both use `NEXT_PUBLIC_SITE_URL` ([src/lib/site.ts](../src/lib/site.ts)), which also sets the canonical base for link previews.
+- A **Skip to content** link is the first focusable element on every page (visible when focused); every page's `<main>` has `id="main"`.
 
 ## Authentication pages
 
@@ -624,7 +635,7 @@ Run `npm run dev`. In development you can open `/dashboard` and `/admin` right a
 | Setting | Purpose | Needed |
 | --- | --- | --- |
 | `REVIEWER_EMAILS` | Comma-separated emails allowed into `/admin` | Production |
-| `NEXT_PUBLIC_SITE_URL` | Site address, used for Google sign-in and link previews | For Google sign-in |
+| `NEXT_PUBLIC_SITE_URL` | Site address, used for Google sign-in, link previews, robots.txt and the sitemap | Production |
 | `GOOGLE_CLIENT_ID` | Starts the Google consent screen | For Google sign-in |
 | `GOOGLE_CLIENT_SECRET` | Exchanges Google's code for a session (callback not built yet) | For Google sign-in |
 
@@ -649,4 +660,6 @@ The full plan, in order, is in [backend-integration.md](backend-integration.md#b
 - [ ] Startup directory: add a "list my startup publicly" consent to the application, and decide whether declined applications are listed.
 - [ ] Email founders when a reviewer decides (marked TODO in `src/app/admin/actions.ts`).
 - [ ] Make "reviewer" a role on the user record instead of an email list.
-- [ ] Point the Terms of Use and Privacy Policy links (register page and footer) at real pages.
+- [ ] Have counsel review the draft privacy policy, terms of use and code of conduct, and add the legal entity, address and governing law.
+- [ ] Fill in the social profile URLs in `Footer.tsx` (icons stay hidden until then).
+- [ ] Replace the placeholder founder's letter on `/about` with the founder's own words and name.

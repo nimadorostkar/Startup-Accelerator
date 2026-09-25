@@ -116,7 +116,7 @@ export default async function ArticlePage({
         className="read-progress fixed inset-x-0 top-0 z-40 h-[3px] bg-gold"
       />
       <Navbar />
-      <main>
+      <main id="main">
         <article>
           <header className="relative isolate bg-cream px-4 pt-[116px] pb-40 sm:px-8 sm:pb-56 lg:pt-[calc(min(5.74vw,110px)+56px)]">
             <div

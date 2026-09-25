@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, PlayIcon } from "./icons";
+import { ArrowRight } from "./icons";
 
 // Column padding measured from the design (dividers sit at x=310 and x=554 of 1672).
 const STAT_PAD = [
@@ -71,7 +71,6 @@ export default function Hero() {
         />
       </svg>
 
-
       {/* Content */}
       <div className="mx-auto h-full w-full max-w-[1920px] @container">
         <div className="flex h-full min-h-[100svh] flex-col px-6 pt-[64px] sm:px-8 lg:min-h-0 lg:px-[4.31cqw] lg:pt-[5.8cqw]">
@@ -120,7 +119,8 @@ export default function Hero() {
               {/* Sub copy */}
               <p className="mt-5 text-[16px] leading-[1.45] text-ink-soft lg:mt-[1.15cqw] lg:text-[1.04cqw] lg:leading-[1.15] lg:tracking-[0.025em]">
                 Exclusive summit for the world&rsquo;s
-                <br className="hidden sm:block" /> top investors, founders and decision makers.
+                <br className="hidden sm:block" /> top investors, founders and
+                decision makers.
               </p>
 
               {/* CTAs */}
@@ -148,7 +148,6 @@ export default function Hero() {
                 </Link>
               </div>
             </div>
-
           </div>
 
           {/* Lower bar */}
@@ -172,18 +171,18 @@ export default function Hero() {
               ))}
             </dl>
 
-            {/* Watch */}
+            {/* Demo Day */}
             <Link
-              href="#highlights"
+              href="/demo-day"
               className="group flex items-center gap-3.5 text-[10px] lg:mr-[0.3cqw] lg:translate-y-[0.18cqw] lg:gap-[1.2cqw] lg:text-[max(9px,0.61cqw)]"
             >
               <span className="flex h-[6.9em] w-[6.9em] shrink-0 items-center justify-center rounded-full border-[1.5px] border-gold/85 bg-black/30 backdrop-blur-[3px] transition-colors duration-200 group-hover:border-gold">
-                <PlayIcon className="h-[3em] w-[3em] translate-x-[0.08em] text-white" />
+                <ArrowRight className="h-[2.6em] w-[2.6em] text-white transition-transform duration-200 group-hover:translate-x-0.5" />
               </span>
               <span className="type-wide text-[1em] leading-[1.7] font-semibold tracking-[0.07em] whitespace-nowrap text-white uppercase">
-                Watch
+                Inside
                 <br />
-                The Highlights
+                Demo Day
               </span>
             </Link>
           </div>

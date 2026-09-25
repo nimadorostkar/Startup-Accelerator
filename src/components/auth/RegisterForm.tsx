@@ -63,11 +63,17 @@ export default function RegisterForm() {
           />
           <span>
             I agree to the{" "}
-            <Link href="/register" className="font-semibold text-gold-deep underline-offset-2 hover:underline">
+            <Link
+              href="/terms"
+              className="font-semibold text-gold-deep underline-offset-2 hover:underline"
+            >
               Terms of Use
             </Link>{" "}
             and{" "}
-            <Link href="/register" className="font-semibold text-gold-deep underline-offset-2 hover:underline">
+            <Link
+              href="/privacy"
+              className="font-semibold text-gold-deep underline-offset-2 hover:underline"
+            >
               Privacy Policy
             </Link>
             .

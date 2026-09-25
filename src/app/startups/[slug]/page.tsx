@@ -146,7 +146,7 @@ export default async function StartupPage({
   return (
     <>
       <Navbar />
-      <main>
+      <main id="main">
         <header className="relative isolate bg-cream px-4 pt-[116px] pb-10 sm:px-8 sm:pb-14 lg:pt-[calc(min(5.74vw,110px)+56px)]">
           <div
             aria-hidden="true"

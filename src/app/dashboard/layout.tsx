@@ -146,7 +146,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
           <TabNav items={nav} />
         </header>
 
-        <main className="mx-auto w-full max-w-[1080px] px-4 pt-6 pb-16 sm:px-8 sm:pt-8 lg:px-10 lg:pt-10">
+        <main id="main" className="mx-auto w-full max-w-[1080px] px-4 pt-6 pb-16 sm:px-8 sm:pt-8 lg:px-10 lg:pt-10">
           {children}
         </main>
         <FocusFromHash />

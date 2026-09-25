@@ -47,7 +47,7 @@ export default async function StartupsPage({
   return (
     <>
       <Navbar />
-      <main>
+      <main id="main">
         <section className="relative isolate overflow-hidden bg-cream px-4 pt-[124px] pb-12 sm:px-8 sm:pb-16 lg:pt-[calc(min(5.74vw,110px)+72px)]">
           <div
             aria-hidden="true"

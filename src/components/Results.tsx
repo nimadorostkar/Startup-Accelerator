@@ -21,7 +21,8 @@ const RIGHT_STYLE = [
 ];
 
 /* Slide width + snap point inside the phone swipe row. */
-const CARD_MOBILE = "max-md:w-[86%] max-md:max-w-[360px] max-md:shrink-0 max-md:snap-start";
+const CARD_MOBILE =
+  "max-md:w-[86%] max-md:max-w-[360px] max-md:shrink-0 max-md:snap-start";
 
 /* Idle float: each card breathes on its own rhythm. */
 const float = (i: number, side: number) =>
@@ -81,7 +82,7 @@ export default function Results() {
           </Reveal>
 
           <Reveal delay={560}>
-            <ButtonLink href="#alumni" className="mt-8">
+            <ButtonLink href="/startups?status=cohort" className="mt-8">
               View more alumni
             </ButtonLink>
           </Reveal>

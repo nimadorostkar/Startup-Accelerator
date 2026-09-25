@@ -99,7 +99,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           </Link>
         </header>
 
-        <main className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8 sm:py-14">
+        <main id="main" className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8 sm:py-14">
           <div className="w-full max-w-[420px]">{children}</div>
         </main>
       </div>

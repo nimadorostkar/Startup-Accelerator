@@ -7,9 +7,12 @@ import { ArrowRight } from "./icons";
 export default function LetterBanner() {
   return (
     <section className="bg-cream pt-10 pb-2 sm:pt-12">
-      <Reveal y={28} className="mx-auto max-w-[1720px] px-6 sm:px-16 lg:px-32 xl:px-56">
+      <Reveal
+        y={28}
+        className="mx-auto max-w-[1720px] px-6 sm:px-16 lg:px-32 xl:px-56"
+      >
         <Link
-          href="#letter"
+          href="/about#letter"
           className="group relative isolate flex items-center gap-5 overflow-hidden rounded-[18px] bg-[linear-gradient(100deg,var(--navy)_0%,var(--navy)_40%,var(--green-deep)_100%)] py-3.5 pr-5 pl-4 transition-[translate,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-20px_rgba(0,15,22,0.55)] sm:gap-8 sm:py-4 sm:pr-10 sm:pl-6 lg:pr-12 lg:pl-8"
         >
           {/* Faint grid + gold glow, same treatment as the other dark bands */}

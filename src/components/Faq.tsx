@@ -40,8 +40,7 @@ export default function Faq() {
             id="faq-title"
             className="text-center font-display text-[30px] leading-[1.08] font-bold tracking-[-0.02em] text-ink sm:text-[40px]"
           >
-            Frequently Asked{" "}
-            <span className="text-gold-deep">Questions</span>
+            Frequently Asked <span className="text-gold-deep">Questions</span>
           </h2>
         </Reveal>
 
@@ -51,10 +50,10 @@ export default function Faq() {
 
         <Reveal delay={200} className="mt-8 text-center">
           <Link
-            href="#faq"
+            href="/contact"
             className="group inline-flex items-center gap-1.5 text-[14px] font-semibold text-gold-deep"
           >
-            All questions
+            Still have a question? Ask the team
             <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
         </Reveal>

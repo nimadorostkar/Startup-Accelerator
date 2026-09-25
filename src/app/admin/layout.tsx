@@ -73,7 +73,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1320px] px-4 pt-6 pb-16 sm:px-8 sm:pt-8">{children}</main>
+      <main id="main" className="mx-auto w-full max-w-[1320px] px-4 pt-6 pb-16 sm:px-8 sm:pt-8">{children}</main>
     </div>
   );
 }

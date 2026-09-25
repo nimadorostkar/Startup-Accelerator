@@ -179,7 +179,7 @@ export default function Journey() {
                       {body}
                     </p>
                     <Link
-                      href={href ?? `#stage-${id}`}
+                      href={href ?? "/demo-day#roadmap"}
                       aria-label={`Learn more about ${title}`}
                       className="mt-3.5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-ink"
                     >

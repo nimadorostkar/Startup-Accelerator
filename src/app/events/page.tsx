@@ -41,7 +41,7 @@ export default function EventsPage() {
   return (
     <>
       <Navbar />
-      <main>
+      <main id="main">
         {/* Hero */}
         <section className="relative isolate overflow-hidden bg-cream px-4 pt-[120px] pb-16 sm:px-8 sm:pb-24 lg:pt-[calc(min(5.74vw,110px)+64px)]">
           <div

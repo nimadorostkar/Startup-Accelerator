@@ -114,7 +114,7 @@ export default function DemoDayPage() {
   return (
     <>
       <Navbar tone="dark" />
-      <main>
+      <main id="main">
         {/* Hero */}
         <section className="relative isolate overflow-hidden bg-ink px-4 pt-[120px] pb-12 text-white sm:px-8 sm:pb-16 lg:pt-[calc(min(5.74vw,110px)+64px)]">
           <Image
