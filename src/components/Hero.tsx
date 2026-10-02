@@ -9,7 +9,7 @@ import s from "./hero/Hero.module.css";
 import { FOUNDERS } from "./portfolio/data";
 
 /* Landing hero (Fundup Club design): a light intro with the featured-founders
-   showcase, over a dark Demo Day band. Layout and motion live in
+   panel, over a dark Demo Day band. Layout and motion live in
    hero/Hero.module.css; data in hero/founders.ts and hero/demo-day.ts. */
 
 /** Entrance delay for one block of the staggered reveal. */
@@ -85,20 +85,8 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Showcase: the skyline photo with the founders panel over it */}
+          {/* Featured founders */}
           <div className={`${s.showcase} ${s.rise}`} style={at(450)}>
-            <div className={s.showcaseMedia} aria-hidden="true">
-              <Image
-                src="/images/hero.webp"
-                alt=""
-                fill
-                preload
-                quality={55}
-                sizes="(min-width: 1101px) 60vw, 150vw"
-                className={s.showcasePhoto}
-              />
-            </div>
-            <div className={s.showcaseShade} aria-hidden="true" />
             <FoundersPanel />
           </div>
         </div>

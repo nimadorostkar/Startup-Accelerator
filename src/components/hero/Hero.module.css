@@ -1,7 +1,7 @@
 /*
   Landing hero — Fundup Club design (Oct 2026).
 
-  Two bands: a light intro (copy + the featured-founders showcase) and a dark
+  Two bands: a light intro (copy + the featured-founders panel) and a dark
   Demo Day band with three pitch cards.
 
   Desktop (≥1101px) is laid out on a 1440×900 frame: lengths are N × --u, one
@@ -212,39 +212,9 @@
 
 /* ----------------------------------------------------------- showcase */
 
+/* Grid cell for the founders panel (min-width lets the marquee shrink) */
 .showcase {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  padding: 170px 10px 10px;
-  border-radius: 24px;
-  background: #0e1118;
-  box-shadow:
-    0 2px 6px rgba(20, 26, 34, 0.06),
-    0 40px 80px -36px rgba(20, 26, 34, 0.45);
-}
-/* Taller than the card and pulled up, so the skyline towers sit in the strip
-   above the panel instead of behind it */
-.showcaseMedia {
-  position: absolute;
-  inset: -30% 0 0;
-  z-index: -2;
-  animation: drift 26s ease-in-out infinite alternate;
-}
-.showcasePhoto {
-  object-fit: cover;
-  object-position: 72% center;
-}
-.showcaseShade {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    180deg,
-    rgba(10, 14, 20, 0) 0%,
-    rgba(10, 14, 20, 0.15) 35%,
-    rgba(10, 14, 20, 0.55) 100%
-  );
+  min-width: 0;
 }
 
 /* ------------------------------------------------------ founders panel */
@@ -256,11 +226,19 @@
   gap: 18px;
   padding: 20px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(10, 14, 22, 0.5);
-  /* Unprefixed only: the CSS compiler adds -webkit- where needed (writing
-     both made it keep just the prefixed one, which Chrome ignores) */
-  backdrop-filter: blur(22px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Solid dark card with a warm glow, like the Demo Day band below */
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 100% 0%,
+      color-mix(in srgb, var(--brand) 20%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgba(255, 255, 255, 0.05), transparent 70%),
+    #141210;
+  box-shadow:
+    0 2px 6px rgba(20, 26, 34, 0.08),
+    0 40px 80px -36px rgba(20, 26, 34, 0.55);
   color: #fff;
 }
 /* Orange hairline along the top edge */
@@ -690,14 +668,6 @@
     transform: translateY(110%);
   }
 }
-@keyframes drift {
-  from {
-    transform: scale(1.03);
-  }
-  to {
-    transform: scale(1.1) translate(-1.5%, -1%);
-  }
-}
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 60%, transparent);
@@ -716,7 +686,6 @@
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .line > span,
-  .showcaseMedia,
   .dot,
   .track {
     animation: none;
@@ -828,14 +797,10 @@
     margin-left: calc(-10 * var(--u));
   }
 
-  .showcase {
-    padding: calc(96 * var(--u)) calc(14 * var(--u)) calc(14 * var(--u));
-    border-radius: calc(28 * var(--u));
-  }
   .panel {
-    gap: calc(18 * var(--u));
-    padding: calc(22 * var(--u));
-    border-radius: calc(20 * var(--u));
+    gap: calc(22 * var(--u));
+    padding: calc(28 * var(--u));
+    border-radius: calc(26 * var(--u));
   }
   .panel::before {
     left: calc(24 * var(--u));

@@ -59,6 +59,9 @@ The rules that depend on this atomicity: the edit lock, the 100% equity cap, "co
 
 **`listApplications` loads every record today**, and the queue filters them in memory (`queue.ts`). That is fine for hundreds of applications. Past a few thousand, move the filtering and sorting into SQL and add paging to `listForReview` in `review.ts`.
 
+
+> **Renamed option.** Before the rebrand to Fundup Club, `profile.heardFrom` could be `"VC Summit event"`. The file store upgrades it to `"Fundup Club event"` on read (`upgradeStored` in `src/lib/application/types.ts`); when you move to a database, migrate existing rows once (`UPDATE … SET heard_from = 'Fundup Club event' WHERE heard_from = 'VC Summit event'`) and the read-time upgrade can go.
+
 ## Contract 2: accounts and sessions (`src/lib/auth.ts`)
 
 | Export | Signature | Must do |
