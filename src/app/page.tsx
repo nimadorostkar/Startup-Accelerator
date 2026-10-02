@@ -7,10 +7,11 @@ import JoinBanner from "@/components/JoinBanner";
 import Journey from "@/components/Journey";
 import Navbar from "@/components/Navbar";
 import Results from "@/components/Results";
+import StartupList from "@/components/StartupList";
 import StatsMarquee from "@/components/StatsMarquee";
 import UnicornCta from "@/components/UnicornCta";
 
-/* The hero shows the next Demo Day date */
+/* The hero shows the next Demo Day date; the startup list reads the store */
 export const revalidate = 3600;
 
 /* Display face of the hero (hero/Hero.module.css). Loaded here rather than in
@@ -30,6 +31,7 @@ export default function Home() {
         <Hero />
         <StatsMarquee />
         <Journey />
+        <StartupList />
         <CtaBand />
         <Results />
         <JoinBanner />

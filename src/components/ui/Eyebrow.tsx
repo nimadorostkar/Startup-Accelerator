@@ -1,4 +1,4 @@
-/* Gold dot + tracked label that opens every section (same as the hero's). */
+/* Orange dot + tracked label that opens every section (same as the hero's). */
 export default function Eyebrow({
   children,
   className = "",

@@ -113,7 +113,7 @@ export default function Journey() {
     <section
       id="program"
       aria-labelledby="program-title"
-      className="relative isolate bg-cream px-4 pt-16 pb-12 sm:px-8 sm:py-24 xl:py-28"
+      className="relative isolate bg-cream px-4 pt-6 pb-12 sm:px-8 sm:pt-8 sm:pb-16"
     >
       <div className="mx-auto max-w-[1720px]">
         <div className="flex flex-col items-center text-center">
