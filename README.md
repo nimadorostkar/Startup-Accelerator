@@ -24,7 +24,10 @@ Security headers, AVIF/WebP image negotiation and `poweredByHeader: false` are s
   (`variant="summit"` is the landing page's bar; the hero's Archivo font is loaded in `src/app/page.tsx`)
 - `src/components/Logo.tsx` — Fundup Club logo as SVG: `BrandLogo` (wordmark + fox tag) for
   headers and footers, `BrandMark` (fox tag alone) for small spaces; `src/app/icon.svg` is the
-  favicon (the fox tag). Brand orange is `--brand` in `globals.css`
+  favicon (the fox tag)
+- `src/app/globals.css` — the palette: `--brand` (logo orange: accents, large text),
+  `--brand-strong` (buttons, links, small orange text), `--brand-soft` (orange on dark),
+  `--night`/`--ember` (dark bands), `--green-*` (success states only), with contrast notes
 - `public/images/hero.webp` — **clean background plate**: every piece of text, button and line
   in the hero is rendered in code. Don't replace it with an image that has UI baked in.
 

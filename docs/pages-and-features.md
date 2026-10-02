@@ -86,7 +86,7 @@ Code: [src/app/about/page.tsx](../src/app/about/page.tsx). Same header and foote
 | How we work | 4 value cards: Founders first, Global by default, Structure that ships, Access to capital |
 | Founder's letter (`#letter`) | Dark band the landing page's letter banner links to. **Placeholder copy**, signed "Founder, Fundup Club" until the founder's own words and name are in |
 | The program | The six stages as a numbered grid, reusing `STAGES` from `Journey.tsx`; links to `/#program` |
-| Closing CTA | The landing page's green "Turn your idea into the next unicorn" band (Apply now → `/dashboard`) |
+| Closing CTA | The landing page's dark-to-orange "Turn your idea into the next unicorn" band (Apply now → `/dashboard`) |
 
 ## Contact page (`/contact`)
 
@@ -126,7 +126,7 @@ Code: [src/app/newsletter/[slug]/page.tsx](<../src/app/newsletter/[slug]/page.ts
 
 - Header: back link, topic, issue number, date, read time, title, summary, author.
 - Large cover, then the article (paragraphs, headings, lists, pull quotes) at a comfortable reading width.
-- A thin gold reading-progress bar at the top, driven by CSS alone (browsers without scroll-driven animations simply don't show it).
+- A thin orange reading-progress bar at the top, driven by CSS alone (browsers without scroll-driven animations simply don't show it).
 - Sign-up card after the article, then "More from the Brief": up to 3 articles, same topic first.
 
 ### Sign-up form
@@ -434,7 +434,7 @@ This page shows the founder exactly what the review team will see, and it is the
 
 **While editing (Draft, or Changes requested)**
 
-- **Missing answers:** listed by section. Each links straight to the question (`/dashboard/<section>#field-<name>`), which scrolls into view, is focused and flashes gold. Short answers show how much more is needed, e.g. "39 more characters needed". When nothing is missing, a green "Everything required is answered" banner shows instead.
+- **Missing answers:** listed by section. Each links straight to the question (`/dashboard/<section>#field-<name>`), which scrolls into view, is focused and flashes orange. Short answers show how much more is needed, e.g. "39 more characters needed". When nothing is missing, a green "Everything required is answered" banner shows instead.
 - **Full read-only summary** of the profile, startup (including a traction and funding grid) and team, each with an **Edit** link.
 - **Submit panel:** a confirmation checkbox (`confirm`: "I confirm these details are accurate, and that I'm authorised to apply on behalf of the team"), then **Submit application**, or **Resubmit application** after changes were requested. The button stays disabled until every required answer is in. Action: `submitApplication`.
 - **Activity** timeline on the right.
@@ -473,9 +473,9 @@ Reviewers can decide straight from Submitted; starting a review first is optiona
 | Status id | Badge | Founder can edit | Founder sees |
 | --- | --- | --- | --- |
 | `draft` | Draft (grey) | Yes | "Finish each section, then submit your application for review." |
-| `submitted` | Submitted (gold) | No (can withdraw) | "In the review queue" — review usually starts within 5 working days |
-| `in_review` | In review (gold) | No | "Our team is reviewing your startup" |
-| `changes_requested` | Changes requested (amber) | Yes | The reviewer's message on every page, and a Resubmit button |
+| `submitted` | Submitted (orange) | No (can withdraw) | "In the review queue" — review usually starts within 5 working days |
+| `in_review` | In review (orange) | No | "Our team is reviewing your startup" |
+| `changes_requested` | Changes requested (yellow) | Yes | The reviewer's message on every page, and a Resubmit button |
 | `accepted` | Accepted (green) | No | "You're in the cohort" — watch your inbox for onboarding |
 | `declined` | Not selected (grey) | No | "Not this cohort" — welcome to apply next cycle |
 
@@ -483,7 +483,7 @@ Reviewers can decide straight from Submitted; starting a review first is optiona
 
 ## Admin: review queue (`/admin`)
 
-The queue is the support team's work list, opening on **Needs review** with the longest-waiting application first. Every admin page has a navy header with the logo, a *Review* label, links to Queue and Export CSV, and the reviewer's name, initials and sign-out.
+The queue is the support team's work list, opening on **Needs review** with the longest-waiting application first. Every admin page has a dark header with the logo, a *Review* label, links to Queue and Export CSV, and the reviewer's name, initials and sign-out.
 
 - **Summary line:** "N waiting for review · N in review with you".
 - **Overdue warning:** an amber banner when any application has waited 5+ days, since founders are told reviews start within 5 working days. It links to the waiting list.

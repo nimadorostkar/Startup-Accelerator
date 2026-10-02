@@ -44,7 +44,7 @@ export default function GlobalError({
               borderRadius: 999,
               border: 0,
               background: "#c2470a",
-              color: "#1a1005",
+              color: "#fff",
               fontWeight: 700,
               letterSpacing: "0.06em",
               textTransform: "uppercase",

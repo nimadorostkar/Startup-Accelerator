@@ -64,7 +64,7 @@ export default function ButtonLink({
       >
         {children}
       </span>
-      {(variant === "primary" || variant === "green" || variant === "white") && (
+      {(variant === "primary" || variant === "bright" || variant === "white") && (
         <ArrowRight
           className={`h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:translate-x-1 ${v.icon}`}
         />
