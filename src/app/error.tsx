@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { VCMark } from "@/components/Logo";
+import { BrandLogo } from "@/components/Logo";
 
 /* Shown in place of a page that threw while rendering. Kept free of the
    site's header and footer so it can't fail the same way the page did. */
@@ -25,13 +25,10 @@ export default function ErrorPage({
       <div className="card w-full max-w-[520px] p-8 text-center sm:p-10">
         <Link
           href="/"
-          aria-label="VC Summit home"
-          className="inline-flex items-center gap-3 text-ink"
+          aria-label="Fundup Club home"
+          className="inline-flex items-center"
         >
-          <VCMark className="h-[26px] w-auto" />
-          <span className="font-display text-[13px] leading-none font-semibold tracking-[0.115em]">
-            SUMMIT
-          </span>
+          <BrandLogo className="h-[38px] w-auto" />
         </Link>
         <h1 className="mt-8 font-display text-[28px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-[32px]">
           Something went wrong

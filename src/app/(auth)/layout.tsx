@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckIcon } from "@/components/icons";
-import { VCMark } from "@/components/Logo";
+import { BrandLogo } from "@/components/Logo";
 
 const PROOF = [
   "Apply once, reach 180+ investment firms",
@@ -29,12 +29,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(160deg,rgba(0,15,22,0.92),rgba(0,15,22,0.55)_45%,rgba(0,15,22,0.88))]" />
         <div className="cta-glow absolute -top-32 -left-24 -z-10 h-[340px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.35),transparent)] blur-2xl" />
 
-        <span className="flex items-center gap-3 text-white">
-          <VCMark className="h-[26px] w-auto" />
-          <span className="font-display text-[13px] leading-none font-semibold tracking-[0.115em]">
-            SUMMIT
-          </span>
-        </span>
+        <BrandLogo className="h-[40px] w-auto self-start" />
 
         <div className="max-w-[460px]">
           <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-gold uppercase">
@@ -82,13 +77,10 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         <header className="flex items-center justify-between gap-4 px-5 pt-5 sm:px-8 sm:pt-7 lg:justify-end lg:px-12 lg:pt-10">
           <Link
             href="/"
-            aria-label="VC Summit home"
-            className="flex items-center gap-3 text-ink lg:hidden"
+            aria-label="Fundup Club home"
+            className="flex items-center lg:hidden"
           >
-            <VCMark className="h-[24px] w-auto" />
-            <span className="font-display text-[12px] leading-none font-semibold tracking-[0.115em]">
-              SUMMIT
-            </span>
+            <BrandLogo className="h-[32px] w-auto" />
           </Link>
           <Link
             href="/"

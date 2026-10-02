@@ -695,7 +695,7 @@ export default function DemoDayPage() {
                 </ul>
               </div>
               <Link
-                href="/#accelerator"
+                href="/#founders"
                 className="group inline-flex shrink-0 items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 hover:text-gold-deep"
               >
                 Meet the portfolio

@@ -51,17 +51,17 @@ A founder fills in the application in the dashboard and submits it; a reviewer p
 
 ## Landing page (`/`)
 
-The landing page kept its design on desktop; the mobile version was reworked, cutting its height at 375px from 10,365px to about 6,900px. The desktop header also has a **Sign in** link. Every **Apply now** button (header, mobile menu, hero, CTA bands, footer) links to `/dashboard`; signed-out visitors are sent to `/login`. **View Summit** (hero), **Join a free event** (CTA band), **Attend a free event** (join banner) and the footer's **Startup Events** link to `/events`.
+The landing page kept its design on desktop; the mobile version was reworked, cutting its height at 375px from 10,365px to about 6,900px. The hero (with its header) was then rebuilt from the October 2026 hero handoff, which folded the featured founders into it. The desktop header also has a **Sign in** link. Every **Apply now** button (header, mobile menu, hero, CTA bands, footer) links to `/dashboard`; signed-out visitors are sent to `/login`. **View Summit** (hero), **Join a free event** (CTA band), **Attend a free event** (join banner) and the footer's **Startup Events** link to `/events`.
 
-Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../src/components/).
+Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../src/components/). The hero is [Hero.tsx](../src/components/Hero.tsx) with its parts in [src/components/hero/](../src/components/hero/).
 
 | Section | Content | Mobile behaviour |
 | --- | --- | --- |
-| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups → `/startups`, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
+| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups → `/startups`, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now. On this page it is the handoff's frosted cream bar (`<Navbar variant="summit" />`: Archivo, gold underline on hover); other pages keep the classic bar | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
 | Mobile menu | Same 6 links, Apply Now, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
-| Hero | Headline, sub-copy, Apply Now, View Summit (→ `/events`), 3 stats, Inside Demo Day (→ `/demo-day`) | Full-width CTA, no forced line breaks |
+| Hero | "Registration open" label, meta line, **Ideas fund tomorrow.**, sub-copy, Apply Now, View Summit (→ `/events`); 3 stats that count up on load; the **Featured founders** panel (`#founders`, below) | Stacks: copy → stats → panel; full-width Apply Now; the photo covers about a screen and fades into the dark base |
+| Featured founders panel | Frosted panel inside the hero: title, tagline, **All startups** (→ `/startups`), two auto-scrolling rows of founder cards (each → `/startups`), pausing on hover or keyboard focus. Cards come from [hero/founders.ts](../src/components/hero/founders.ts): the 5 founders in `portfolio/data.ts` (also on `/demo-day`) plus 3 **placeholders** from the handoff (Omar Haddad, Lucas Weber, Mei Tanaka; initials, no photo) to replace with real founders | With reduced motion the rows stand still and scroll sideways instead |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
-| Accelerator / Portfolio | Intro, featured-founder carousel; **Our startups** opens `/startups` | Nested card removed; carousel runs edge to edge; controls below the cards |
 | Founder letter banner | Link to the founder's letter on `/about#letter` | Unchanged |
 | Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); every card's **Learn more** opens the roadmap on `/demo-day`, the Demo Day card the page itself | Swipe row with a 01 / 06 counter instead of six stacked cards |
 | CTA band | Apply now, Join a free event | Full-width stacked buttons |
@@ -72,6 +72,8 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 | Footer | About text, 3 link groups (Program, Discover, Company) with real destinations only, legal links, dynamic copyright year. Social icons appear only once their profile URLs are filled in (`SOCIAL` in `Footer.tsx`) | Link groups fold into tap-to-open sections |
 
 Across the page, hover effects only apply to devices with a mouse, so tapped cards don't stay lifted. Anchor links also stop clear of the pinned header.
+
+The hero's motion (staggered entrance, slow drift on the photo, orbit ring, light specks, count-up, marquee, light sweep on Apply Now) is all off under the system's reduced-motion setting. The footer's **Featured founders** link and the "Meet the portfolio" link on `/demo-day` point to `/#founders`. The old separate Startup Accelerator section (accelerator intro and founder carousel) was removed when the panel replaced it.
 
 ## About page (`/about`)
 
@@ -282,7 +284,7 @@ Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/
 
 **Desktop (1024px and up): left sidebar**
 
-- VC Summit logo, linking to the landing page.
+- Fundup Club logo, linking to the landing page.
 - Application card: status badge, percent complete and a progress bar.
 - Navigation: Overview, Profile, Startup, Team, Review & submit. Each section shows a green tick when complete, otherwise a count such as `3/6`.
 - **Review panel** link, shown only to reviewers.

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { signOut } from "@/app/dashboard/actions";
 import { LogOutIcon } from "@/components/dashboard/icons";
 import { initials } from "@/components/dashboard/initials";
-import { VCMark } from "@/components/Logo";
+import { BrandLogo } from "@/components/Logo";
 import { requireReviewer } from "@/lib/application/review";
 
 /* Generated after the reviewer check, so a refused visitor's 404 doesn't
@@ -25,11 +25,12 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     <div className="min-h-[100svh] bg-cream">
       <header className="sticky top-0 z-20 bg-navy text-white">
         <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-4 px-4 sm:px-8">
-          <Link href="/admin" className="flex items-center gap-3">
-            <VCMark className="h-[20px] w-auto text-white" />
-            <span className="hidden font-display text-[11px] leading-none font-semibold tracking-[0.115em] sm:inline">
-              SUMMIT
-            </span>
+          <Link
+            href="/admin"
+            aria-label="Fundup Club review home"
+            className="flex items-center gap-3"
+          >
+            <BrandLogo className="h-[30px] w-auto" />
             <span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-bold tracking-[0.08em] text-gold uppercase ring-1 ring-gold/30">
               Review
             </span>

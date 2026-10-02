@@ -1,5 +1,6 @@
 /**
- * Featured founders for the "Startup Accelerator" section.
+ * Featured founders: the landing hero's founders panel (components/hero/founders.ts)
+ * and the /demo-day page.
  *
  * PLACEHOLDER CONTENT — names, companies and images are fictional.
  * Headshots live in /public/images/founders/<slug>.webp and startup marks in

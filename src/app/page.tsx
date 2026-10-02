@@ -1,3 +1,4 @@
+import { Archivo } from "next/font/google";
 import CtaBand from "@/components/CtaBand";
 import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
@@ -6,19 +7,26 @@ import JoinBanner from "@/components/JoinBanner";
 import LetterBanner from "@/components/LetterBanner";
 import Journey from "@/components/Journey";
 import Navbar from "@/components/Navbar";
-import Portfolio from "@/components/Portfolio";
 import Results from "@/components/Results";
 import StatsMarquee from "@/components/StatsMarquee";
 import UnicornCta from "@/components/UnicornCta";
 
+/* Display face of the hero and its nav. Loaded here rather than in the root
+   layout so other routes don't preload it. */
+const archivo = Archivo({
+  variable: "--font-archivo",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export default function Home() {
   return (
-    <>
-      <Navbar />
+    <div className={`${archivo.variable} contents`}>
+      <Navbar variant="summit" />
       <main id="main">
+        {/* The hero carries the featured-founders panel (#founders) */}
         <Hero />
         <StatsMarquee />
-        <Portfolio />
         <LetterBanner />
         <Journey />
         <CtaBand />
@@ -28,6 +36,6 @@ export default function Home() {
         <UnicornCta />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

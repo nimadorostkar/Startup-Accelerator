@@ -25,6 +25,14 @@
   --green: #2c6e41;
   --green-bright: #3b7f48;
   --green-light: #d6f3cc; /* label text on --green — 5.1:1 */
+
+  --brand: #ef6f23; /* Fundup Club logo orange (components/Logo.tsx) */
+
+  /* Landing hero + its nav (VC Summit hero handoff, Oct 2026) */
+  --summit-ink: #141a22;
+  --summit-gold: #c9a05c;
+  --summit-gold-deep: #a5792f; /* "TOMORROW." — 3:1+ on the hero sky, large text only */
+  --summit-cream: #faf8f3;
 }
 
 @theme inline {
@@ -49,6 +57,11 @@
   --color-green: var(--green);
   --color-green-bright: var(--green-bright);
   --color-green-light: var(--green-light);
+  --color-summit-ink: var(--summit-ink);
+  --color-summit-gold: var(--summit-gold);
+  --color-summit-cream: var(--summit-cream);
+  /* Archivo is only loaded on the landing page (src/app/page.tsx) */
+  --font-grotesk: var(--font-archivo), system-ui, sans-serif;
   --font-display: var(--font-dm-sans), system-ui, sans-serif;
   --font-heavy: var(--font-dm-sans), system-ui, sans-serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
@@ -403,27 +416,20 @@ html {
     calc(60ms + var(--i, 0) * 40ms) both;
 }
 
-/* ---------- Hero headline ---------- */
+/* ---------- Landing nav entrance (Navbar variant="summit") ---------- */
 
-/* Each line eases up and fades in, staggered by --hd */
-.hero-line {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.12em;
-  margin-bottom: -0.12em;
-}
-.hero-line > span {
-  display: inline-block;
-  animation: hero-rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) var(--hd, 0ms) both;
-}
-@keyframes hero-rise {
+/* Desktop only: below lg the row holds the fixed mobile menu, which a
+   translating ancestor would re-anchor. The hero's own motion lives in
+   components/hero/Hero.module.css. */
+@keyframes summit-drop {
   from {
-    translate: 0 60%;
     opacity: 0;
+    translate: 0 -14px;
   }
-  to {
-    translate: 0 0;
-    opacity: 1;
+}
+@media (min-width: 1024px) {
+  .summit-drop {
+    animation: summit-drop 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
 }
 

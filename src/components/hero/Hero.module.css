@@ -1,0 +1,970 @@
+/*
+  Landing hero — port of the VC Summit hero handoff (Oct 2026).
+
+  Desktop (≥1101px) is laid out on the handoff's 1440×900 frame: lengths are
+  N × --u, where --u is one design pixel at the current width (frozen at
+  1920px), so the composition scales with the viewport like the rest of the
+  site and matches the handoff exactly at 1440. Small text has a px floor so
+  it stays readable on narrow desktops.
+
+  Below 1101px the hero stacks: copy → stats → founders panel.
+  Colours come from the --summit-* tokens in globals.css.
+*/
+
+.hero {
+  --u: calc(min(100vw, 1920px) / 1440);
+  --gutter: 24px;
+  --nav-h: 64px;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-reveal: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --display: var(--font-archivo), system-ui, sans-serif;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-bottom: 40px;
+  background: #0e1118;
+  color: var(--summit-ink);
+  /* The handoff is set in the browser default, not the site's 1.5 */
+  line-height: normal;
+}
+
+/* ------------------------------------------------------------ backdrop */
+
+/* Stacked, the hero is far taller than the photo's aspect: cap the photo at
+   about a screen and fade it into the dark base, rather than blowing a
+   1672px image up 3× behind the whole section. */
+.media {
+  position: absolute;
+  inset: 0 0 auto;
+  height: min(100%, calc(100svh + 200px));
+  transform-origin: 55% 45%;
+  mask-image: linear-gradient(180deg, #000 72%, transparent);
+  animation: kenburns 30s ease-in-out infinite alternate;
+}
+.photo {
+  object-fit: cover;
+  object-position: 55% center;
+}
+.sweep {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 14, 20, 0.1) 0%,
+    rgba(10, 14, 20, 0) 28%,
+    rgba(10, 14, 20, 0) 52%,
+    rgba(10, 14, 20, 0.6) 100%
+  );
+}
+/* Soft cream glow behind the headline */
+.glow {
+  position: absolute;
+  left: 0;
+  top: var(--nav-h);
+  width: 100%;
+  height: 60%;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 28% 42%,
+    rgba(250, 248, 243, 0.42),
+    rgba(250, 248, 243, 0) 62%
+  );
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+/* Rotating orbit ring with a gold dot (desktop) */
+.orbit {
+  display: none;
+  position: absolute;
+  right: calc(-50 * var(--u));
+  top: calc(-190 * var(--u));
+  width: calc(620 * var(--u));
+  height: calc(620 * var(--u));
+  pointer-events: none;
+  animation: fade 1.4s ease var(--d, 0s) both;
+}
+.orbitRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  animation: spin 46s linear infinite;
+}
+.orbitDot {
+  position: absolute;
+  left: 50%;
+  top: calc(-5 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
+  margin-left: calc(-5 * var(--u));
+  border-radius: 50%;
+  background: var(--summit-gold);
+  box-shadow: 0 0 16px 4px rgba(201, 160, 92, 0.55);
+}
+.orbitInner {
+  position: absolute;
+  inset: calc(70 * var(--u));
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+}
+
+.speck {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #efcb84;
+  box-shadow: 0 0 12px 2px rgba(239, 203, 132, 0.6);
+  pointer-events: none;
+  animation: floaty 11s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------- copy */
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: calc(640px + 2 * var(--gutter));
+  padding: calc(var(--nav-h) + 72px) var(--gutter) 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--summit-gold);
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--summit-gold);
+}
+
+.meta {
+  margin: 14px 0 0;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+.meta span {
+  margin: 0 4px;
+  opacity: 0.55;
+}
+
+.title {
+  margin: 26px 0 0;
+  font-family: var(--display);
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--summit-ink);
+}
+/* Each line slides up out of its own mask */
+.line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 5px;
+}
+.line > span {
+  display: block;
+  animation: reveal 1s var(--ease-reveal) var(--d, 0s) both;
+}
+.lineGold > span {
+  color: var(--summit-gold-deep);
+}
+
+.lede {
+  margin: 22px 0 0;
+  max-width: 440px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.ctas {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-top: 36px;
+}
+
+/* ------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.btn:focus-visible {
+  border-radius: 999px;
+}
+.btn svg {
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-out);
+}
+.btn svg:not(.circle *) {
+  width: 16px;
+  height: 12px;
+}
+
+.primary {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 60px;
+  min-width: 260px;
+  padding: 0 34px;
+  gap: 16px;
+  font-size: 13px;
+  background: var(--summit-gold);
+  color: var(--summit-ink);
+  box-shadow: 0 10px 30px rgba(120, 86, 30, 0.25);
+  transition:
+    transform 0.3s var(--ease-out),
+    box-shadow 0.3s;
+}
+/* Periodic light sweep */
+.primary::after {
+  content: "";
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  width: 34%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0)
+  );
+  animation: shine 5.5s ease-in-out 2.4s infinite;
+}
+
+.textBtn {
+  gap: 16px;
+  font-size: 13px;
+  color: var(--summit-ink);
+}
+.textBtn:focus-visible {
+  border-radius: 4px;
+}
+.circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1.5px solid var(--summit-ink);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+.circle svg {
+  width: 18px;
+  height: 13px;
+}
+
+@media (hover: hover) {
+  .btn:hover svg {
+    transform: translateX(4px);
+  }
+  .primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px rgba(120, 86, 30, 0.32);
+  }
+  .textBtn:hover .circle {
+    background: var(--summit-ink);
+    color: #fff;
+  }
+}
+.btn:focus-visible svg {
+  transform: translateX(4px);
+}
+
+/* ------------------------------------------------------ founders panel */
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 40px var(--gutter) 0;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(10, 14, 22, 0.46);
+  /* Unprefixed only: the CSS compiler adds -webkit- where needed (writing
+     both made it keep just the prefixed one, which Chrome ignores) */
+  backdrop-filter: blur(24px) saturate(1.25);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+/* Gold hairline along the top edge */
+.panel::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 0;
+  height: 1px;
+  opacity: 0.8;
+  background: linear-gradient(
+    90deg,
+    rgba(201, 160, 92, 0),
+    var(--summit-gold),
+    rgba(201, 160, 92, 0)
+  );
+}
+
+.panelHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+.panelIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.panelLabel {
+  font-size: 11px;
+}
+.panelLabel .dot {
+  width: 8px;
+  height: 8px;
+}
+.panelTitle {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.panelTitle span {
+  display: block;
+  color: var(--summit-gold);
+}
+.panelTag {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ghost {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 20px;
+  gap: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+}
+.ghost svg:not(.circle *) {
+  width: 14px;
+  height: 10px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Marquee: each row is rendered twice and slides by half its width */
+.marquee {
+  overflow: hidden;
+  /* room for the hover lift */
+  margin: -4px 0;
+  padding: 4px 0;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.track {
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: marquee 44s linear infinite;
+}
+.marqueeReverse .track {
+  animation-duration: 52s;
+  animation-direction: reverse;
+}
+.marquee:hover .track,
+.marquee:focus-within .track {
+  animation-play-state: paused;
+}
+
+.cardItem {
+  flex-shrink: 0;
+}
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 236px;
+  margin-right: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  transition:
+    transform 0.35s var(--ease-out),
+    background-color 0.35s,
+    border-color 0.35s;
+}
+.card:focus-visible {
+  border-radius: 16px;
+  outline-offset: -2px;
+}
+.avatar,
+.initials {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+}
+.avatar {
+  object-fit: cover;
+}
+.initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--summit-gold);
+  color: var(--summit-ink);
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.cardName {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.cardRole {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+.cardCo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cardCo svg,
+.cardCo img {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.cardSector {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (hover: hover) {
+  .ghost:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* --------------------------------------------------------------- stats */
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 48px var(--gutter) 0;
+  color: #fff;
+}
+.statsRule {
+  width: 36px;
+  height: 2px;
+  background: var(--summit-gold);
+}
+.statsRow {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 0;
+}
+.stat {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 5px;
+}
+.stat + .stat {
+  padding-left: 28px;
+}
+.stat + .stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 40px;
+  translate: 0 -50%;
+  background: rgba(255, 255, 255, 0.35);
+}
+.statNum {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.statCap {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* -------------------------------------------------------------- motion */
+
+.rise {
+  animation: rise 0.95s var(--ease-out) var(--d, 0s) both;
+}
+.pulse {
+  animation: pulse 2.2s ease-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes reveal {
+  from {
+    transform: translateY(112%);
+  }
+}
+@keyframes kenburns {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.12) translate(-1.2%, -0.8%);
+  }
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(201, 160, 92, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 11px rgba(201, 160, 92, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 160, 92, 0);
+  }
+}
+@keyframes shine {
+  0% {
+    transform: translateX(-140%) skewX(-20deg);
+  }
+  55%,
+  100% {
+    transform: translateX(260%) skewX(-20deg);
+  }
+}
+@keyframes floaty {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(14px, -110px);
+    opacity: 0;
+  }
+}
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media,
+  .orbit,
+  .orbitRing,
+  .rise,
+  .line > span,
+  .track,
+  .pulse,
+  .primary::after {
+    animation: none;
+  }
+  .media {
+    transform: scale(1.04);
+  }
+  .speck {
+    display: none;
+  }
+  /* Rows stand still: swipe/scroll through them instead, without the copy */
+  .marquee {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cardItem[inert] {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------- phones */
+
+@media (max-width: 639.98px) {
+  .title {
+    font-size: min(48px, 13vw);
+  }
+  .meta {
+    line-height: 1.6; /* wraps onto two lines here */
+  }
+  .meta span {
+    margin: 0 2px;
+  }
+  .ctas {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .primary {
+    width: 100%;
+    min-width: 0;
+  }
+  .statsRow {
+    flex-wrap: wrap;
+    gap: 18px 28px;
+  }
+  .stat + .stat {
+    padding-left: 0;
+  }
+  .stat + .stat::before {
+    display: none;
+  }
+  .panel {
+    padding: 18px;
+  }
+  .panelHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .panelTitle {
+    font-size: 24px;
+  }
+  .card {
+    width: 216px;
+  }
+}
+
+@media (min-width: 640px) {
+  .hero {
+    --gutter: 32px;
+  }
+}
+
+/* Between lg and the desktop layout the nav is the desktop bar: line up with it */
+@media (min-width: 1024px) {
+  .hero {
+    --gutter: calc(80 * var(--u));
+    --nav-h: calc(84 * var(--u));
+  }
+}
+
+/* ------------------------------------------------------------ desktop */
+
+@media (min-width: 1101px) {
+  .hero {
+    height: clamp(
+      max(640px, calc(820 * var(--u))),
+      100svh,
+      calc(1040 * var(--u))
+    );
+    padding-bottom: 0;
+  }
+  .inner {
+    display: block;
+    height: 100%;
+  }
+  /* Size the photo from the 1440×900 frame, not the section: on wider-than-
+     16:10 screens the hero is relatively shorter, and a cover-fit photo
+     would shrink under the copy (putting "View summit" on the dark bridge).
+     This crops the dark promenade at the bottom instead. */
+  .media {
+    height: max(100%, calc(900 * var(--u)));
+    mask-image: none;
+  }
+  .photo {
+    object-position: center;
+  }
+  .sweep,
+  .orbit {
+    display: block;
+  }
+  .glow {
+    width: 57%;
+    height: 66%;
+  }
+
+  .copy {
+    position: absolute;
+    left: calc(80 * var(--u));
+    top: calc(150 * var(--u));
+    width: calc(520 * var(--u));
+    max-width: none;
+    padding: 0;
+  }
+  .label {
+    gap: calc(10 * var(--u));
+    font-size: max(10px, calc(12 * var(--u)));
+  }
+  .dot {
+    width: calc(10 * var(--u));
+    height: calc(10 * var(--u));
+  }
+  .meta {
+    margin-top: calc(14 * var(--u));
+    font-size: max(10px, calc(12 * var(--u)));
+  }
+  .meta span {
+    margin: 0 calc(4 * var(--u));
+  }
+  .title {
+    margin-top: calc(26 * var(--u));
+    font-size: calc(92 * var(--u));
+  }
+  .line {
+    padding-bottom: calc(5 * var(--u));
+  }
+  .lede {
+    margin-top: calc(22 * var(--u));
+    max-width: calc(440 * var(--u));
+    font-size: max(15px, calc(18 * var(--u)));
+  }
+  .ctas {
+    margin-top: calc(36 * var(--u));
+    gap: calc(30 * var(--u));
+  }
+
+  .btn svg:not(.circle *) {
+    width: calc(16 * var(--u));
+    height: calc(12 * var(--u));
+  }
+  .primary {
+    height: calc(60 * var(--u));
+    min-width: calc(260 * var(--u));
+    padding: 0 calc(34 * var(--u));
+    gap: calc(16 * var(--u));
+    font-size: max(11px, calc(13 * var(--u)));
+  }
+  .textBtn {
+    gap: calc(16 * var(--u));
+    font-size: max(11px, calc(13 * var(--u)));
+  }
+  .circle {
+    width: calc(56 * var(--u));
+    height: calc(56 * var(--u));
+  }
+  .circle svg {
+    width: calc(18 * var(--u));
+    height: calc(13 * var(--u));
+  }
+
+  .panel {
+    position: absolute;
+    left: calc(600 * var(--u));
+    right: calc(80 * var(--u));
+    bottom: calc(40 * var(--u));
+    margin: 0;
+    gap: calc(20 * var(--u));
+    padding: calc(24 * var(--u));
+    border-radius: calc(24 * var(--u));
+  }
+  .panel::before {
+    left: calc(24 * var(--u));
+    right: calc(24 * var(--u));
+  }
+  .panelHead {
+    gap: calc(24 * var(--u));
+  }
+  .panelIntro {
+    gap: calc(10 * var(--u));
+  }
+  .panelLabel {
+    font-size: max(10px, calc(11 * var(--u)));
+  }
+  .panelLabel .dot {
+    width: calc(8 * var(--u));
+    height: calc(8 * var(--u));
+  }
+  .panelTitle {
+    font-size: max(20px, calc(28 * var(--u)));
+  }
+  .panelTag {
+    font-size: max(12px, calc(13 * var(--u)));
+  }
+  .ghost {
+    height: max(36px, calc(44 * var(--u)));
+    padding: 0 calc(20 * var(--u));
+    gap: calc(14 * var(--u));
+    font-size: max(10px, calc(11 * var(--u)));
+  }
+  .ghost svg:not(.circle *) {
+    width: calc(14 * var(--u));
+    height: calc(10 * var(--u));
+  }
+  .rows {
+    gap: calc(10 * var(--u));
+  }
+  .card {
+    width: max(228px, calc(236 * var(--u)));
+    margin-right: calc(10 * var(--u));
+    gap: calc(14 * var(--u));
+    padding: max(10px, calc(12 * var(--u))) max(12px, calc(14 * var(--u)));
+    border-radius: calc(16 * var(--u));
+  }
+  .avatar,
+  .initials {
+    width: max(40px, calc(48 * var(--u)));
+    height: max(40px, calc(48 * var(--u)));
+  }
+  .initials {
+    font-size: max(13px, calc(15 * var(--u)));
+  }
+  .cardName {
+    font-size: max(12px, calc(14 * var(--u)));
+  }
+  .cardRole {
+    font-size: max(10.5px, calc(11.5 * var(--u)));
+  }
+  .cardCo {
+    gap: calc(6 * var(--u));
+    font-size: max(11px, calc(12 * var(--u)));
+  }
+  .cardCo svg,
+  .cardCo img {
+    width: max(14px, calc(16 * var(--u)));
+    height: max(14px, calc(16 * var(--u)));
+  }
+
+  .stats {
+    position: absolute;
+    left: calc(80 * var(--u));
+    bottom: calc(64 * var(--u));
+    gap: calc(18 * var(--u));
+    padding: 0;
+  }
+  .statsRule {
+    width: calc(36 * var(--u));
+    height: max(2px, calc(2 * var(--u)));
+  }
+  .statsRow {
+    gap: calc(28 * var(--u));
+  }
+  .stat {
+    gap: calc(5 * var(--u));
+  }
+  .stat + .stat {
+    padding-left: calc(28 * var(--u));
+  }
+  .stat + .stat::before {
+    height: calc(40 * var(--u));
+  }
+  .statNum {
+    font-size: max(22px, calc(28 * var(--u)));
+  }
+  .statCap {
+    font-size: max(9px, calc(10 * var(--u)));
+  }
+}

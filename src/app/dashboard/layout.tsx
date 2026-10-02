@@ -5,7 +5,7 @@ import FocusFromHash from "@/components/dashboard/FocusFromHash";
 import { ChatIcon, LogOutIcon } from "@/components/dashboard/icons";
 import { initials } from "@/components/dashboard/initials";
 import StatusBadge from "@/components/dashboard/StatusBadge";
-import { VCMark } from "@/components/Logo";
+import { BrandLogo } from "@/components/Logo";
 import { getMyApplication, requireUser } from "@/lib/application/dal";
 import { isReviewer } from "@/lib/auth";
 import { progress } from "@/lib/application/progress";
@@ -35,9 +35,8 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
     <div className="min-h-[100svh] bg-cream lg:grid lg:grid-cols-[272px_minmax(0,1fr)]">
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-[100svh] flex-col border-r border-line-soft bg-white px-4 py-6 lg:flex">
-        <Link href="/" aria-label="VC Summit home" className="flex items-center gap-3 px-3 text-ink">
-          <VCMark className="h-[22px] w-auto" />
-          <span className="font-display text-[12px] leading-none font-semibold tracking-[0.115em]">SUMMIT</span>
+        <Link href="/" aria-label="Fundup Club home" className="flex items-center px-3">
+          <BrandLogo className="h-[34px] w-auto" />
         </Link>
 
         <div className="mt-7 rounded-2xl border border-line-soft bg-cream/70 p-4">
@@ -112,9 +111,8 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         {/* Mobile header + tabs */}
         <header className="sticky top-0 z-20 border-b border-line-soft bg-cream/90 px-4 backdrop-blur-md sm:px-8 lg:hidden">
           <div className="flex h-14 items-center justify-between gap-3">
-            <Link href="/" aria-label="VC Summit home" className="flex items-center gap-2.5 text-ink">
-              <VCMark className="h-[20px] w-auto" />
-              <span className="font-display text-[11px] leading-none font-semibold tracking-[0.115em]">SUMMIT</span>
+            <Link href="/" aria-label="Fundup Club home" className="flex items-center">
+              <BrandLogo className="h-[28px] w-auto" />
             </Link>
             <div className="flex items-center gap-2.5">
               <StatusBadge status={app.status} />

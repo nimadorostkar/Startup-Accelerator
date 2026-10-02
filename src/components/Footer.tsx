@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PlusMark } from "./icons";
-import { VCMark } from "./Logo";
+import { BrandLogo } from "./Logo";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -27,7 +27,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     links: [
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
-      { label: "Featured founders", href: "/#accelerator" },
+      { label: "Featured founders", href: "/#founders" },
       { label: "Sign in", href: "/login" },
     ],
   },
@@ -111,13 +111,10 @@ export default function Footer() {
           <div>
             <Link
               href="/"
-              aria-label="VC Summit home"
-              className="inline-flex items-center gap-3 text-ink"
+              aria-label="Fundup Club home"
+              className="inline-flex items-center"
             >
-              <VCMark className="h-[26px] w-auto" />
-              <span className="font-display text-[13px] leading-none font-semibold tracking-[0.115em]">
-                SUMMIT
-              </span>
+              <BrandLogo className="h-[40px] w-auto" />
             </Link>
             <p className="mt-6 text-[14px] leading-[1.75] text-muted">
               VC Summit brings together the world&rsquo;s top investors,

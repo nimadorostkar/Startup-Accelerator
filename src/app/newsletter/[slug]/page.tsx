@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Footer from "@/components/Footer";
 import { ArrowRight } from "@/components/icons";
-import { VCMark } from "@/components/Logo";
+import { BrandMark } from "@/components/Logo";
 import Navbar from "@/components/Navbar";
 import Cover from "@/components/newsletter/Cover";
 import PostCard from "@/components/newsletter/PostCard";
@@ -146,9 +146,7 @@ export default async function ArticlePage({
                 {post.excerpt}
               </p>
               <p className="mt-7 inline-flex items-center gap-3 text-[14px] text-ink">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white">
-                  <VCMark className="h-3 w-auto" />
-                </span>
+                <BrandMark className="h-9 w-auto shrink-0" />
                 <span className="font-semibold">{post.author}</span>
               </p>
             </div>

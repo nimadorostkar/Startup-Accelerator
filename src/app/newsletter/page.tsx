@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import { ArrowRight, CheckIcon } from "@/components/icons";
-import { VCMark } from "@/components/Logo";
+import { BrandMark } from "@/components/Logo";
 import Reveal from "@/components/motion/Reveal";
 import Navbar from "@/components/Navbar";
 import Cover from "@/components/newsletter/Cover";
@@ -93,9 +93,7 @@ export default function NewsletterPage() {
                 className="float group relative block rounded-[24px] border border-line-soft bg-white p-5 shadow-[0_40px_80px_-40px_rgba(0,15,22,0.35)] [--fdur:7s] sm:p-6"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-white">
-                    <VCMark className="h-3.5 w-auto" />
-                  </span>
+                  <BrandMark className="h-10 w-auto shrink-0" />
                   <span className="min-w-0 flex-1 leading-tight">
                     <span className="block text-[14px] font-bold text-ink">
                       The Founder Brief
