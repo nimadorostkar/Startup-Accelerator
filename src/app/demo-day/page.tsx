@@ -358,22 +358,23 @@ export default function DemoDayPage() {
 
             <Reveal delay={150} y={40} className="relative">
               <div className="relative overflow-hidden rounded-[28px] shadow-[0_40px_90px_-50px_rgba(20,26,34,0.5)]">
-                {/* PLACEHOLDER photo — same third-party image as the join banner; replace before launch. */}
+                {/* Stock photo, same as the join banner (Jud Mackrill, Unsplash License);
+                    swap in a real Demo Day photo when there is one. */}
                 <Image
-                  src="/images/cohort.webp"
-                  alt="A cohort of founders and mentors together at a program event"
-                  width={1441}
-                  height={987}
+                  src="/images/founders-at-work.webp"
+                  alt="Four founders gathered around a laptop, smiling"
+                  width={1800}
+                  height={1200}
                   quality={55}
                   sizes="(min-width: 1024px) 45vw, 100vw"
-                  className="aspect-[4/3] w-full object-cover object-[60%_center]"
+                  className="aspect-[4/3] w-full object-cover object-center"
                 />
                 <div
                   aria-hidden="true"
                   className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/70 to-transparent"
                 />
                 <p className="absolute bottom-5 left-5 right-5 text-[13px] font-medium text-white/85 sm:bottom-6 sm:left-6">
-                  The cohort, mentors and investors after a Demo Day.
+                  Founders and mentors, working side by side.
                 </p>
               </div>
               <div className="absolute -top-5 -right-3 rounded-[18px] border border-line-soft bg-white px-5 py-4 shadow-[0_24px_50px_-24px_rgba(20,26,34,0.35)] sm:-right-6">

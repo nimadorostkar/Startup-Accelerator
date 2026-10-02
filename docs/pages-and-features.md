@@ -184,7 +184,7 @@ Code: [src/app/demo-day/page.tsx](../src/app/demo-day/page.tsx); the roadmap is 
 | --- | --- |
 | Hero | Dark, over the landing photo: "Stage 05 of 06 · Weeks 9–10", **Demo Day**, Reserve a seat (next Demo Day event) and See the roadmap; a card for the next Demo Day with a live countdown; four format facts (20 startups, 5-minute pitches, 180+ firms, 1:1 meetings) |
 | The program roadmap | The six stages as a winding road (desktop) or a vertical timeline (phones). Each card shows the week range, title and focus; Demo Day is the highlighted milestone with a pulsing marker; the road after it is dashed ("after the program") |
-| What it is | Copy, the "what every founder walks in with" checklist, and the cohort photo with a 180+ firms badge |
+| What it is | Copy, the "what every founder walks in with" checklist, and a team photo (stock, Unsplash License; also used in the landing page's join banner, swap for a real Demo Day photo) with a 180+ firms badge |
 | Before, on the day, after | Three cards: the two-week run-up, the day's agenda (taken from the next Demo Day event, with a fallback), and what happens after |
 | Five minutes, five beats | The pitch structure as a proportional bar: Problem 60s, Product 60s, Traction 90s, Team 30s, The ask 60s |
 | The room | Six network figures on a dark band (the landing page's placeholder numbers) |

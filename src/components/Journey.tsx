@@ -135,29 +135,30 @@ export default function Journey() {
           </Reveal>
         </div>
 
-        {/* Phones: one swipeable row (next stage peeks in). sm and up: the grid. */}
-        <ol className="snap-row mt-10 pt-1 pb-8 [--bleed:16px] sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:p-0 lg:grid-cols-3 xl:mt-14 2xl:grid-cols-6 2xl:gap-4">
+        {/* Compact stage cards. Phones: one swipeable row (next stage peeks in);
+            sm: three across; lg and up: all six in one row. */}
+        <ol className="snap-row mx-auto mt-8 max-w-[1180px] pt-1 pb-6 [--bleed:16px] sm:mt-10 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:p-0 lg:grid-cols-6">
           {STAGES.map(
             ({ id, eyebrow, title, body, Icon, Art, iconMove, href }, i) => (
               <Reveal
                 key={id}
                 as="li"
                 delay={i * 90}
-                className="flex w-[84%] max-w-[340px] sm:w-auto sm:max-w-none"
+                className="flex w-[58%] max-w-[220px] sm:w-auto sm:max-w-none"
               >
                 <TiltCard
                   id={`stage-${id}`}
-                  className="card card-lift group relative flex w-full flex-col overflow-hidden"
+                  className="card card-lift group relative flex w-full flex-col overflow-hidden rounded-[12px]"
                 >
                   <span
                     aria-hidden="true"
-                    className="absolute top-0 left-7 h-[3px] 2xl:left-6 w-10 rounded-b-full bg-brand transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-16"
+                    className="absolute top-0 left-4 h-[2px] w-6 rounded-b-full bg-brand transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-10"
                   />
 
                   {/* Stage counter — orients the swipe row on phones */}
                   <span
                     aria-hidden="true"
-                    className="absolute top-6 right-6 font-display text-[13px] font-bold tracking-[0.04em] text-ink/30 tabular-nums sm:hidden"
+                    className="absolute top-4 right-4 font-display text-[11px] font-bold tracking-[0.04em] text-ink/30 tabular-nums sm:hidden"
                   >
                     <span className="text-brand-strong">
                       {String(i + 1).padStart(2, "0")}
@@ -165,32 +166,32 @@ export default function Journey() {
                     &thinsp;/&thinsp;{String(STAGES.length).padStart(2, "0")}
                   </span>
 
-                  <div className="relative px-7 pt-6 2xl:px-6">
+                  <div className="relative px-4 pt-4">
                     <Icon
-                      className={`h-6 w-6 text-brand transition-[translate,rotate,scale] duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] ${iconMove}`}
+                      className={`h-4 w-4 text-brand transition-[translate,rotate,scale] duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] ${iconMove}`}
                     />
-                    <p className="type-wide mt-4 text-[11px] font-semibold tracking-[0.14em] text-muted uppercase">
+                    <p className="type-wide mt-2.5 text-[9.5px] font-semibold tracking-[0.14em] text-muted uppercase">
                       {eyebrow}
                     </p>
-                    <h3 className="mt-1.5 font-display text-[22px] leading-tight 2xl:text-[21px] font-bold tracking-[-0.01em] text-ink">
+                    <h3 className="mt-1 font-display text-[15px] leading-tight font-bold tracking-[-0.01em] text-ink">
                       {title}
                     </h3>
-                    <p className="mt-2.5 sm:min-h-[4.2em] text-[15px] leading-[1.5] text-ink-soft/75">
+                    <p className="mt-1.5 text-[12px] leading-[1.45] text-ink-soft/75 sm:min-h-[4.35em]">
                       {body}
                     </p>
                     <Link
                       href={href ?? "/demo-day#roadmap"}
                       aria-label={`Learn more about ${title}`}
-                      className="mt-3.5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-ink"
+                      className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink"
                     >
-                      <span className="bg-[linear-gradient(var(--brand),var(--brand))] bg-[length:100%_2px] bg-bottom bg-no-repeat pb-0.5">
+                      <span className="bg-[linear-gradient(var(--brand),var(--brand))] bg-[length:100%_1.5px] bg-bottom bg-no-repeat pb-px">
                         Learn more
                       </span>
-                      <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                      <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
                     </Link>
                   </div>
 
-                  <div className="relative mt-auto h-[130px] origin-bottom pt-4 transition-[scale] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]">
+                  <div className="relative mt-auto h-[56px] origin-bottom pt-2 transition-[scale] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]">
                     <Art />
                   </div>
                 </TiltCard>

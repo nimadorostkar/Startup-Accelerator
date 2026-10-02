@@ -21,16 +21,16 @@ export default function JoinBanner() {
       />
 
       {/* Photo on the right half, fading into the dark panel.
-          PLACEHOLDER — third-party photo showing Founder Institute branding;
-          replace with your own cohort photo (or confirm permission) before launch. */}
+          Stock photo (Jud Mackrill, Unsplash License: unsplash.com/photos/Of_m3hMsoAA);
+          swap in a real Fundup Club photo when there is one. */}
       <div className="absolute inset-y-0 right-0 -z-10 w-full md:w-1/2">
         <Image
-          src="/images/cohort.webp"
-          alt="A cohort of founders and mentors posing together at a program event"
+          src="/images/founders-at-work.webp"
+          alt="Four founders gathered around a laptop, smiling"
           fill
           quality={55}
           sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover object-[60%_center]"
+          className="object-cover object-center"
         />
         <div
           aria-hidden="true"
