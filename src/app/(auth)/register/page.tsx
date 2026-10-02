@@ -5,9 +5,9 @@ import RegisterForm from "@/components/auth/RegisterForm";
 import Eyebrow from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
-  title: "Create your account — VC Summit",
+  title: "Create your account — Fundup Club",
   description:
-    "Create a VC Summit account to apply to the accelerator and join the founder network.",
+    "Create a Fundup Club account to apply to the accelerator and join the founder network.",
   robots: { index: false, follow: false },
 };
 

@@ -2,17 +2,17 @@ import Link from "next/link";
 import HeaderShell from "./HeaderShell";
 import MobileMenu from "./MobileMenu";
 import { NAV_LINKS } from "./nav-links";
-import { ChevronRight } from "./icons";
+import { ArrowRight, ChevronRight } from "./icons";
 import { BrandLogo } from "./Logo";
 
 /* `tone="dark"` for pages whose hero is dark: text turns white while the
    bar sits over the hero, and back to ink once the pinned mobile bar frosts
    or the menu opens (both give it a white background).
 
-   `variant="summit"` is the landing page's bar from the hero handoff: frosted
-   cream, Archivo, wider tracking, gold underline on hover, laid out on the
-   handoff's 1440px frame (84px tall there). Archivo is loaded by the landing
-   page, so this variant only belongs there. */
+   `variant="summit"` is the landing page's bar from the Fundup Club hero
+   design: white, sentence-case links with an orange underline on hover and an
+   orange "Launch your startup" button, laid out on the hero's 1440px frame
+   (76px tall there). */
 export default function Navbar({
   tone = "light",
   variant = "classic",
@@ -28,7 +28,7 @@ export default function Navbar({
       ? "text-white max-lg:group-data-[scrolled]/header:text-ink max-lg:group-has-[[aria-expanded=true]]/header:text-ink"
       : "text-ink";
   const linkText = summit
-    ? "relative font-grotesk text-[max(9px,0.833cqw)] font-semibold tracking-[0.14em] whitespace-nowrap uppercase after:absolute after:inset-x-0 after:-bottom-1.5 after:h-[1.5px] after:origin-left after:scale-x-0 after:bg-summit-gold after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.2,0.7,0.2,1)] hover:after:scale-x-100 focus-visible:after:scale-x-100"
+    ? "relative font-display text-[max(13px,1cqw)] font-medium whitespace-nowrap after:absolute after:inset-x-0 after:-bottom-1.5 after:h-[2px] after:origin-left after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.2,0.7,0.2,1)] hover:after:scale-x-100 focus-visible:after:scale-x-100"
     : "font-display text-[max(9px,0.67cqw)] font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors duration-200 hover:text-gold";
   return (
     <HeaderShell>
@@ -36,7 +36,7 @@ export default function Navbar({
         /* Frosted cream bar, all sizes */
         <div
           aria-hidden="true"
-          className="summit-drop absolute inset-x-0 top-0 -z-10 h-[64px] border-b border-summit-ink/[0.08] bg-summit-cream/50 backdrop-blur-[16px] lg:h-[min(5.83vw,112px)]"
+          className="summit-drop absolute inset-x-0 top-0 -z-10 h-[64px] border-b border-summit-ink/[0.07] bg-white/85 backdrop-blur-[16px] lg:h-[min(5.28vw,101.4px)]"
         />
       ) : (
         /* Hairline under the bar */
@@ -47,7 +47,7 @@ export default function Navbar({
       )}
       <div className="mx-auto w-full max-w-[1920px] @container">
         <div
-          className={`flex h-[64px] items-center px-6 sm:px-8 ${summit ? "summit-drop lg:h-[5.83cqw] lg:px-[5.56cqw]" : "lg:h-[5.74cqw] lg:pr-[4.25cqw] lg:pl-[3.65cqw]"}`}
+          className={`flex h-[64px] items-center px-6 sm:px-8 ${summit ? "summit-drop lg:h-[5.28cqw] lg:px-[5.56cqw]" : "lg:h-[5.74cqw] lg:pr-[4.25cqw] lg:pl-[3.65cqw]"}`}
         >
           {/* Logo */}
           <Link
@@ -61,13 +61,13 @@ export default function Navbar({
           {/* Divider */}
           <span
             aria-hidden="true"
-            className={`hidden w-px shrink-0 lg:block ${summit ? "h-[2.5cqw] bg-summit-ink/20 lg:ml-[1.67cqw]" : `h-[2.2cqw] lg:ml-[3.83cqw] ${dark ? "bg-white/30" : "bg-ink/30"}`}`}
+            className={`hidden w-px shrink-0 ${summit ? "lg:hidden" : `lg:block h-[2.2cqw] lg:ml-[3.83cqw] ${dark ? "bg-white/30" : "bg-ink/30"}`}`}
           />
 
           {/* Links */}
           <nav
             aria-label="Primary"
-            className={`hidden items-center lg:flex ${summit ? "gap-[2.78cqw] lg:mx-auto" : "gap-[3.26cqw] lg:ml-[9.99cqw]"}`}
+            className={`hidden items-center lg:flex ${summit ? "gap-[2.92cqw] lg:mx-auto" : "gap-[3.26cqw] lg:ml-[9.99cqw]"}`}
           >
             {NAV_LINKS.map((link) => (
               <Link
@@ -93,12 +93,12 @@ export default function Navbar({
             {summit ? (
               <Link
                 href="/dashboard"
-                className="group hidden h-[42px] items-center justify-center gap-3 rounded-full bg-summit-gold px-6 shadow-[0_8px_22px_rgba(120,86,30,0.2)] transition-[translate,box-shadow] duration-300 ease-[cubic-bezier(0.2,0.7,0.2,1)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(120,86,30,0.32)] focus-visible:rounded-full sm:inline-flex lg:h-[3.33cqw] lg:min-h-[36px] lg:gap-[0.97cqw] lg:px-[1.8cqw]"
+                className="group hidden h-[42px] items-center justify-center gap-2.5 rounded-[10px] bg-brand-strong px-5 shadow-[0_10px_24px_-12px_rgba(200,74,10,0.7)] transition-[translate,background-color] duration-300 ease-[cubic-bezier(0.2,0.7,0.2,1)] hover:-translate-y-0.5 hover:bg-[#b04008] focus-visible:rounded-[10px] sm:inline-flex lg:h-[max(38px,3.06cqw)] lg:gap-[0.7cqw] lg:rounded-[0.7cqw] lg:px-[1.53cqw]"
               >
-                <span className="font-grotesk text-[11px] font-bold tracking-[0.14em] whitespace-nowrap text-summit-ink uppercase lg:text-[max(10px,0.833cqw)]">
-                  Apply now
+                <span className="font-display text-[14px] font-semibold whitespace-nowrap text-white lg:text-[max(13px,1.04cqw)]">
+                  Launch your startup
                 </span>
-                <ChevronRight className="h-[1.1em] w-[1.1em] shrink-0 text-summit-ink transition-transform duration-300 group-hover:translate-x-1 lg:h-[0.9cqw] lg:min-h-[11px] lg:w-[0.9cqw] lg:min-w-[11px]" />
+                <ArrowRight className="h-[1.05em] w-[1.05em] shrink-0 text-white transition-transform duration-300 group-hover:translate-x-1 lg:h-[max(14px,1.04cqw)] lg:w-[max(14px,1.04cqw)]" />
               </Link>
             ) : (
               <Link

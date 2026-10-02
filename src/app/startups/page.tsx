@@ -11,9 +11,9 @@ import { toCard } from "@/lib/application/directory";
 import { listPublicStartups } from "@/lib/application/public";
 
 export const metadata: Metadata = {
-  title: "Startups — VC Summit",
+  title: "Startups — Fundup Club",
   description:
-    "Every startup that has applied to the VC Summit program, from first idea to funded, with where each one is in the process.",
+    "Every startup that has applied to the Fundup Club program, from first idea to funded, with where each one is in the process.",
 };
 
 // Reads the live application store on every request.

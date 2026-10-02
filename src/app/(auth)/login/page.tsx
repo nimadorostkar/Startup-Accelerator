@@ -5,8 +5,8 @@ import LoginForm from "@/components/auth/LoginForm";
 import Eyebrow from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
-  title: "Sign in — VC Summit",
-  description: "Sign in to your VC Summit founder account.",
+  title: "Sign in — Fundup Club",
+  description: "Sign in to your Fundup Club founder account.",
   robots: { index: false, follow: false },
 };
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
       <LoginForm />
 
       <p className="mt-8 text-center text-[14px] text-muted">
-        New to VC Summit?{" "}
+        New to Fundup Club?{" "}
         <Link
           href="/register"
           className="font-semibold text-gold-deep transition-colors duration-200 hover:text-ink"

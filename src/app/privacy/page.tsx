@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalArticle, { type LegalSection } from "@/components/LegalArticle";
 
 export const metadata: Metadata = {
-  title: "Privacy policy — VC Summit",
+  title: "Privacy policy — Fundup Club",
   description:
-    "What VC Summit collects, why, who can see it, and how to ask for changes.",
+    "What Fundup Club collects, why, who can see it, and how to ask for changes.",
 };
 
 /* DRAFT — written to match what the site actually does today. Have counsel
@@ -13,7 +13,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: "Who we are",
     paragraphs: [
-      "VC Summit runs a startup accelerator, events and a newsletter. This policy explains what personal information this website collects, why, who can see it, and the choices you have. Questions go to the team through the contact page.",
+      "Fundup Club runs a startup accelerator, events and a newsletter. This policy explains what personal information this website collects, why, who can see it, and the choices you have. Questions go to the team through the contact page.",
     ],
   },
   {
@@ -51,7 +51,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: "Who can see your information",
     bullets: [
-      "The VC Summit team, including the people who review applications.",
+      "The Fundup Club team, including the people who review applications.",
       "Service providers that host the site and send our email, who act on our instructions.",
       "Google, if you choose to sign in with Google: Google tells us your name and email, and its own privacy policy applies to your Google account.",
       "Authorities, where the law requires it.",

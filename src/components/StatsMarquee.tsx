@@ -1,4 +1,4 @@
-/* PLACEHOLDER values — replace with VC Summit's real numbers before launch.
+/* PLACEHOLDER values — replace with Fundup Club's real numbers before launch.
    (The hero already shows $420B+, 180+ firms and 65+ markets, so they are not repeated here.) */
 const STATS = [
   { value: "1,200+", label: "Startups Built" },
@@ -35,7 +35,7 @@ function Row({ hidden = false }: { hidden?: boolean }) {
 export default function StatsMarquee() {
   return (
     <section
-      aria-label="VC Summit in numbers"
+      aria-label="Fundup Club in numbers"
       className="marquee relative overflow-hidden bg-cream"
     >
       <div className="[mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]">

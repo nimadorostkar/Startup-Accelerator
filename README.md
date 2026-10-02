@@ -1,4 +1,4 @@
-# VC Summit — Landing Page
+# Fundup Club — Landing Page
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS v4
 
@@ -12,7 +12,7 @@ npm run build && npm start
 
 | Variable               | Purpose                                                                                                                 |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL` | Absolute site origin, e.g. `https://vcsummit.com`. Used for OG/Twitter image URLs. Defaults to `http://localhost:3000`. |
+| `NEXT_PUBLIC_SITE_URL` | Absolute site origin, e.g. `https://fundupclub.com`. Used for OG/Twitter image URLs. Defaults to `http://localhost:3000`. |
 
 Security headers, AVIF/WebP image negotiation and `poweredByHeader: false` are set in `next.config.ts`.
 
@@ -21,7 +21,7 @@ Security headers, AVIF/WebP image negotiation and `poweredByHeader: false` are s
 - `src/components/Hero.tsx` — hero section; its styles, founders panel, count-up and panel
   data are in `src/components/hero/`
 - `src/components/Navbar.tsx`, `MobileMenu.tsx`, `nav-links.ts` — header + mobile nav
-  (`variant="summit"` is the landing page's bar; Archivo is loaded in `src/app/page.tsx`)
+  (`variant="summit"` is the landing page's bar; the hero's Archivo font is loaded in `src/app/page.tsx`)
 - `src/components/Logo.tsx` — Fundup Club logo as SVG: `BrandLogo` (wordmark + fox tag) for
   headers and footers, `BrandMark` (fox tag alone) for small spaces; `src/app/icon.svg` is the
   favicon (the fox tag). Brand orange is `--brand` in `globals.css`
@@ -35,8 +35,9 @@ Desktop (`lg+`) sizing is expressed in container-query units (`cqw`) against a
 freezes above 1920px.
 
 The landing hero follows the same idea in `hero/Hero.module.css`: from 1101px it is laid
-out on the handoff's 1440×900 frame, every length `N × --u` (one design pixel at the
-current width, frozen at 1920px), with px floors on small text. Below 1101px it stacks.
+out on a 1440×900 frame, every length `N × --u` (one design pixel, scaled by width or by
+height, whichever is tighter, so it fits the first screen on 16:9 too), with px floors on
+small text. Gutters follow width only, to stay aligned with the nav. Below 1101px it stacks.
 
 If you swap `hero.webp`, clear Next's optimizer cache or you'll keep seeing the old image:
 

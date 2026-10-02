@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalArticle, { type LegalSection } from "@/components/LegalArticle";
 
 export const metadata: Metadata = {
-  title: "Code of conduct — VC Summit",
+  title: "Code of conduct — Fundup Club",
   description:
-    "How we expect everyone to behave at VC Summit events and in the founder community.",
+    "How we expect everyone to behave at Fundup Club events and in the founder community.",
 };
 
 /* DRAFT — confirm the reporting route (a named contact or email) before launch. */
@@ -12,7 +12,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: "Why this exists",
     paragraphs: [
-      "Founders share unfinished products, real numbers and hard problems with us and with each other. That only works in a room where everyone feels safe and respected. This code applies to every VC Summit event, online or in person, to the program, and to any community space we run.",
+      "Founders share unfinished products, real numbers and hard problems with us and with each other. That only works in a room where everyone feels safe and respected. This code applies to every Fundup Club event, online or in person, to the program, and to any community space we run.",
     ],
   },
   {

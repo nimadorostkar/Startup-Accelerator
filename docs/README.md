@@ -1,4 +1,4 @@
-# VC Summit — Project Docs
+# Fundup Club — Project Docs
 
 Start here before changing the app or building the backend.
 

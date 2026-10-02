@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalArticle, { type LegalSection } from "@/components/LegalArticle";
 
 export const metadata: Metadata = {
-  title: "Terms of use — VC Summit",
+  title: "Terms of use — Fundup Club",
   description:
-    "The terms that apply when you use the VC Summit website, apply to the program or register for an event.",
+    "The terms that apply when you use the Fundup Club website, apply to the program or register for an event.",
 };
 
 /* DRAFT — have counsel review it, and add your legal entity, governing law and
@@ -56,7 +56,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: "Our content",
     paragraphs: [
-      "The site's design, text, graphics and code belong to VC Summit or its licensors. You may link to any page and share our newsletter, but please do not copy or republish the site's content without asking.",
+      "The site's design, text, graphics and code belong to Fundup Club or its licensors. You may link to any page and share our newsletter, but please do not copy or republish the site's content without asking.",
     ],
   },
   {
@@ -77,7 +77,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: "Liability",
     paragraphs: [
-      "To the extent the law allows, VC Summit is not liable for indirect or consequential losses arising from your use of the site, the newsletter or an event. Nothing in these terms limits liability that cannot be limited by law.",
+      "To the extent the law allows, Fundup Club is not liable for indirect or consequential losses arising from your use of the site, the newsletter or an event. Nothing in these terms limits liability that cannot be limited by law.",
     ],
   },
   {

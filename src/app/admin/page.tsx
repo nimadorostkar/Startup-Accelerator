@@ -12,7 +12,7 @@ import { formatMoney, stageLabel } from "@/lib/application/types";
 // Generated after the reviewer check, like the layout's.
 export async function generateMetadata(): Promise<Metadata> {
   await requireReviewer();
-  return { title: { absolute: "Review queue — VC Summit Review" } };
+  return { title: { absolute: "Review queue — Fundup Club Review" } };
 }
 
 const date = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });

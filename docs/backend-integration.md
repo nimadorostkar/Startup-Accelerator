@@ -1,4 +1,4 @@
-# VC Summit — Backend Integration Guide
+# Fundup Club — Backend Integration Guide
 
 As of 2026-09-24. How to replace the two stand-ins (sign-in and file storage) with a real backend, without changing any page.
 

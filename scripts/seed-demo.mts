@@ -162,7 +162,7 @@ function build(s: Spec): StoredApplication {
       bio: full ? `Previously built products in ${s.industry.toLowerCase()} for six years; started ${s.startup} after seeing the problem first-hand.` : "",
       experienceYears: full ? 6 : null,
       commitment: full ? "full-time" : "",
-      heardFrom: "VC Summit event",
+      heardFrom: "Fundup Club event",
     },
     startup: {
       name: s.startup,

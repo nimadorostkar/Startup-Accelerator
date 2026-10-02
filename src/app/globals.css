@@ -26,13 +26,11 @@
   --green-bright: #3b7f48;
   --green-light: #d6f3cc; /* label text on --green — 5.1:1 */
 
-  --brand: #ef6f23; /* Fundup Club logo orange (components/Logo.tsx) */
+  --brand: #ef6f23; /* Fundup Club logo orange (components/Logo.tsx); large text only on white */
+  --brand-strong: #c84a0a; /* orange buttons + small orange text — 4.7:1 with white */
 
-  /* Landing hero + its nav (VC Summit hero handoff, Oct 2026) */
+  /* Landing hero + its nav */
   --summit-ink: #141a22;
-  --summit-gold: #c9a05c;
-  --summit-gold-deep: #a5792f; /* "TOMORROW." — 3:1+ on the hero sky, large text only */
-  --summit-cream: #faf8f3;
 }
 
 @theme inline {
@@ -57,11 +55,9 @@
   --color-green: var(--green);
   --color-green-bright: var(--green-bright);
   --color-green-light: var(--green-light);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
   --color-summit-ink: var(--summit-ink);
-  --color-summit-gold: var(--summit-gold);
-  --color-summit-cream: var(--summit-cream);
-  /* Archivo is only loaded on the landing page (src/app/page.tsx) */
-  --font-grotesk: var(--font-archivo), system-ui, sans-serif;
   --font-display: var(--font-dm-sans), system-ui, sans-serif;
   --font-heavy: var(--font-dm-sans), system-ui, sans-serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;

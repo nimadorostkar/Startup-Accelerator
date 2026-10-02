@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Reveal from "./motion/Reveal";
 import { ArrowRight } from "./icons";
+import { BrandMark } from "./Logo";
 
 /* PLACEHOLDER — swap the initials avatar for the CEO's real headshot at
    /public/images/ceo.webp once one is available (with their permission to use it here). */
@@ -27,9 +28,9 @@ export default function LetterBanner() {
 
           <span
             aria-hidden="true"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-white/15 to-white/5 font-display text-[13px] font-bold tracking-[0.02em] text-white ring-2 ring-white/10 sm:h-14 sm:w-14 sm:text-[16px]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-white/15 to-white/5 ring-2 ring-white/10 sm:h-14 sm:w-14"
           >
-            VC
+            <BrandMark fill="#fff" className="h-5 w-auto sm:h-6" />
           </span>
 
           <span className="min-w-0 flex-1">
@@ -37,7 +38,7 @@ export default function LetterBanner() {
               A letter from our founder
             </span>
             <span className="mt-1 block font-display text-[16px] leading-tight sm:truncate font-bold tracking-[-0.01em] text-white sm:text-[19px]">
-              The Moment VC Summit Was Built For
+              The Moment Fundup Club Was Built For
             </span>
           </span>
 

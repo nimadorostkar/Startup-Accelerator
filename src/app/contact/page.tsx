@@ -15,9 +15,9 @@ import PageHeader from "@/components/PageHeader";
 import { CONTACT_TOPICS } from "@/lib/contact";
 
 export const metadata: Metadata = {
-  title: "Contact — VC Summit",
+  title: "Contact — Fundup Club",
   description:
-    "Questions about the accelerator, investing or partnerships? Send the VC Summit team a message.",
+    "Questions about the accelerator, investing or partnerships? Send the Fundup Club team a message.",
 };
 
 const SHORTCUTS: {

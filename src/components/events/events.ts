@@ -106,7 +106,7 @@ export const EVENTS: SummitEvent[] = [
     summary:
       "Small-group sessions with investors from our network. Bring your deck, your model or the question keeping you up at night.",
     about: [
-      "Founders are split into groups of six, each with an investor from the VC Summit network. Every founder gets focused time on their own questions.",
+      "Founders are split into groups of six, each with an investor from the Fundup Club network. Every founder gets focused time on their own questions.",
     ],
     takeaways: [
       "Direct feedback on your deck or model",
@@ -188,7 +188,7 @@ export const EVENTS: SummitEvent[] = [
     tz: "Europe/London",
     capacity: 40,
     summary:
-      "An informal breakfast for founders raising in the next quarter to meet investors from the VC Summit network.",
+      "An informal breakfast for founders raising in the next quarter to meet investors from the Fundup Club network.",
     about: [
       "A small, seated breakfast. Founders are placed at tables with investors whose focus matches their stage and sector.",
     ],
@@ -222,7 +222,7 @@ export const EVENTS: SummitEvent[] = [
     ],
     takeaways: [
       "Fireside chat with program alumni",
-      "Meet mentors from the VC Summit network",
+      "Meet mentors from the Fundup Club network",
       "Learn how the application works",
     ],
     agenda: [
@@ -348,6 +348,8 @@ export function eventDate(e: SummitEvent) {
       year: "numeric",
     }),
     time: `${time(e.start)} – ${time(e.end)} ${zone}`,
+    /** Start time only, e.g. "4:00 PM PDT" */
+    start: `${time(e.start)} ${zone}`,
   };
 }
 

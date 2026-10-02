@@ -12,7 +12,7 @@ import { progress } from "@/lib/application/progress";
 import { signOut } from "./actions";
 
 export const metadata: Metadata = {
-  title: { template: "%s — VC Summit", default: "Dashboard — VC Summit" },
+  title: { template: "%s — Fundup Club", default: "Dashboard — Fundup Club" },
   robots: { index: false, follow: false },
 };
 

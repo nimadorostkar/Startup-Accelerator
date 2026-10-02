@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Arrow } from "./Arrow";
 import { PANEL_ROWS, type PanelFounder, type PanelMark } from "./founders";
 import s from "./Hero.module.css";
@@ -72,13 +72,12 @@ function FounderCard({ f, copy }: { f: PanelFounder; copy: boolean }) {
   );
 }
 
-export default function FoundersPanel({ style }: { style?: CSSProperties }) {
+export default function FoundersPanel() {
   return (
     <section
       id="founders"
       aria-labelledby="founders-title"
-      className={`${s.panel} ${s.rise}`}
-      style={style}
+      className={s.panel}
     >
       <div className={s.panelHead}>
         <div className={s.panelIntro}>

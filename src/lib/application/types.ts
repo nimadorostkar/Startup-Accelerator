@@ -57,12 +57,24 @@ export const WORKED_TOGETHER = [
 
 export const HEARD_FROM = [
   "Friend or alumni referral",
-  "VC Summit event",
+  "Fundup Club event",
   "Social media",
   "Search",
   "Press or podcast",
   "Other",
 ] as const;
+
+/** Answers saved under the old brand name, mapped to today's option. */
+const HEARD_FROM_RENAMED: Record<string, (typeof HEARD_FROM)[number]> = {
+  // The site was called VC Summit before the rename
+  "VC Summit event": "Fundup Club event",
+};
+
+/** Bring a stored application up to date with renamed options. */
+export function upgradeStored(app: StoredApplication): StoredApplication {
+  const renamed = HEARD_FROM_RENAMED[app.profile?.heardFrom];
+  return renamed ? { ...app, profile: { ...app.profile, heardFrom: renamed } } : app;
+}
 
 /* ---------- Review status ---------- */
 

@@ -24,7 +24,7 @@ export type Testimonial = {
 export const LEFT: Testimonial[] = [
   {
     quote:
-      "Northvale started as a spreadsheet. VC Summit gave me the structure and the deadlines to turn it into a shipped MVP.",
+      "Northvale started as a spreadsheet. Fundup Club gave me the structure and the deadlines to turn it into a shipped MVP.",
     name: "Léa Marchand",
     role: "Founder, Northvale",
     country: "fr",
@@ -32,7 +32,7 @@ export const LEFT: Testimonial[] = [
   },
   {
     quote:
-      "Without VC Summit, Kitebase would never have closed a single round.",
+      "Without Fundup Club, Kitebase would never have closed a single round.",
     name: "Tunde Adeyemi",
     role: "Founder, Kitebase",
     country: "ng",
@@ -54,7 +54,7 @@ export const LEFT: Testimonial[] = [
 export const RIGHT: Testimonial[] = [
   {
     quote:
-      "Joining VC Summit was the defining chapter of my founder journey. The pace, the pressure and, above all, the mentorship reshaped the way I think, the way I build and the way I lead the Tidewell team today.",
+      "Joining Fundup Club was the defining chapter of my founder journey. The pace, the pressure and, above all, the mentorship reshaped the way I think, the way I build and the way I lead the Tidewell team today.",
     name: "Sari Wibowo",
     role: "Founder, Tidewell",
     country: "id",

@@ -117,7 +117,7 @@ export default function Footer() {
               <BrandLogo className="h-[40px] w-auto" />
             </Link>
             <p className="mt-6 text-[14px] leading-[1.75] text-muted">
-              VC Summit brings together the world&rsquo;s top investors,
+              Fundup Club brings together the world&rsquo;s top investors,
               founders and decision makers. Our accelerator helps ambitious
               founders from 65+ markets validate ideas, ship products and raise
               from a network of 180+ investment firms, from first idea to Demo
@@ -193,7 +193,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-4 pt-2 text-[13px] text-muted sm:mt-16 sm:flex-row sm:items-center sm:justify-between sm:border-t sm:border-line-soft sm:pt-7">
-          <p>Copyright &copy; {year} VC Summit. All rights reserved.</p>
+          <p>Copyright &copy; {year} Fundup Club. All rights reserved.</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {LEGAL.map((l) => (
               <li key={l.href}>

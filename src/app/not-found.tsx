@@ -7,7 +7,7 @@ import ButtonLink from "@/components/ui/ButtonLink";
 import Eyebrow from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
-  title: "Page not found — VC Summit",
+  title: "Page not found — Fundup Club",
   robots: { index: false, follow: false },
 };
 

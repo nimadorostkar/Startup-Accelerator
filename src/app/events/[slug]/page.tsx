@@ -30,7 +30,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const e = findEvent(slug);
   if (!e) return {};
-  return { title: `${e.title} — VC Summit Events`, description: e.summary };
+  return { title: `${e.title} — Fundup Club Events`, description: e.summary };
 }
 
 function PinIcon({ className = "" }: { className?: string }) {

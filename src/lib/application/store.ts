@@ -1,7 +1,7 @@
 import "server-only";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { StoredApplication } from "./types";
+import { upgradeStored, type StoredApplication } from "./types";
 
 /* ══════════════════════════════════════════════════════════════════════
    STORAGE SWAP POINT — replace these functions with your database.
@@ -25,7 +25,10 @@ const FILE = path.join(process.cwd(), ".data", "applications.json");
 
 async function readAll(): Promise<Record<string, StoredApplication>> {
   try {
-    return JSON.parse(await readFile(FILE, "utf8"));
+    const all: Record<string, StoredApplication> = JSON.parse(await readFile(FILE, "utf8"));
+    // Records saved before the rename to Fundup Club carry old option values
+    for (const id in all) all[id] = upgradeStored(all[id]);
+    return all;
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return {};
     throw err;

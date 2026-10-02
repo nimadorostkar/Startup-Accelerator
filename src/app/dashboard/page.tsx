@@ -16,7 +16,7 @@ import { progress } from "@/lib/application/progress";
 import { formatMoney, stageLabel, STATUSES, type Status } from "@/lib/application/types";
 
 // The layout's title template only applies to child segments, not this page.
-export const metadata: Metadata = { title: { absolute: "Overview — VC Summit" } };
+export const metadata: Metadata = { title: { absolute: "Overview — Fundup Club" } };
 
 /* The review pipeline, with how far along this application is. */
 const PIPELINE: { title: string; body: string; reached: Status[]; current: Status[] }[] = [

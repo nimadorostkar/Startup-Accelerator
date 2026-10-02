@@ -11,7 +11,7 @@ import { requireReviewer } from "@/lib/application/review";
 export async function generateMetadata(): Promise<Metadata> {
   await requireReviewer();
   return {
-    title: { template: "%s — VC Summit Review", default: "Review queue — VC Summit Review" },
+    title: { template: "%s — Fundup Club Review", default: "Review queue — Fundup Club Review" },
     robots: { index: false, follow: false },
   };
 }

@@ -13,9 +13,9 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import FilterList from "@/components/ui/FilterList";
 
 export const metadata: Metadata = {
-  title: "Newsletter — The Founder Brief · VC Summit",
+  title: "Newsletter — The Founder Brief · Fundup Club",
   description:
-    "Fundraising playbooks, AI build guides and founder stories from the VC Summit network. Every other Thursday, free.",
+    "Fundraising playbooks, AI build guides and founder stories from the Fundup Club network. Every other Thursday, free.",
 };
 
 const PERKS = ["Every other Thursday", "A 5-minute read", "Free, always"];
@@ -55,7 +55,7 @@ export default function NewsletterPage() {
               <Reveal delay={180}>
                 <p className="lead mt-6 max-w-[520px] sm:text-[17px]">
                   Fundraising playbooks, AI build guides and founder stories
-                  from the VC Summit network, straight to your inbox.
+                  from the Fundup Club network, straight to your inbox.
                 </p>
               </Reveal>
               <Reveal delay={260}>

@@ -28,8 +28,8 @@ export async function generateMetadata({
   const s = await findPublicStartup((await params).slug);
   if (!s) return {};
   return {
-    title: `${s.name} — Startups · VC Summit`,
-    description: s.tagline || `${s.name} on VC Summit.`,
+    title: `${s.name} — Startups · Fundup Club`,
+    description: s.tagline || `${s.name} on Fundup Club.`,
   };
 }
 

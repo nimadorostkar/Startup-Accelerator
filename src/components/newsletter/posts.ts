@@ -39,7 +39,7 @@ export const POSTS: Post[] = [
     excerpt:
       "Most rounds are decided before the pitch. Here is the data room, the model and the one-page memo that got our last cohort to term sheets.",
     category: "Fundraising",
-    author: "VC Summit Program Team",
+    author: "Fundup Club Program Team",
     date: "2026-09-17",
     minutes: 7,
     body: [
@@ -82,7 +82,7 @@ export const POSTS: Post[] = [
     excerpt:
       "From synthetic customer interviews to a voice agent that books demos, this is the stack our AI cohort used to do the work of a team of ten.",
     category: "AI",
-    author: "VC Summit AI Cohort",
+    author: "Fundup Club AI Cohort",
     date: "2026-09-03",
     minutes: 6,
     body: [
@@ -123,7 +123,7 @@ export const POSTS: Post[] = [
     excerpt:
       "Northvale started as a spreadsheet shared with twelve users. The founder on scoping ruthlessly, weekly deadlines and what she cut.",
     category: "Founder Stories",
-    author: "VC Summit Editorial",
+    author: "Fundup Club Editorial",
     date: "2026-08-20",
     minutes: 5,
     body: [
@@ -138,7 +138,7 @@ export const POSTS: Post[] = [
       },
       {
         type: "quote",
-        text: "VC Summit gave me the structure and the deadlines to turn it into a shipped MVP.",
+        text: "Fundup Club gave me the structure and the deadlines to turn it into a shipped MVP.",
         cite: "Léa Marchand, Founder, Northvale",
       },
       { type: "h2", text: "What she cut" },
@@ -163,7 +163,7 @@ export const POSTS: Post[] = [
     excerpt:
       "Speed only helps if you are running in the right direction. The five questions we ask every founder in the Discover stage.",
     category: "Building",
-    author: "VC Summit Program Team",
+    author: "Fundup Club Program Team",
     date: "2026-08-06",
     minutes: 4,
     body: [
@@ -196,7 +196,7 @@ export const POSTS: Post[] = [
     excerpt:
       "Everything you need to know about the new cohort: who it is for, how the application works and what happens after you submit.",
     category: "Program News",
-    author: "VC Summit Admissions",
+    author: "Fundup Club Admissions",
     date: "2026-07-23",
     minutes: 3,
     body: [
@@ -227,7 +227,7 @@ export const POSTS: Post[] = [
     excerpt:
       "Tunde Adeyemi on investor matching, the objection that nearly ended the round, and what he would do differently.",
     category: "Founder Stories",
-    author: "VC Summit Editorial",
+    author: "Fundup Club Editorial",
     date: "2026-07-09",
     minutes: 5,
     body: [
@@ -237,7 +237,7 @@ export const POSTS: Post[] = [
       },
       {
         type: "quote",
-        text: "Without VC Summit, Kitebase would never have closed a single round.",
+        text: "Without Fundup Club, Kitebase would never have closed a single round.",
         cite: "Tunde Adeyemi, Founder, Kitebase",
       },
       { type: "h2", text: "The objection" },
@@ -259,7 +259,7 @@ export const POSTS: Post[] = [
     excerpt:
       "Charge earlier than feels comfortable. A simple framework for setting, testing and raising your first prices.",
     category: "Building",
-    author: "VC Summit Program Team",
+    author: "Fundup Club Program Team",
     date: "2026-06-25",
     minutes: 4,
     body: [

@@ -17,7 +17,7 @@ import ButtonLink from "@/components/ui/ButtonLink";
 import Eyebrow from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
-  title: "Demo Day — VC Summit",
+  title: "Demo Day — Fundup Club",
   description:
     "Ten weeks of building, one afternoon on stage. How Demo Day works, where it sits in the six-stage program, and what founders walk away with.",
 };

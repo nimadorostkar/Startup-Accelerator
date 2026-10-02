@@ -16,9 +16,9 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import UnicornCta from "@/components/UnicornCta";
 
 export const metadata: Metadata = {
-  title: "About — VC Summit",
+  title: "About — Fundup Club",
   description:
-    "VC Summit brings together top investors, founders and decision makers, and runs an accelerator for ambitious founders from 65+ markets.",
+    "Fundup Club brings together top investors, founders and decision makers, and runs an accelerator for ambitious founders from 65+ markets.",
 };
 
 /* PLACEHOLDER values, same as the landing page — replace with real numbers before launch. */
@@ -60,14 +60,14 @@ export default function AboutPage() {
       <Navbar />
       <main id="main">
         <PageHeader
-          eyebrow="About VC Summit"
+          eyebrow="About Fundup Club"
           title={
             <>
               Where ideas <span className="text-gold-deep">meet capital</span>
             </>
           }
         >
-          VC Summit brings together the world&rsquo;s top investors, founders
+          Fundup Club brings together the world&rsquo;s top investors, founders
           and decision makers. Our accelerator helps ambitious founders validate
           ideas, ship products and raise, from first idea to Demo Day and
           beyond.
@@ -147,7 +147,7 @@ export default function AboutPage() {
                 id="letter-title"
                 className="mt-5 font-display text-[32px] leading-[1.08] font-bold tracking-[-0.02em] sm:text-[44px]"
               >
-                The moment VC Summit was built for
+                The moment Fundup Club was built for
               </h2>
             </Reveal>
             <Reveal
@@ -160,7 +160,7 @@ export default function AboutPage() {
                 it: I have no idea how to do the next part.
               </p>
               <p>
-                We built VC Summit for that moment. Not to tell founders what to
+                We built Fundup Club for that moment. Not to tell founders what to
                 build, but to give them the structure, the people and the
                 deadlines that turn a spreadsheet into a shipped product, and a
                 shipped product into a company that investors want to back.
@@ -181,7 +181,7 @@ export default function AboutPage() {
               </span>
               <span className="leading-tight">
                 <span className="block text-[15px] font-bold">
-                  Founder, VC Summit
+                  Founder, Fundup Club
                 </span>
                 <span className="block text-[13px] text-white/60">
                   On behalf of the program team

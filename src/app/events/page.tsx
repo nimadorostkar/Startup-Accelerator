@@ -17,7 +17,7 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import FilterList from "@/components/ui/FilterList";
 
 export const metadata: Metadata = {
-  title: "Events — VC Summit",
+  title: "Events — Fundup Club",
   description:
     "Demo Days, workshops, office hours and founder meetups, online and in cities around the world. Free to attend.",
 };

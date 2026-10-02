@@ -1,4 +1,4 @@
-# VC Summit — Pages & Features Reference
+# Fundup Club — Pages & Features Reference
 
 As of 2026-09-24. Every page in the app: what it shows, every field and its rules, and how the pieces connect.
 Online copy (for sharing and comments): [claude.ai doc](https://claude.ai/code/artifact/2a03db74-a0d6-470e-8f68-c69424658a6b). **This file is the source of truth** — update it in the same commit as any change it describes.
@@ -12,7 +12,7 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | Route | Page | Who uses it | Access |
 | --- | --- | --- | --- |
 | `/` | Landing page | Everyone | Public |
-| `/about` | About VC Summit | Everyone | Public |
+| `/about` | About Fundup Club | Everyone | Public |
 | `/contact` | Contact form | Everyone | Public |
 | `/newsletter` | The Founder Brief: newsletter sign-up and article list | Everyone | Public |
 | `/newsletter/[slug]` | One newsletter article | Everyone | Public |
@@ -51,16 +51,16 @@ A founder fills in the application in the dashboard and submits it; a reviewer p
 
 ## Landing page (`/`)
 
-The landing page kept its design on desktop; the mobile version was reworked, cutting its height at 375px from 10,365px to about 6,900px. The hero (with its header) was then rebuilt from the October 2026 hero handoff, which folded the featured founders into it. The desktop header also has a **Sign in** link. Every **Apply now** button (header, mobile menu, hero, CTA bands, footer) links to `/dashboard`; signed-out visitors are sent to `/login`. **View Summit** (hero), **Join a free event** (CTA band), **Attend a free event** (join banner) and the footer's **Startup Events** link to `/events`.
+The landing page kept its design on desktop; the mobile version was reworked, cutting its height at 375px from 10,365px to about 6,900px. The hero (with its header) was then rebuilt for the Fundup Club brand: a light intro holding the featured founders, over a dark Demo Day band. The desktop header also has a **Sign in** link. Every **Apply now** button (header, mobile menu, CTA bands, footer), the landing header's **Launch your startup** and the hero's **Join the club** link to `/dashboard`; signed-out visitors are sent to `/login`. **Join a free event** (CTA band), **Attend a free event** (join banner) and the footer's **Startup Events** link to `/events`.
 
 Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../src/components/). The hero is [Hero.tsx](../src/components/Hero.tsx) with its parts in [src/components/hero/](../src/components/hero/).
 
 | Section | Content | Mobile behaviour |
 | --- | --- | --- |
-| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups → `/startups`, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now. On this page it is the handoff's frosted cream bar (`<Navbar variant="summit" />`: Archivo, gold underline on hover); other pages keep the classic bar | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
+| Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups → `/startups`, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now. On this page it is the white bar from the hero design (`<Navbar variant="summit" />`: orange underline on hover, orange **Launch your startup** button); other pages keep the classic bar | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
 | Mobile menu | Same 6 links, Apply Now, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
-| Hero | "Registration open" label, meta line, **Ideas fund tomorrow.**, sub-copy, Apply Now, View Summit (→ `/events`); 3 stats that count up on load; the **Featured founders** panel (`#founders`, below) | Stacks: copy → stats → panel; full-width Apply Now; the photo covers about a screen and fades into the dark base |
-| Featured founders panel | Frosted panel inside the hero: title, tagline, **All startups** (→ `/startups`), two auto-scrolling rows of founder cards (each → `/startups`), pausing on hover or keyboard focus. Cards come from [hero/founders.ts](../src/components/hero/founders.ts): the 5 founders in `portfolio/data.ts` (also on `/demo-day`) plus 3 **placeholders** from the handoff (Omar Haddad, Lucas Weber, Mei Tanaka; initials, no photo) to replace with real founders | With reduced motion the rows stand still and scroll sideways instead |
+| Hero | Light intro: "Where founders find their next", **Built to launch. Made to connect.**, sub-copy, **Explore startups** (→ `/startups`), **Join the club** (→ `/dashboard`), five founder faces with 25,000+ founders trained · 180+ investment firms; on the right the skyline photo with the **Featured founders** panel over it. Dark **Demo Day** band: "Tomorrow's big ideas. Live on stage.", **Explore Demo Day** (→ `/demo-day`), the next Demo Day from [events.ts](../src/components/events/events.ts) (date links to its event page; "date soon" + newsletter link when none is scheduled), and three numbered pitch cards (→ `/demo-day`). The pitch line-up in [hero/demo-day.ts](../src/components/hero/demo-day.ts) (Orbit, Numa, Relay) is **placeholder** content with low-resolution photos cropped from the design | Everything stacks; full-width buttons; pitch cards become a swipe row |
+| Featured founders panel | Frosted panel over the skyline photo in the hero's intro: title, tagline, **All startups** (→ `/startups`), two auto-scrolling rows of founder cards (each → `/startups`), pausing on hover or keyboard focus. Cards come from [hero/founders.ts](../src/components/hero/founders.ts): the 5 founders in `portfolio/data.ts` (also on `/demo-day`) plus 3 **placeholders** from the handoff (Omar Haddad, Lucas Weber, Mei Tanaka; initials, no photo) to replace with real founders | With reduced motion the rows stand still and scroll sideways instead |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
 | Founder letter banner | Link to the founder's letter on `/about#letter` | Unchanged |
 | Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); every card's **Learn more** opens the roadmap on `/demo-day`, the Demo Day card the page itself | Swipe row with a 01 / 06 counter instead of six stacked cards |
@@ -73,7 +73,7 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 
 Across the page, hover effects only apply to devices with a mouse, so tapped cards don't stay lifted. Anchor links also stop clear of the pinned header.
 
-The hero's motion (staggered entrance, slow drift on the photo, orbit ring, light specks, count-up, marquee, light sweep on Apply Now) is all off under the system's reduced-motion setting. The footer's **Featured founders** link and the "Meet the portfolio" link on `/demo-day` point to `/#founders`. The old separate Startup Accelerator section (accelerator intro and founder carousel) was removed when the panel replaced it.
+The hero's motion (staggered entrance, line-by-line headline reveal, slow drift on the skyline photo, pulsing label dot, founders marquee, hover lifts) is all off under the system's reduced-motion setting. The page rebuilds hourly (`revalidate = 3600`) so the next Demo Day date stays current. The footer's **Featured founders** link and the "Meet the portfolio" link on `/demo-day` point to `/#founders`. The old separate Startup Accelerator section (accelerator intro and founder carousel) was removed when the panel replaced it.
 
 ## About page (`/about`)
 
@@ -84,7 +84,7 @@ Code: [src/app/about/page.tsx](../src/app/about/page.tsx). Same header and foote
 | Intro | "Where ideas meet capital" and a short description |
 | Mission | Mission copy beside 6 key numbers (the landing page's placeholder figures) |
 | How we work | 4 value cards: Founders first, Global by default, Structure that ships, Access to capital |
-| Founder's letter (`#letter`) | Dark band the landing page's letter banner links to. **Placeholder copy**, signed "Founder, VC Summit" until the founder's own words and name are in |
+| Founder's letter (`#letter`) | Dark band the landing page's letter banner links to. **Placeholder copy**, signed "Founder, Fundup Club" until the founder's own words and name are in |
 | The program | The six stages as a numbered grid, reusing `STAGES` from `Journey.tsx`; links to `/#program` |
 | Closing CTA | The landing page's green "Turn your idea into the next unicorn" band (Apply now → `/dashboard`) |
 
@@ -303,7 +303,7 @@ Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/
 - **Locked sections:** while the application is with the review team, every section page shows a lock notice and read-only fields.
 - **Feedback banner:** when changes are requested, the review team's message appears at the top of every page.
 - **Loading:** a skeleton shows while a page loads.
-- **Titles and search engines:** pages are titled "… — VC Summit" and hidden from search engines.
+- **Titles and search engines:** pages are titled "… — Fundup Club" and hidden from search engines.
 
 Server actions for all dashboard pages: [src/app/dashboard/actions.ts](../src/app/dashboard/actions.ts).
 
@@ -342,7 +342,7 @@ The profile has 11 fields; 6 must be answered before the application can be subm
 | Country | `country` | text | Yes | Max 60 characters |
 | City | `city` | text | No | Max 60 characters |
 | Commitment | `commitment` | choice: `full-time` / `part-time` | Yes | One of the two options |
-| How did you hear about us? | `heardFrom` | dropdown | No | Friend or alumni referral, VC Summit event, Social media, Search, Press or podcast, Other |
+| How did you hear about us? | `heardFrom` | dropdown | No | Friend or alumni referral, Fundup Club event, Social media, Search, Press or podcast, Other |
 | Short bio | `bio` | long text, live counter | Yes, at least 60 characters | Max 1,200 characters |
 
 The *Next: startup details* link sits under the form.
@@ -557,7 +557,7 @@ Only the decisions that are valid for the current status are shown. Each asks fo
 
 ## CSV export (`/admin/export`)
 
-The export downloads every application (all statuses, most recently active first) as `vc-summit-applications-YYYY-MM-DD.csv`, with 33 columns. It is available from the admin header and the queue page, to reviewers only; anyone else gets a 404. Code: [src/app/admin/export/route.ts](../src/app/admin/export/route.ts).
+The export downloads every application (all statuses, most recently active first) as `fundup-club-applications-YYYY-MM-DD.csv`, with 33 columns. It is available from the admin header and the queue page, to reviewers only; anyone else gets a 404. Code: [src/app/admin/export/route.ts](../src/app/admin/export/route.ts).
 
 | Group | Columns |
 | --- | --- |

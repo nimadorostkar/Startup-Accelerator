@@ -9,7 +9,7 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-const TITLE = "VC Summit — Ideas Fund Tomorrow";
+const TITLE = "Fundup Club — Ideas Fund Tomorrow";
 const DESCRIPTION =
   "Exclusive summit for the world's top investors, founders and decision makers.";
 

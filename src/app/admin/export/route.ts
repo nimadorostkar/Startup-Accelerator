@@ -67,7 +67,7 @@ export async function GET() {
   return new Response("﻿" + lines.join("\r\n"), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="vc-summit-applications-${today}.csv"`,
+      "Content-Disposition": `attachment; filename="fundup-club-applications-${today}.csv"`,
       "Cache-Control": "no-store",
     },
   });

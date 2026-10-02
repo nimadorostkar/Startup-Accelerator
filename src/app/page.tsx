@@ -11,8 +11,11 @@ import Results from "@/components/Results";
 import StatsMarquee from "@/components/StatsMarquee";
 import UnicornCta from "@/components/UnicornCta";
 
-/* Display face of the hero and its nav. Loaded here rather than in the root
-   layout so other routes don't preload it. */
+/* The hero shows the next Demo Day date */
+export const revalidate = 3600;
+
+/* Display face of the hero (hero/Hero.module.css). Loaded here rather than in
+   the root layout so other routes don't preload it. */
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
