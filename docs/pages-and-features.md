@@ -62,7 +62,6 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 | Hero | Light intro: "Where founders find their next", **Built to launch. Made to connect.**, sub-copy, **Explore startups** (→ `/startups`), **Join the club** (→ `/dashboard`), five founder faces with 25,000+ founders trained · 180+ investment firms; on the right the **Featured founders** panel. Dark **Demo Day** band: "Tomorrow's big ideas. Live on stage.", **Explore Demo Day** (→ `/demo-day`), the next Demo Day from [events.ts](../src/components/events/events.ts) (date links to its event page; "date soon" + newsletter link when none is scheduled), and three numbered pitch cards (→ `/demo-day`). The pitch line-up in [hero/demo-day.ts](../src/components/hero/demo-day.ts) (Orbit, Numa, Relay) is **placeholder** content with low-resolution photos cropped from the design | Everything stacks; full-width buttons; pitch cards become a swipe row |
 | Featured founders panel | Dark card on the right of the hero's intro: title, tagline, **All startups** (→ `/startups`), two auto-scrolling rows of founder cards (each → `/startups`), pausing on hover or keyboard focus. Cards come from [hero/founders.ts](../src/components/hero/founders.ts): the 5 founders in `portfolio/data.ts` (also on `/demo-day`) plus 3 **placeholders** from the handoff (Omar Haddad, Lucas Weber, Mei Tanaka; initials, no photo) to replace with real founders | With reduced motion the rows stand still and scroll sideways instead |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
-| Founder letter banner | Link to the founder's letter on `/about#letter` | Unchanged |
 | Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); every card's **Learn more** opens the roadmap on `/demo-day`, the Demo Day card the page itself | Swipe row with a 01 / 06 counter instead of six stacked cards |
 | CTA band | Apply now, Join a free event | Full-width stacked buttons |
 | Alumni stories | Logo marquee, 6 testimonials, View more alumni (→ `/startups?status=cohort`) | Swipe row of equal-height cards |
@@ -84,7 +83,6 @@ Code: [src/app/about/page.tsx](../src/app/about/page.tsx). Same header and foote
 | Intro | "Where ideas meet capital" and a short description |
 | Mission | Mission copy beside 6 key numbers (the landing page's placeholder figures) |
 | How we work | 4 value cards: Founders first, Global by default, Structure that ships, Access to capital |
-| Founder's letter (`#letter`) | Dark band the landing page's letter banner links to. **Placeholder copy**, signed "Founder, Fundup Club" until the founder's own words and name are in |
 | The program | The six stages as a numbered grid, reusing `STAGES` from `Journey.tsx`; links to `/#program` |
 | Closing CTA | The landing page's dark-to-orange "Turn your idea into the next unicorn" band (Apply now → `/dashboard`) |
 
@@ -664,4 +662,3 @@ The full plan, in order, is in [backend-integration.md](backend-integration.md#b
 - [ ] Make "reviewer" a role on the user record instead of an email list.
 - [ ] Have counsel review the draft privacy policy, terms of use and code of conduct, and add the legal entity, address and governing law.
 - [ ] Fill in the social profile URLs in `Footer.tsx` (icons stay hidden until then).
-- [ ] Replace the placeholder founder's letter on `/about` with the founder's own words and name.

@@ -4,7 +4,6 @@ import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import JoinBanner from "@/components/JoinBanner";
-import LetterBanner from "@/components/LetterBanner";
 import Journey from "@/components/Journey";
 import Navbar from "@/components/Navbar";
 import Results from "@/components/Results";
@@ -30,7 +29,6 @@ export default function Home() {
         {/* The hero carries the featured-founders panel (#founders) */}
         <Hero />
         <StatsMarquee />
-        <LetterBanner />
         <Journey />
         <CtaBand />
         <Results />

@@ -122,9 +122,7 @@ export default function Journey() {
           </Reveal>
           <Reveal delay={90}>
             <h2 id="program-title" className="title-section mt-4">
-              Six stages,
-              <br />
-              <span className="text-brand-strong">one founder journey</span>
+              <span className="text-brand-strong">One founder journey</span>
             </h2>
           </Reveal>
           <Reveal delay={180}>
