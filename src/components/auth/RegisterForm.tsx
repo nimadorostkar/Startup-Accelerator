@@ -65,14 +65,14 @@ export default function RegisterForm() {
             I agree to the{" "}
             <Link
               href="/terms"
-              className="font-semibold text-gold-deep underline-offset-2 hover:underline"
+              className="font-semibold text-brand-strong underline-offset-2 hover:underline"
             >
               Terms of Use
             </Link>{" "}
             and{" "}
             <Link
               href="/privacy"
-              className="font-semibold text-gold-deep underline-offset-2 hover:underline"
+              className="font-semibold text-brand-strong underline-offset-2 hover:underline"
             >
               Privacy Policy
             </Link>

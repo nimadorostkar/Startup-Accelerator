@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
 
   return (
     <div className="min-h-[100svh] bg-cream">
-      <header className="sticky top-0 z-20 bg-navy text-white">
+      <header className="sticky top-0 z-20 bg-night text-white">
         <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-4 px-4 sm:px-8">
           <Link
             href="/admin"
@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             className="flex items-center gap-3"
           >
             <BrandLogo className="h-[30px] w-auto" />
-            <span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-bold tracking-[0.08em] text-gold uppercase ring-1 ring-gold/30">
+            <span className="rounded-full bg-brand/15 px-2.5 py-1 text-[11px] font-bold tracking-[0.08em] text-brand uppercase ring-1 ring-brand/30">
               Review
             </span>
           </Link>
@@ -56,7 +56,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             </span>
             <span
               aria-hidden="true"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gold font-display text-[12px] font-bold text-gold-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-brand font-display text-[12px] font-bold text-white"
             >
               {initials(reviewer.name)}
             </span>

@@ -32,7 +32,7 @@ function Shell({
         <label htmlFor={id} className="font-display text-[13px] font-semibold text-ink">
           {label}
           {required && (
-            <span className="ml-1 text-gold-deep" title="Required to submit">
+            <span className="ml-1 text-brand-strong" title="Required to submit">
               *<span className="sr-only"> (required to submit)</span>
             </span>
           )}
@@ -140,7 +140,7 @@ export function TextArea({
         <span
           aria-hidden="true"
           className={`shrink-0 text-[12px] whitespace-nowrap tabular-nums ${
-            length > max ? "text-danger" : short ? "text-gold-deep" : "text-muted"
+            length > max ? "text-danger" : short ? "text-brand-strong" : "text-muted"
           }`}
         >
           {short ? `${min - length} more to go` : `${length} / ${max}`}
@@ -222,7 +222,7 @@ export function ChoiceCards({
       <legend className="font-display text-[13px] font-semibold text-ink">
         {label}
         {required && (
-          <span className="ml-1 text-gold-deep" title="Required to submit">
+          <span className="ml-1 text-brand-strong" title="Required to submit">
             *<span className="sr-only"> (required to submit)</span>
           </span>
         )}
@@ -231,7 +231,7 @@ export function ChoiceCards({
         {options.map((o, i) => (
           <label
             key={o.id}
-            className="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-white p-3.5 transition-[border-color,background-color] duration-200 hover:border-ink/25 has-checked:border-gold has-checked:bg-chip has-disabled:cursor-not-allowed has-disabled:bg-cream"
+            className="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-white p-3.5 transition-[border-color,background-color] duration-200 hover:border-ink/25 has-checked:border-brand has-checked:bg-chip has-disabled:cursor-not-allowed has-disabled:bg-cream"
           >
             <input
               type="radio"
@@ -243,7 +243,7 @@ export function ChoiceCards({
             <span className="min-w-0">
               <span className="flex items-center gap-2 text-[14px] font-semibold text-ink">
                 {o.hint && (
-                  <span className="font-display text-[11px] font-bold text-gold-deep tabular-nums">
+                  <span className="font-display text-[11px] font-bold text-brand-strong tabular-nums">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                 )}

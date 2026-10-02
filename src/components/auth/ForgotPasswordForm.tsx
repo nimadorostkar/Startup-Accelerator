@@ -26,7 +26,7 @@ export default function ForgotPasswordForm({
   if (state.sent && dismissed !== state) {
     return (
       <div className="mt-8">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-chip text-gold-deep ring-1 ring-chip-line">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-chip text-brand-strong ring-1 ring-chip-line">
           <CheckIcon className="h-5 w-5" />
         </span>
         <h2 className="mt-5 font-display text-[22px] leading-tight font-bold tracking-[-0.01em] text-ink">
@@ -46,7 +46,7 @@ export default function ForgotPasswordForm({
         <button
           type="button"
           onClick={() => setDismissed(state)}
-          className="mt-8 flex h-12 w-full items-center justify-center rounded-full border border-line bg-white font-display text-[13px] font-semibold tracking-[0.04em] text-ink transition-colors duration-200 hover:border-gold"
+          className="mt-8 flex h-12 w-full items-center justify-center rounded-full border border-line bg-white font-display text-[13px] font-semibold tracking-[0.04em] text-ink transition-colors duration-200 hover:border-brand"
         >
           Use a different email
         </button>

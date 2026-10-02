@@ -44,7 +44,7 @@ export default function LoginForm() {
         action={
           <Link
             href={resetHref}
-            className="text-[13px] font-semibold text-gold-deep transition-colors duration-200 hover:text-ink"
+            className="text-[13px] font-semibold text-brand-strong transition-colors duration-200 hover:text-ink"
           >
             Forgot password?
           </Link>

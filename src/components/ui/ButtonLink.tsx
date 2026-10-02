@@ -2,33 +2,34 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight } from "../icons";
 
-type Variant = "primary" | "green" | "white" | "outline" | "outline-dark";
+type Variant = "primary" | "bright" | "white" | "outline" | "outline-dark";
 
 const VARIANT: Record<Variant, { box: string; text: string; icon: string }> = {
   primary: {
-    box: "btn-shine bg-gold-btn shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] hover:brightness-105",
-    text: "text-gold-ink",
-    icon: "text-gold-ink",
+    box: "btn-shine bg-brand-strong shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)] hover:brightness-105",
+    text: "text-white",
+    icon: "text-white",
   },
-  green: {
-    box: "bg-[linear-gradient(180deg,#569262,var(--green-bright))] shadow-[0_16px_38px_-16px_rgba(59,127,72,0.9)] hover:brightness-110",
+  /* Lighter-topped orange for dark bands */
+  bright: {
+    box: "bg-[linear-gradient(180deg,#e2601c,var(--brand-strong))] shadow-[0_16px_38px_-16px_rgba(239,111,35,0.9)] hover:brightness-110",
     text: "text-white",
     icon: "text-white",
   },
   white: {
-    box: "bg-white shadow-[0_18px_40px_-18px_rgba(5,40,20,0.7)] hover:shadow-[0_22px_46px_-18px_rgba(5,40,20,0.85)]",
-    text: "text-green-deep",
-    icon: "text-green-deep",
+    box: "bg-white shadow-[0_18px_40px_-18px_rgba(40,14,3,0.7)] hover:shadow-[0_22px_46px_-18px_rgba(40,14,3,0.85)]",
+    text: "text-brand-strong",
+    icon: "text-brand-strong",
   },
   outline: {
-    box: "border border-line bg-white hover:border-gold",
+    box: "border border-line bg-white hover:border-brand",
     text: "text-ink",
-    icon: "text-ink-soft group-hover:text-gold-deep",
+    icon: "text-ink-soft group-hover:text-brand-strong",
   },
   "outline-dark": {
-    box: "border border-white/15 bg-white/[0.04] backdrop-blur-sm hover:border-gold/60 hover:bg-white/[0.08]",
+    box: "border border-white/15 bg-white/[0.04] backdrop-blur-sm hover:border-brand/60 hover:bg-white/[0.08]",
     text: "text-white",
-    icon: "text-white/70 group-hover:text-gold",
+    icon: "text-white/70 group-hover:text-brand",
   },
 };
 

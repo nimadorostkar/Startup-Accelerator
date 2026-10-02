@@ -21,7 +21,7 @@ export default async function ForgotPasswordPage({
       <h1 className="mt-4 font-display text-[32px] leading-[1.08] font-bold tracking-[-0.02em] text-ink sm:text-[36px]">
         Reset your
         <br />
-        <span className="text-gold-deep">password</span>
+        <span className="text-brand-strong">password</span>
       </h1>
       <ForgotPasswordForm defaultEmail={typeof email === "string" ? email : ""} />
 
@@ -29,7 +29,7 @@ export default async function ForgotPasswordPage({
         Remembered it?{" "}
         <Link
           href="/login"
-          className="font-semibold text-gold-deep transition-colors duration-200 hover:text-ink"
+          className="font-semibold text-brand-strong transition-colors duration-200 hover:text-ink"
         >
           Back to sign in
         </Link>

@@ -5,7 +5,7 @@ import {
 
 const TONES = {
   neutral: "bg-ink/[0.06] text-ink-soft ring-ink/10",
-  gold: "bg-chip text-gold-deep ring-chip-line",
+  brand: "bg-chip text-brand-strong ring-chip-line",
   green: "bg-green-light/70 text-green-deep ring-green/25",
 } as const;
 

@@ -67,7 +67,7 @@ export default async function ApplicationReviewPage({ params }: PageProps<"/admi
         <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line-soft pt-5 text-[14px] sm:grid-cols-4">
           <Meta label="Founder">
             {app.profile.fullName}
-            <a href={`mailto:${app.profile.email}`} className="block truncate text-[13px] font-normal text-gold-deep hover:underline">
+            <a href={`mailto:${app.profile.email}`} className="block truncate text-[13px] font-normal text-brand-strong hover:underline">
               {app.profile.email}
             </a>
           </Meta>
@@ -93,7 +93,7 @@ export default async function ApplicationReviewPage({ params }: PageProps<"/admi
           </Meta>
           <Meta label="Pitch deck">
             {app.startup.deckUrl ? (
-              <a href={app.startup.deckUrl} target="_blank" rel="noreferrer" className="text-gold-deep hover:underline">
+              <a href={app.startup.deckUrl} target="_blank" rel="noreferrer" className="text-brand-strong hover:underline">
                 Open deck ↗
               </a>
             ) : (
@@ -115,7 +115,7 @@ export default async function ApplicationReviewPage({ params }: PageProps<"/admi
               {review.assigneeName ? (
                 <span
                   aria-hidden="true"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-navy font-display text-[12px] font-bold text-gold"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-night font-display text-[12px] font-bold text-brand"
                 >
                   {initials(review.assigneeName)}
                 </span>
@@ -151,7 +151,7 @@ export default async function ApplicationReviewPage({ params }: PageProps<"/admi
                         {SCORE_AREAS.map((a) => `${a.label} ${c.scores[a.id] ?? "–"}`).join(" · ")}
                       </p>
                       {c.recommendation && (
-                        <p className="mt-1.5 text-[13px] font-semibold text-gold-deep">
+                        <p className="mt-1.5 text-[13px] font-semibold text-brand-strong">
                           Recommends: {RECOMMENDATIONS.find((r) => r.id === c.recommendation)?.label}
                         </p>
                       )}

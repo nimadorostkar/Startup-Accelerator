@@ -31,7 +31,7 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
     <>
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="type-wide text-[11px] font-semibold tracking-[0.18em] text-gold-deep uppercase">Support team</p>
+          <p className="type-wide text-[11px] font-semibold tracking-[0.18em] text-brand-strong uppercase">Support team</p>
           <h1 className="mt-2 font-display text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-ink sm:text-[34px]">
             Review queue
           </h1>
@@ -43,7 +43,7 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
         </div>
         <a
           href="/admin/export"
-          className="inline-flex h-10 items-center self-start rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-ink hover:border-gold sm:self-auto"
+          className="inline-flex h-10 items-center self-start rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-ink hover:border-brand sm:self-auto"
         >
           Export all as CSV
         </a>
@@ -124,7 +124,7 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
                       {/* The whole row is clickable via this link's overlay */}
                       <Link
                         href={`/admin/applications/${r.id}`}
-                        className="block truncate font-semibold text-ink after:absolute after:inset-0 group-hover:text-gold-deep"
+                        className="block truncate font-semibold text-ink after:absolute after:inset-0 group-hover:text-brand-strong"
                       >
                         {r.startup || "Unnamed startup"}
                       </Link>

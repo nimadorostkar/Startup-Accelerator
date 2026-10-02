@@ -6,7 +6,7 @@ export default function CtaBand() {
   return (
     <section
       aria-labelledby="cta-title"
-      className="relative isolate overflow-hidden bg-navy"
+      className="relative isolate overflow-hidden bg-night"
     >
       {/* Faint grid, fading out toward the centre */}
       <div
@@ -16,11 +16,11 @@ export default function CtaBand() {
       {/* Gold glows: top-right and bottom-left corners */}
       <div
         aria-hidden="true"
-        className="cta-glow absolute -top-40 -right-24 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.42),transparent)]"
+        className="cta-glow absolute -top-40 -right-24 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.42),transparent)]"
       />
       <div
         aria-hidden="true"
-        className="cta-glow absolute -bottom-40 -left-32 -z-10 h-[300px] w-[680px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.3),transparent)] [--glow-dir:-1]"
+        className="cta-glow absolute -bottom-40 -left-32 -z-10 h-[300px] w-[680px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.3),transparent)] [--glow-dir:-1]"
       />
 
       <div className="mx-auto flex max-w-[1720px] flex-col gap-8 px-4 py-14 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-6 xl:py-16">

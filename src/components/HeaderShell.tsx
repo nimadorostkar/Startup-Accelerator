@@ -35,7 +35,7 @@ export default function HeaderShell({ children }: { children: ReactNode }) {
       {/* Frosted bar (a sibling, not an ancestor, so the fixed menu isn't clipped by backdrop-filter) */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 -z-10 h-[64px] bg-white/85 opacity-0 shadow-[0_8px_24px_-18px_rgba(0,15,22,0.35)] backdrop-blur-md transition-opacity duration-300 group-has-[[aria-expanded=true]]/header:bg-white group-has-[[aria-expanded=true]]/header:opacity-100 group-data-[scrolled]/header:opacity-100 lg:hidden"
+        className="absolute inset-x-0 top-0 -z-10 h-[64px] bg-white/85 opacity-0 shadow-[0_8px_24px_-18px_rgba(20,26,34,0.35)] backdrop-blur-md transition-opacity duration-300 group-has-[[aria-expanded=true]]/header:bg-white group-has-[[aria-expanded=true]]/header:opacity-100 group-data-[scrolled]/header:opacity-100 lg:hidden"
       />
       {children}
     </header>

@@ -50,7 +50,7 @@ export function SubmitPanel({
       <button
         type="submit"
         disabled={!ready || pending}
-        className="btn-shine group mt-6 flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-gold-btn font-display text-[13px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter,opacity] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:[&::after]:hidden sm:w-auto sm:px-8"
+        className="btn-shine group mt-6 flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-brand-strong font-display text-[13px] font-bold tracking-[0.06em] text-white uppercase shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)] transition-[filter,opacity] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:[&::after]:hidden sm:w-auto sm:px-8"
       >
         {pending ? "Submitting…" : resubmission ? "Resubmit application" : "Submit application"}
         {!pending && <ArrowRight className="h-4 w-4 transition-transform group-enabled:group-hover:translate-x-1" />}
@@ -103,7 +103,7 @@ export function WithdrawButton() {
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="h-10 rounded-full border border-line bg-white px-5 text-[13px] font-semibold text-ink transition-colors hover:border-gold"
+          className="h-10 rounded-full border border-line bg-white px-5 text-[13px] font-semibold text-ink transition-colors hover:border-brand"
         >
           Withdraw to make changes
         </button>

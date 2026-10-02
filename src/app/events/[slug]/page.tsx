@@ -88,12 +88,12 @@ export default async function EventPage({
         <header className="relative isolate bg-cream px-4 pt-[116px] pb-12 sm:px-8 sm:pb-16 lg:pt-[calc(min(5.74vw,110px)+56px)]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(0,15,22,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,15,22,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)]"
           />
           <div className="mx-auto max-w-[1200px] lg:px-6">
             <Link
               href="/events"
-              className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-gold-deep"
+              className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-brand-strong"
             >
               <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-1" />
               All events
@@ -116,7 +116,7 @@ export default async function EventPage({
             {e.type === "Demo Day" && (
               <Link
                 href="/demo-day"
-                className="group mt-5 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-gold-deep uppercase"
+                className="group mt-5 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand-strong uppercase"
               >
                 How Demo Day works
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -132,7 +132,7 @@ export default async function EventPage({
               <ul className="grid gap-3 sm:grid-cols-3">
                 {facts.map(({ Icon, label, sub }) => (
                   <li key={label} className="card p-5">
-                    <Icon className="h-5 w-5 text-gold-deep" />
+                    <Icon className="h-5 w-5 text-brand-strong" />
                     <p className="mt-3 text-[15px] leading-snug font-bold text-ink">
                       {label}
                     </p>
@@ -173,7 +173,7 @@ export default async function EventPage({
                       key={t}
                       className="flex gap-3 rounded-[14px] bg-cream p-4 text-[15px] leading-[1.5] text-ink-soft"
                     >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold text-gold-ink">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-white">
                         <CheckIcon className="h-3.5 w-3.5" />
                       </span>
                       {t}
@@ -201,10 +201,10 @@ export default async function EventPage({
                       <span
                         aria-hidden="true"
                         className={`absolute top-1 -left-[37px] h-4 w-4 rounded-full ring-4 ring-white ${
-                          i === 0 ? "bg-gold" : "bg-line"
+                          i === 0 ? "bg-brand" : "bg-line"
                         }`}
                       />
-                      <p className="font-display text-[13px] font-bold tracking-[0.06em] text-gold-deep uppercase tabular-nums">
+                      <p className="font-display text-[13px] font-bold tracking-[0.06em] text-brand-strong uppercase tabular-nums">
                         {a.time}
                       </p>
                       <p className="mt-1 text-[16px] font-semibold text-ink">
@@ -251,7 +251,7 @@ export default async function EventPage({
                     </p>
                     <Link
                       href="/events#upcoming"
-                      className="mt-6 flex h-12 items-center justify-center gap-2.5 rounded-full bg-gold-btn font-display text-[13px] font-bold tracking-[0.06em] text-gold-ink uppercase"
+                      className="mt-6 flex h-12 items-center justify-center gap-2.5 rounded-full bg-brand-strong font-display text-[13px] font-bold tracking-[0.06em] text-white uppercase"
                     >
                       Upcoming events
                       <ArrowRight className="h-4 w-4" />
@@ -282,11 +282,11 @@ export default async function EventPage({
             <div className="mx-auto max-w-[1200px] lg:px-6">
               <div className="flex items-end justify-between gap-6">
                 <h2 id="more-events" className="title-section">
-                  More <span className="text-gold-deep">events</span>
+                  More <span className="text-brand-strong">events</span>
                 </h2>
                 <Link
                   href="/events#upcoming"
-                  className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-gold-deep sm:inline-flex"
+                  className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
                 >
                   Full calendar
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />

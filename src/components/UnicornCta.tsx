@@ -5,7 +5,7 @@ export default function UnicornCta() {
   return (
     <section
       aria-labelledby="unicorn-title"
-      className="relative isolate overflow-hidden bg-[linear-gradient(120deg,var(--green-deep)_0%,var(--green)_50%,var(--green-bright)_100%)] px-4 py-20 text-center sm:px-8 sm:py-24 xl:py-28"
+      className="relative isolate overflow-hidden bg-[linear-gradient(120deg,var(--night)_0%,var(--ember)_55%,var(--brand-strong)_100%)] px-4 py-20 text-center sm:px-8 sm:py-24 xl:py-28"
     >
       {/* Soft light pools, same idea as the glows on the dark bands */}
       <div
@@ -19,7 +19,7 @@ export default function UnicornCta() {
 
       <div className="mx-auto max-w-[680px]">
         <Reveal>
-          <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-green-light uppercase">
+          <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-brand-soft uppercase">
             <span className="block sm:inline">$420B+ capital represented</span>
             <span aria-hidden="true" className="mx-2.5 hidden sm:inline">
               ·

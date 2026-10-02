@@ -17,7 +17,7 @@ export default function PageHeader({
     <section className="relative isolate overflow-hidden bg-cream px-4 pt-[124px] pb-14 sm:px-8 sm:pb-20 lg:pt-[calc(min(5.74vw,110px)+72px)] xl:pb-24">
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(0,15,22,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,15,22,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_70%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_70%)]"
       />
       <div className="mx-auto max-w-[1720px] lg:px-6">
         <Reveal>

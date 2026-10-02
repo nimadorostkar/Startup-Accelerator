@@ -71,10 +71,10 @@ export default function MobileMenu({
                   <Link
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="group flex items-center justify-between border-b border-ink/10 py-4 font-display text-[22px] leading-tight font-bold tracking-[-0.01em] text-ink transition-colors duration-200 active:text-gold-deep"
+                    className="group flex items-center justify-between border-b border-ink/10 py-4 font-display text-[22px] leading-tight font-bold tracking-[-0.01em] text-ink transition-colors duration-200 active:text-brand-strong"
                   >
                     {link.label}
-                    <ArrowRight className="h-5 w-5 shrink-0 text-gold-deep transition-transform duration-200 group-active:translate-x-1" />
+                    <ArrowRight className="h-5 w-5 shrink-0 text-brand-strong transition-transform duration-200 group-active:translate-x-1" />
                   </Link>
                 </li>
               ))}
@@ -87,16 +87,16 @@ export default function MobileMenu({
               <p className="flex items-center gap-2.5 text-[11px]">
                 <span
                   aria-hidden="true"
-                  className="h-[1em] w-[1em] shrink-0 rounded-full bg-gold"
+                  className="h-[1em] w-[1em] shrink-0 rounded-full bg-brand"
                 />
-                <span className="font-display font-semibold tracking-[0.18em] text-gold-deep uppercase">
+                <span className="font-display font-semibold tracking-[0.18em] text-brand-strong uppercase">
                   Registration open &middot; 2026
                 </span>
               </p>
               <Link
                 href="/dashboard"
                 onClick={() => setOpen(false)}
-                className="mt-4 flex h-14 items-center justify-center gap-3 rounded-full bg-gold-btn font-display text-[13px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)]"
+                className="mt-4 flex h-14 items-center justify-center gap-3 rounded-full bg-brand-strong font-display text-[13px] font-bold tracking-[0.06em] text-white uppercase shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)]"
               >
                 Apply Now
                 <ArrowRight className="h-[18px] w-[18px] shrink-0" />
@@ -106,7 +106,7 @@ export default function MobileMenu({
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
-                  className="font-semibold text-gold-deep"
+                  className="font-semibold text-brand-strong"
                 >
                   Sign in
                 </Link>

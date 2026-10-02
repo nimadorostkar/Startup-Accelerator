@@ -17,7 +17,7 @@ export default function LoginPage() {
       <h1 className="mt-4 font-display text-[32px] leading-[1.08] font-bold tracking-[-0.02em] text-ink sm:text-[36px]">
         Sign in to your
         <br />
-        <span className="text-gold-deep">founder account</span>
+        <span className="text-brand-strong">founder account</span>
       </h1>
       <p className="lead mt-3">
         Track your application, book mentor sessions and get ready for Demo Day.
@@ -41,7 +41,7 @@ export default function LoginPage() {
         New to Fundup Club?{" "}
         <Link
           href="/register"
-          className="font-semibold text-gold-deep transition-colors duration-200 hover:text-ink"
+          className="font-semibold text-brand-strong transition-colors duration-200 hover:text-ink"
         >
           Create an account
         </Link>

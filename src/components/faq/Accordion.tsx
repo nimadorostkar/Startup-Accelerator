@@ -32,8 +32,8 @@ export default function Accordion({ items }: { items: QA[] }) {
                   aria-hidden="true"
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-[rotate,background-color,border-color,color] duration-300 ${
                     isOpen
-                      ? "rotate-180 border-gold bg-gold text-gold-ink"
-                      : "border-line-soft text-muted group-hover:border-gold group-hover:text-gold-deep"
+                      ? "rotate-180 border-brand bg-brand text-white"
+                      : "border-line-soft text-muted group-hover:border-brand group-hover:text-brand-strong"
                   }`}
                 >
                   <svg

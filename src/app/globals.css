@@ -99,8 +99,8 @@
     background: #fff;
     border-radius: 18px;
     box-shadow:
-      0 1px 2px rgba(0, 15, 22, 0.03),
-      0 16px 36px -22px rgba(0, 15, 22, 0.16);
+      0 1px 2px rgba(20,26,34, 0.03),
+      0 16px 36px -22px rgba(20,26,34, 0.16);
     transition:
       translate 0.5s cubic-bezier(0.16, 1, 0.3, 1),
       box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1),
@@ -111,10 +111,10 @@
   @media (hover: hover) {
     .card-lift:hover {
       translate: 0 -6px;
-      border-color: color-mix(in srgb, var(--gold) 38%, transparent);
+      border-color: color-mix(in srgb, var(--brand) 38%, transparent);
       box-shadow:
-        0 2px 4px rgba(0, 15, 22, 0.04),
-        0 28px 54px -24px rgba(0, 15, 22, 0.24);
+        0 2px 4px rgba(20,26,34, 0.04),
+        0 28px 54px -24px rgba(20,26,34, 0.24);
     }
   }
 
@@ -161,7 +161,7 @@
     border-color: color-mix(in srgb, var(--ink) 25%, transparent);
   }
   .field-input:focus {
-    border-color: var(--gold);
+    border-color: var(--brand);
   }
   .field-input[aria-invalid="true"] {
     border-color: color-mix(in srgb, var(--danger) 55%, transparent);
@@ -205,18 +205,18 @@
   .field-check {
     height: 18px;
     width: 18px;
-    accent-color: var(--gold-btn);
+    accent-color: var(--brand-strong);
     cursor: pointer;
   }
 
-  /* Small gold-tinted tag */
+  /* Small orange-tinted tag */
   .chip {
     display: inline-flex;
     align-items: center;
     border-radius: 999px;
     border: 1px solid var(--chip-line);
     background: var(--chip);
-    color: var(--gold-deep);
+    color: var(--brand-strong);
     font-size: 12px;
     font-weight: 600;
     line-height: 1;
@@ -249,13 +249,13 @@ html {
 }
 
 ::selection {
-  background: var(--gold);
+  background: var(--brand);
   color: #fff;
 }
 
 /* Keyboard focus */
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--brand);
   outline-offset: 3px;
   border-radius: 2px;
 }
@@ -381,8 +381,8 @@ html {
 @keyframes field-flash {
   0%,
   45% {
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 30%, transparent);
-    border-color: var(--gold);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 30%, transparent);
+    border-color: var(--brand);
   }
 }
 

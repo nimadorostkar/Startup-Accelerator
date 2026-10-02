@@ -166,7 +166,7 @@ export default function Directory({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search startups, founders, countries"
-            className="field-input h-12 rounded-full pl-11 shadow-[0_18px_40px_-28px_rgba(0,15,22,0.35)]"
+            className="field-input h-12 rounded-full pl-11 shadow-[0_18px_40px_-28px_rgba(20,26,34,0.35)]"
           />
         </label>
 
@@ -212,7 +212,7 @@ export default function Directory({
                 <button
                   type="button"
                   onClick={clear}
-                  className="font-semibold text-gold-deep underline-offset-4 hover:underline"
+                  className="font-semibold text-brand-strong underline-offset-4 hover:underline"
                 >
                   Clear filters
                 </button>
@@ -254,7 +254,7 @@ export default function Directory({
             <button
               type="button"
               onClick={clear}
-              className="mt-6 h-11 rounded-full border border-line bg-white px-6 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors hover:border-gold"
+              className="mt-6 h-11 rounded-full border border-line bg-white px-6 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors hover:border-brand"
             >
               Show all startups
             </button>
@@ -293,7 +293,7 @@ function FilterGroup({
               className={`flex h-9 items-center gap-2 rounded-full border px-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors duration-200 lg:h-10 lg:w-full lg:justify-between lg:rounded-xl lg:px-3 ${
                 on
                   ? "border-ink bg-ink text-white"
-                  : "border-line bg-white text-ink-soft hover:border-gold hover:text-gold-deep lg:border-transparent lg:bg-transparent lg:hover:bg-white"
+                  : "border-line bg-white text-ink-soft hover:border-brand hover:text-brand-strong lg:border-transparent lg:bg-transparent lg:hover:bg-white"
               }`}
             >
               <span className="truncate">{o.label}</span>

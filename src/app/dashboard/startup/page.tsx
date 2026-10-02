@@ -34,7 +34,7 @@ export default async function StartupPage() {
           <a
             key={part.id}
             href={`#${part.id}`}
-            className="flex h-9 items-center rounded-full bg-white px-3.5 text-[13px] font-semibold whitespace-nowrap text-ink-soft ring-1 ring-line-soft transition-colors hover:text-gold-deep hover:ring-gold/50"
+            className="flex h-9 items-center rounded-full bg-white px-3.5 text-[13px] font-semibold whitespace-nowrap text-ink-soft ring-1 ring-line-soft transition-colors hover:text-brand-strong hover:ring-brand/50"
           >
             {part.label}
           </a>

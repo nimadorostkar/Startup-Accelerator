@@ -62,7 +62,7 @@ export default function Results() {
               <br />
               to funded,
               <br />
-              <span className="text-gold-deep">in their words</span>
+              <span className="text-brand-strong">in their words</span>
             </h2>
           </Reveal>
 

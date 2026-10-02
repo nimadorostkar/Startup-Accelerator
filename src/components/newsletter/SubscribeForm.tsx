@@ -4,7 +4,7 @@ import { useActionState, useId } from "react";
 import { subscribe, type SubscribeState } from "@/app/newsletter/actions";
 import { ArrowRight, CheckIcon } from "../icons";
 
-/* Inline email + button pill. `tone="dark"` for navy bands. */
+/* Inline email + button pill. `tone="dark"` for dark bands. */
 export default function SubscribeForm({
   source,
   tone = "light",
@@ -33,7 +33,7 @@ export default function SubscribeForm({
             : "bg-chip text-ink ring-1 ring-chip-line"
         } ${className}`}
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold text-gold-ink">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-white">
           <CheckIcon className="h-4 w-4" />
         </span>
         {state.done === "new" ? (
@@ -57,8 +57,8 @@ export default function SubscribeForm({
       <div
         className={`flex flex-col gap-2 rounded-[28px] p-1.5 sm:flex-row sm:items-center sm:rounded-full ${
           dark
-            ? "bg-white/[0.07] ring-1 ring-white/15 focus-within:ring-gold/70"
-            : "bg-white shadow-[0_18px_40px_-24px_rgba(0,15,22,0.35)] ring-1 ring-line focus-within:ring-gold"
+            ? "bg-white/[0.07] ring-1 ring-white/15 focus-within:ring-brand/70"
+            : "bg-white shadow-[0_18px_40px_-24px_rgba(20,26,34,0.35)] ring-1 ring-line focus-within:ring-brand"
         } transition-shadow duration-200`}
       >
         <label htmlFor={`${id}-email`} className="sr-only">
@@ -83,13 +83,13 @@ export default function SubscribeForm({
         <button
           type="submit"
           disabled={pending}
-          className="btn-shine group flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-full bg-gold-btn px-6 shadow-[0_12px_28px_-14px_rgba(214,150,67,0.9)] transition-[filter,opacity] duration-200 hover:brightness-105 disabled:opacity-70"
+          className="btn-shine group flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-full bg-brand-strong px-6 shadow-[0_12px_28px_-14px_rgba(194,71,10,0.9)] transition-[filter,opacity] duration-200 hover:brightness-105 disabled:opacity-70"
         >
-          <span className="font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase">
+          <span className="font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase">
             {pending ? "Subscribing…" : "Subscribe"}
           </span>
           {!pending && (
-            <ArrowRight className="h-4 w-4 text-gold-ink transition-transform duration-200 group-hover:translate-x-1" />
+            <ArrowRight className="h-4 w-4 text-white transition-transform duration-200 group-hover:translate-x-1" />
           )}
         </button>
       </div>

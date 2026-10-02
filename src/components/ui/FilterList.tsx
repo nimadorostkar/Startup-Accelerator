@@ -49,7 +49,7 @@ export default function FilterList({
               className={`h-10 rounded-full border px-5 font-display text-[13px] font-semibold whitespace-nowrap transition-colors duration-200 ${
                 on
                   ? "border-ink bg-ink text-white"
-                  : "border-line bg-white text-ink-soft hover:border-gold hover:text-gold-deep"
+                  : "border-line bg-white text-ink-soft hover:border-brand hover:text-brand-strong"
               }`}
             >
               {c ?? allLabel}

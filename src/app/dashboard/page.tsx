@@ -101,7 +101,7 @@ export default async function OverviewPage() {
         </p>
         <Link
           href={cta.href}
-          className="btn-shine group col-span-2 flex h-12 items-center justify-center gap-2.5 rounded-full bg-gold-btn px-6 font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] hover:brightness-105 sm:col-span-1 sm:col-start-3 sm:row-span-2 sm:row-start-1"
+          className="btn-shine group col-span-2 flex h-12 items-center justify-center gap-2.5 rounded-full bg-brand-strong px-6 font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)] transition-[filter] hover:brightness-105 sm:col-span-1 sm:col-start-3 sm:row-span-2 sm:row-start-1"
         >
           {cta.label}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -115,7 +115,7 @@ export default async function OverviewPage() {
               <li key={s.id}>
                 <Link
                   href={s.href}
-                  className="group flex items-center gap-4 rounded-xl border border-line-soft p-3.5 transition-colors hover:border-gold/50 hover:bg-cream/50"
+                  className="group flex items-center gap-4 rounded-xl border border-line-soft p-3.5 transition-colors hover:border-brand/50 hover:bg-cream/50"
                 >
                   <span
                     className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
@@ -128,12 +128,12 @@ export default async function OverviewPage() {
                     <span className="block text-[14px] font-semibold text-ink">{s.label}</span>
                     <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-line-soft">
                       <span
-                        className={`block h-full rounded-full ${s.complete ? "bg-green" : "bg-gold"}`}
+                        className={`block h-full rounded-full ${s.complete ? "bg-green" : "bg-brand"}`}
                         style={{ width: `${Math.round((s.done / s.total) * 100)}%` }}
                       />
                     </span>
                   </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-gold-deep" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand-strong" />
                 </Link>
               </li>
             ))}
@@ -157,7 +157,7 @@ export default async function OverviewPage() {
         className="mt-5"
         action={
           editable && (
-            <Link href="/dashboard/startup#stage" className="text-[13px] font-semibold text-gold-deep hover:underline">
+            <Link href="/dashboard/startup#stage" className="text-[13px] font-semibold text-brand-strong hover:underline">
               {app.startup.stage ? "Change" : "Set stage"}
             </Link>
           )
@@ -176,7 +176,7 @@ export default async function OverviewPage() {
                 <li key={step.title} className="flex gap-3.5">
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-display text-[12px] font-bold ${
-                      done ? "bg-green text-white" : now ? "bg-gold text-gold-ink" : "bg-cream text-muted"
+                      done ? "bg-green text-white" : now ? "bg-brand text-white" : "bg-cream text-muted"
                     }`}
                   >
                     {done ? <CheckIcon className="h-3.5 w-3.5" /> : i + 1}

@@ -36,9 +36,9 @@ export default function TestimonialCard({
 }) {
   return (
     <figure
-      className={`relative flex flex-col rounded-2xl border border-line bg-[linear-gradient(140deg,#fcf6ea_0%,#fff_42%)] px-5 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(0,15,22,0.04),0_14px_34px_-12px_rgba(0,15,22,0.14)] transition-[rotate,scale,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:border-gold/40 hover:shadow-[0_2px_4px_rgba(0,15,22,0.05),0_26px_50px_-16px_rgba(0,15,22,0.24)] xl:hover:rotate-0 ${className}`}
+      className={`relative flex flex-col rounded-2xl border border-line bg-[linear-gradient(140deg,#fff4ec_0%,#fff_42%)] px-5 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(20,26,34,0.04),0_14px_34px_-12px_rgba(20,26,34,0.14)] transition-[rotate,scale,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:border-brand/40 hover:shadow-[0_2px_4px_rgba(20,26,34,0.05),0_26px_50px_-16px_rgba(20,26,34,0.24)] xl:hover:rotate-0 ${className}`}
     >
-      <QuoteMark className="pop absolute -top-[9px] left-5 h-4 w-6 origin-bottom-left text-gold" />
+      <QuoteMark className="pop absolute -top-[9px] left-5 h-4 w-6 origin-bottom-left text-brand" />
 
       <blockquote className="text-[15px] leading-[1.5] text-ink-soft">
         <p>{t.quote}</p>
@@ -57,7 +57,7 @@ export default function TestimonialCard({
           ) : (
             <span
               aria-hidden="true"
-              className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[#faefdb] font-display text-[11px] font-bold tracking-[0.04em] text-gold-deep"
+              className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[#faefdb] font-display text-[11px] font-bold tracking-[0.04em] text-brand-strong"
             >
               {initials(t.name)}
             </span>

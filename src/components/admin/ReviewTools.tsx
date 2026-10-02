@@ -31,7 +31,7 @@ const TONE: Record<Decision, string> = {
   request_changes: "bg-[#fff1e0] text-[#8f4700] ring-1 ring-[#f3cfa0] hover:bg-[#ffe8cc]",
   accept: "bg-green text-white hover:brightness-110",
   decline: "bg-white text-danger ring-1 ring-danger/30 hover:bg-danger/[0.05]",
-  reopen: "bg-white text-ink ring-1 ring-line hover:ring-gold",
+  reopen: "bg-white text-ink ring-1 ring-line hover:ring-brand",
 };
 
 const PROMPT: Record<Decision, string> = {
@@ -149,7 +149,7 @@ export function AssignButton({ id, assignedToMe, assigned }: { id: string; assig
         type="button"
         disabled={pending}
         onClick={() => run(assignedToMe ? unassign : assignToMe)}
-        className="h-9 shrink-0 rounded-full px-3.5 text-[13px] font-semibold text-ink ring-1 ring-line hover:ring-gold disabled:opacity-60"
+        className="h-9 shrink-0 rounded-full px-3.5 text-[13px] font-semibold text-ink ring-1 ring-line hover:ring-brand disabled:opacity-60"
       >
         {pending ? "…" : assignedToMe ? "Unassign" : assigned ? "Take over" : "Assign to me"}
       </button>
@@ -181,7 +181,7 @@ export function ScorecardForm({ id, mine }: { id: string; mine: Scorecard | null
                 {[1, 2, 3, 4, 5].map((n) => (
                   <label
                     key={n}
-                    className="flex h-10 cursor-pointer items-center justify-center rounded-lg text-[14px] font-semibold text-ink-soft ring-1 ring-line transition-colors hover:ring-gold has-checked:bg-ink has-checked:text-white has-checked:ring-ink has-focus-visible:outline-2 has-focus-visible:outline-gold"
+                    className="flex h-10 cursor-pointer items-center justify-center rounded-lg text-[14px] font-semibold text-ink-soft ring-1 ring-line transition-colors hover:ring-brand has-checked:bg-ink has-checked:text-white has-checked:ring-ink has-focus-visible:outline-2 has-focus-visible:outline-brand"
                   >
                     <input type="radio" name={name} value={n} defaultChecked={current === String(n)} className="sr-only" />
                     {n}
@@ -200,7 +200,7 @@ export function ScorecardForm({ id, mine }: { id: string; mine: Scorecard | null
             {RECOMMENDATIONS.map((r) => (
               <label
                 key={r.id}
-                className="flex h-10 cursor-pointer items-center justify-center rounded-lg text-[13px] font-semibold text-ink-soft ring-1 ring-line transition-colors hover:ring-gold has-checked:bg-gold has-checked:text-gold-ink has-checked:ring-gold has-focus-visible:outline-2 has-focus-visible:outline-gold"
+                className="flex h-10 cursor-pointer items-center justify-center rounded-lg text-[13px] font-semibold text-ink-soft ring-1 ring-line transition-colors hover:ring-brand has-checked:bg-brand has-checked:text-white has-checked:ring-brand has-focus-visible:outline-2 has-focus-visible:outline-brand"
               >
                 <input
                   type="radio"
@@ -231,7 +231,7 @@ export function ScorecardForm({ id, mine }: { id: string; mine: Scorecard | null
       <button
         type="submit"
         disabled={pending}
-        className="h-11 rounded-full bg-gold-btn text-[13px] font-bold tracking-[0.04em] text-gold-ink uppercase disabled:opacity-60"
+        className="h-11 rounded-full bg-brand-strong text-[13px] font-bold tracking-[0.04em] text-white uppercase disabled:opacity-60"
       >
         {pending ? "Saving…" : mine ? "Update scorecard" : "Save scorecard"}
       </button>

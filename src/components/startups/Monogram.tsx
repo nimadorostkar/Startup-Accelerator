@@ -13,7 +13,7 @@ export default function Monogram({
     <span
       aria-hidden="true"
       style={{ background: monogramGradient(name) }}
-      className={`flex shrink-0 items-center justify-center font-display font-extrabold tracking-[-0.02em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_-12px_rgba(0,15,22,0.5)] ${className}`}
+      className={`flex shrink-0 items-center justify-center font-display font-extrabold tracking-[-0.02em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_-12px_rgba(20,26,34,0.5)] ${className}`}
     >
       {initials(name)}
     </span>
@@ -30,7 +30,7 @@ export function FounderDot({
   return (
     <span
       aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-full bg-chip font-display font-bold tracking-[0.02em] text-gold-deep ring-2 ring-white ${className}`}
+      className={`flex shrink-0 items-center justify-center rounded-full bg-chip font-display font-bold tracking-[0.02em] text-brand-strong ring-2 ring-white ${className}`}
     >
       {initials(name)}
     </span>

@@ -37,7 +37,7 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
             <PublicStatusBadge status={s.status} />
           </div>
           {s.industry && (
-            <p className="mt-1 text-[12px] font-semibold tracking-[0.06em] text-gold-deep uppercase">
+            <p className="mt-1 text-[12px] font-semibold tracking-[0.06em] text-brand-strong uppercase">
               {s.industry}
             </p>
           )}
@@ -94,7 +94,7 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
             </p>
           )}
         </div>
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-[background-color,border-color,color] duration-200 group-hover:border-gold group-hover:bg-gold-btn group-hover:text-gold-ink">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-[background-color,border-color,color] duration-200 group-hover:border-brand group-hover:bg-brand-strong group-hover:text-white">
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </span>
       </div>

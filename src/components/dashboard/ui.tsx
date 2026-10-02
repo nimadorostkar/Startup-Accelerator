@@ -21,7 +21,7 @@ export function PageHeader({
     <header className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         {eyebrow && (
-          <p className="type-wide text-[11px] font-semibold tracking-[0.18em] text-gold-deep uppercase">{eyebrow}</p>
+          <p className="type-wide text-[11px] font-semibold tracking-[0.18em] text-brand-strong uppercase">{eyebrow}</p>
         )}
         <h1 className="mt-2 font-display text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-ink sm:text-[34px]">
           {title}
@@ -49,7 +49,7 @@ export function LockedNotice({ status }: { status: Status }) {
           {final
             ? "Your answers are kept here for reference."
             : "Your answers are with the review team. If they need anything else, this page reopens for edits."}{" "}
-          <Link href="/dashboard/review" className="font-semibold text-gold-deep hover:underline">
+          <Link href="/dashboard/review" className="font-semibold text-brand-strong hover:underline">
             See status
           </Link>
         </p>
@@ -78,7 +78,7 @@ export function FeedbackNotice({ app, compact = false }: { app: Application; com
             <p className={`mt-1 whitespace-pre-line text-ink-soft ${compact ? "line-clamp-2" : ""}`}>{note.body}</p>
           )}
           {compact && (
-            <Link href="/dashboard/review" className="mt-1.5 inline-block font-semibold text-gold-deep hover:underline">
+            <Link href="/dashboard/review" className="mt-1.5 inline-block font-semibold text-brand-strong hover:underline">
               Read feedback and resubmit
             </Link>
           )}
@@ -93,7 +93,7 @@ export function NextStep({ href, label }: { href: string; label: string }) {
     <div className="mt-8 flex justify-end">
       <Link
         href={href}
-        className="group inline-flex items-center gap-2 text-[14px] font-semibold text-ink transition-colors hover:text-gold-deep"
+        className="group inline-flex items-center gap-2 text-[14px] font-semibold text-ink transition-colors hover:text-brand-strong"
       >
         {label}
         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -115,7 +115,7 @@ export function ProgressRing({ percent, className = "h-28 w-28" }: { percent: nu
           cy="50"
           r={r}
           fill="none"
-          stroke={percent === 100 ? "var(--green)" : "var(--gold)"}
+          stroke={percent === 100 ? "var(--green)" : "var(--brand)"}
           strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={c}
@@ -144,7 +144,7 @@ export function StageTrack({ current }: { current: string }) {
             aria-current={state === "now" ? "step" : undefined}
             className={`relative rounded-xl border p-3 ${
               state === "now"
-                ? "border-gold bg-chip"
+                ? "border-brand bg-chip"
                 : state === "past"
                   ? "border-line-soft bg-white"
                   : "border-dashed border-line bg-transparent"
@@ -153,7 +153,7 @@ export function StageTrack({ current }: { current: string }) {
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-full font-display text-[11px] font-bold ${
                 state === "now"
-                  ? "bg-gold text-gold-ink"
+                  ? "bg-brand text-white"
                   : state === "past"
                     ? "bg-green text-white"
                     : "bg-line-soft text-muted"
@@ -164,7 +164,7 @@ export function StageTrack({ current }: { current: string }) {
             <span className={`mt-2 block text-[13px] leading-tight font-semibold ${state === "todo" ? "text-muted" : "text-ink"}`}>
               {stage.label}
             </span>
-            {state === "now" && <span className="mt-0.5 block text-[11px] font-semibold text-gold-deep">You are here</span>}
+            {state === "now" && <span className="mt-0.5 block text-[11px] font-semibold text-brand-strong">You are here</span>}
           </li>
         );
       })}
@@ -190,7 +190,7 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
         <li key={e.id} className="relative flex gap-3.5">
           <span
             className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-4 ring-white ${
-              e.by === "support" ? "bg-navy text-gold" : "bg-cream text-ink-soft"
+              e.by === "support" ? "bg-night text-brand" : "bg-cream text-ink-soft"
             }`}
           >
             {e.by === "support" ? <ChatIcon className="h-4 w-4" /> : <ClockIcon className="h-4 w-4" />}

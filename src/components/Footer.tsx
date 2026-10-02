@@ -132,7 +132,7 @@ export default function Footer() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={s.label}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-ink-soft transition-[color,border-color,translate] duration-200 hover:-translate-y-0.5 hover:border-gold hover:text-gold-deep"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-ink-soft transition-[color,border-color,translate] duration-200 hover:-translate-y-0.5 hover:border-brand hover:text-brand-strong"
                     >
                       {s.svg}
                     </a>
@@ -161,7 +161,7 @@ export default function Footer() {
                       <li key={l.label}>
                         <Link
                           href={l.href}
-                          className="block py-2 text-[14px] text-muted transition-colors duration-200 active:text-gold-deep"
+                          className="block py-2 text-[14px] text-muted transition-colors duration-200 active:text-brand-strong"
                         >
                           {l.label}
                         </Link>
@@ -179,7 +179,7 @@ export default function Footer() {
                       <li key={l.label}>
                         <Link
                           href={l.href}
-                          className="text-[14px] text-muted transition-colors duration-200 hover:text-gold-deep"
+                          className="text-[14px] text-muted transition-colors duration-200 hover:text-brand-strong"
                         >
                           {l.label}
                         </Link>
@@ -199,7 +199,7 @@ export default function Footer() {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className="transition-colors duration-200 hover:text-gold-deep"
+                  className="transition-colors duration-200 hover:text-brand-strong"
                 >
                   {l.label}
                 </Link>

@@ -4,7 +4,7 @@ import { useRef, type PointerEvent, type ReactNode } from "react";
 
 const MAX_TILT = 6;
 
-/* Card that leans toward the cursor and carries a gold spotlight under it. */
+/* Card that leans toward the cursor and carries an orange spotlight under it. */
 export default function TiltCard({
   id,
   className = "",
@@ -52,7 +52,7 @@ export default function TiltCard({
         className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
           background:
-            "radial-gradient(260px circle at var(--mx, 50%) var(--my, 30%), rgba(221,158,66,0.13), transparent 70%)",
+            "radial-gradient(260px circle at var(--mx, 50%) var(--my, 30%), rgba(239,111,35,0.13), transparent 70%)",
         }}
       />
       {children}

@@ -52,7 +52,7 @@ function Section({
     >
       <h2
         id={`${id}-title`}
-        className="font-display text-[13px] font-bold tracking-[0.16em] text-gold-deep uppercase"
+        className="font-display text-[13px] font-bold tracking-[0.16em] text-brand-strong uppercase"
       >
         {title}
       </h2>
@@ -78,7 +78,7 @@ function ExternalLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-ink transition-colors duration-200 hover:border-gold hover:text-gold-deep"
+      className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-ink transition-colors duration-200 hover:border-brand hover:text-brand-strong"
     >
       {children}
       <ExternalIcon className="h-3.5 w-3.5 text-muted" />
@@ -150,12 +150,12 @@ export default async function StartupPage({
         <header className="relative isolate bg-cream px-4 pt-[116px] pb-10 sm:px-8 sm:pb-14 lg:pt-[calc(min(5.74vw,110px)+56px)]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(0,15,22,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,15,22,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)]"
           />
           <div className="mx-auto max-w-[1200px] lg:px-6">
             <Link
               href="/startups"
-              className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-gold-deep"
+              className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-brand-strong"
             >
               <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-1" />
               All startups
@@ -258,7 +258,7 @@ export default async function StartupPage({
                     )}
                     {s.advantage && (
                       <div className="rounded-[16px] border border-chip-line bg-chip/60 p-5">
-                        <p className="text-[11px] font-semibold tracking-[0.12em] text-gold-deep uppercase">
+                        <p className="text-[11px] font-semibold tracking-[0.12em] text-brand-strong uppercase">
                           Why this team wins
                         </p>
                         <p className="mt-2 text-[15px] leading-[1.65] text-ink-soft">
@@ -272,7 +272,7 @@ export default async function StartupPage({
               {s.keyMetric && (
                 <Section id="metric" title="Headline metric">
                   <p className="mt-3 flex items-start gap-3 text-[17px] leading-[1.6] font-semibold text-ink">
-                    <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-gold-ink">
+                    <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-white">
                       <CheckIcon className="h-3 w-3" />
                     </span>
                     {s.keyMetric}
@@ -338,7 +338,7 @@ export default async function StartupPage({
                           href={founder.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold-deep underline-offset-4 hover:underline"
+                          className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-strong underline-offset-4 hover:underline"
                         >
                           LinkedIn
                           <ExternalIcon className="h-3.5 w-3.5" />
@@ -371,7 +371,7 @@ export default async function StartupPage({
                 <section aria-labelledby="team-title" className="card p-6">
                   <h2
                     id="team-title"
-                    className="font-display text-[13px] font-bold tracking-[0.16em] text-gold-deep uppercase"
+                    className="font-display text-[13px] font-bold tracking-[0.16em] text-brand-strong uppercase"
                   >
                     Founders and team
                   </h2>
@@ -389,7 +389,7 @@ export default async function StartupPage({
                           <p className="flex flex-wrap items-center gap-x-2 text-[14px] font-bold text-ink">
                             {m.name}
                             {m.isFounder && (
-                              <span className="rounded-full bg-chip px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.06em] text-gold-deep uppercase ring-1 ring-chip-line">
+                              <span className="rounded-full bg-chip px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.06em] text-brand-strong uppercase ring-1 ring-chip-line">
                                 Founder
                               </span>
                             )}
@@ -413,7 +413,7 @@ export default async function StartupPage({
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={`${m.name} on LinkedIn`}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-gold hover:text-gold-deep"
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-brand hover:text-brand-strong"
                           >
                             <ExternalIcon className="h-3.5 w-3.5" />
                           </a>
@@ -428,7 +428,7 @@ export default async function StartupPage({
                 <section aria-labelledby="journey-title" className="card p-6">
                   <h2
                     id="journey-title"
-                    className="font-display text-[13px] font-bold tracking-[0.16em] text-gold-deep uppercase"
+                    className="font-display text-[13px] font-bold tracking-[0.16em] text-brand-strong uppercase"
                   >
                     Journey
                   </h2>
@@ -441,7 +441,7 @@ export default async function StartupPage({
                         <span
                           aria-hidden="true"
                           className={`absolute top-1.5 -left-[27px] h-3 w-3 rounded-full ring-4 ring-white ${
-                            i === s.timeline.length - 1 ? "bg-gold" : "bg-line"
+                            i === s.timeline.length - 1 ? "bg-brand" : "bg-line"
                           }`}
                         />
                         <p className="text-[14px] font-semibold text-ink">
@@ -467,11 +467,11 @@ export default async function StartupPage({
             <div className="mx-auto max-w-[1720px] lg:px-6">
               <div className="flex items-end justify-between gap-6">
                 <h2 id="more-startups" className="title-section">
-                  More <span className="text-gold-deep">startups</span>
+                  More <span className="text-brand-strong">startups</span>
                 </h2>
                 <Link
                   href="/startups"
-                  className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-gold-deep sm:inline-flex"
+                  className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
                 >
                   Full directory
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />

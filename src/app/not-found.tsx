@@ -33,7 +33,7 @@ export default function NotFound() {
         <div className="mx-auto max-w-[760px] text-center">
           <Eyebrow className="justify-center">Error 404</Eyebrow>
           <h1 className="mt-5 font-display text-[44px] leading-[0.98] font-extrabold tracking-[-0.03em] text-ink uppercase sm:text-[72px]">
-            This page <span className="text-gold-deep">moved on</span>
+            This page <span className="text-brand-strong">moved on</span>
           </h1>
           <p className="lead mx-auto mt-6 max-w-[520px] sm:text-[17px]">
             The link may be old, or the page may have been taken down. Here are
@@ -57,7 +57,7 @@ export default function NotFound() {
                       {p.blurb}
                     </span>
                   </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-gold-deep transition-transform duration-200 group-hover:translate-x-1" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-brand-strong transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </li>
             ))}

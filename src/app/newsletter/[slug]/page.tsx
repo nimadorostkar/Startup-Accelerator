@@ -64,7 +64,7 @@ function Body({ blocks }: { blocks: Block[] }) {
               >
                 <span
                   aria-hidden="true"
-                  className="mt-[0.7em] h-2 w-2 shrink-0 rounded-full bg-gold"
+                  className="mt-[0.7em] h-2 w-2 shrink-0 rounded-full bg-brand"
                 />
                 {item}
               </li>
@@ -75,11 +75,11 @@ function Body({ blocks }: { blocks: Block[] }) {
         return (
           <figure
             key={i}
-            className="relative my-12 rounded-[20px] bg-[linear-gradient(140deg,#fcf6ea_0%,#fff_60%)] px-7 py-8 ring-1 ring-line sm:px-10"
+            className="relative my-12 rounded-[20px] bg-[linear-gradient(140deg,#fff4ec_0%,#fff_60%)] px-7 py-8 ring-1 ring-line sm:px-10"
           >
             <span
               aria-hidden="true"
-              className="absolute -top-6 left-7 font-display text-[80px] leading-none font-extrabold text-gold sm:left-10"
+              className="absolute -top-6 left-7 font-display text-[80px] leading-none font-extrabold text-brand sm:left-10"
             >
               &ldquo;
             </span>
@@ -113,7 +113,7 @@ export default async function ArticlePage({
     <>
       <div
         aria-hidden="true"
-        className="read-progress fixed inset-x-0 top-0 z-40 h-[3px] bg-gold"
+        className="read-progress fixed inset-x-0 top-0 z-40 h-[3px] bg-brand"
       />
       <Navbar />
       <main id="main">
@@ -121,12 +121,12 @@ export default async function ArticlePage({
           <header className="relative isolate bg-cream px-4 pt-[116px] pb-40 sm:px-8 sm:pb-56 lg:pt-[calc(min(5.74vw,110px)+56px)]">
             <div
               aria-hidden="true"
-              className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(0,15,22,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,15,22,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_70%)]"
+              className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_70%)]"
             />
             <div className="mx-auto max-w-[860px] text-center">
               <Link
                 href="/newsletter"
-                className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-gold-deep"
+                className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-brand-strong"
               >
                 <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-1" />
                 All issues
@@ -153,7 +153,7 @@ export default async function ArticlePage({
           </header>
 
           <div className="px-4 sm:px-8">
-            <div className="mx-auto -mt-28 max-w-[1100px] overflow-hidden rounded-[24px] shadow-[0_40px_90px_-50px_rgba(0,15,22,0.45)] sm:-mt-44">
+            <div className="mx-auto -mt-28 max-w-[1100px] overflow-hidden rounded-[24px] shadow-[0_40px_90px_-50px_rgba(20,26,34,0.45)] sm:-mt-44">
               <Cover post={post} className="aspect-[16/9] w-full" />
             </div>
 
@@ -161,7 +161,7 @@ export default async function ArticlePage({
               <Body blocks={post.body} />
 
               <aside
-                className="mt-16 rounded-[24px] bg-navy p-7 text-white sm:p-10"
+                className="mt-16 rounded-[24px] bg-night p-7 text-white sm:p-10"
                 aria-labelledby="article-subscribe"
               >
                 <h2
@@ -187,11 +187,11 @@ export default async function ArticlePage({
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <div className="flex items-end justify-between gap-6">
               <h2 id="more-title" className="title-section">
-                More from <span className="text-gold-deep">the Brief</span>
+                More from <span className="text-brand-strong">the Brief</span>
               </h2>
               <Link
                 href="/newsletter#latest"
-                className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-gold-deep sm:inline-flex"
+                className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
               >
                 All issues
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />

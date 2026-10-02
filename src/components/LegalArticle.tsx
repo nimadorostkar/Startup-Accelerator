@@ -61,7 +61,7 @@ export default function LegalArticle({
                 {sections.map((s, i) => (
                   <li key={s.title}>
                     <h2 className="font-display text-[22px] leading-tight font-bold tracking-[-0.015em] text-ink">
-                      <span className="mr-2 text-gold-deep tabular-nums">
+                      <span className="mr-2 text-brand-strong tabular-nums">
                         {i + 1}.
                       </span>
                       {s.title}
@@ -83,7 +83,7 @@ export default function LegalArticle({
                           >
                             <span
                               aria-hidden="true"
-                              className="mt-[0.7em] h-1.5 w-1.5 shrink-0 rounded-full bg-gold"
+                              className="mt-[0.7em] h-1.5 w-1.5 shrink-0 rounded-full bg-brand"
                             />
                             {b}
                           </li>

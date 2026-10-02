@@ -7,7 +7,7 @@ export default function JoinBanner() {
   return (
     <section
       aria-labelledby="join-title"
-      className="relative isolate overflow-hidden bg-navy"
+      className="relative isolate overflow-hidden bg-night"
     >
       {/* Faint grid */}
       <div
@@ -17,10 +17,10 @@ export default function JoinBanner() {
       {/* Green glow, bottom-left */}
       <div
         aria-hidden="true"
-        className="cta-glow absolute -bottom-44 -left-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.55),transparent)] [--glow-dir:-1]"
+        className="cta-glow absolute -bottom-44 -left-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.55),transparent)] [--glow-dir:-1]"
       />
 
-      {/* Photo on the right half, fading into the navy panel.
+      {/* Photo on the right half, fading into the dark panel.
           PLACEHOLDER — third-party photo showing Founder Institute branding;
           replace with your own cohort photo (or confirm permission) before launch. */}
       <div className="absolute inset-y-0 right-0 -z-10 w-full md:w-1/2">
@@ -34,14 +34,14 @@ export default function JoinBanner() {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-r from-navy via-navy/35 via-15% to-transparent to-35% max-md:bg-navy/80"
+          className="absolute inset-0 bg-gradient-to-r from-night via-night/35 via-15% to-transparent to-35% max-md:bg-night/80"
         />
       </div>
 
       <div className="mx-auto max-w-[1720px] px-4 py-20 sm:px-8 sm:py-24 lg:px-10 xl:py-28">
         <div className="max-w-[600px]">
           <Reveal x={-24} y={0}>
-            <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-green-light uppercase">
+            <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-brand-soft uppercase">
               <span className="block sm:inline">Applications open</span>
               <span aria-hidden="true" className="mx-2.5 hidden sm:inline">
                 ·
@@ -72,7 +72,7 @@ export default function JoinBanner() {
             delay={260}
             className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
           >
-            <ButtonLink href="/dashboard" variant="green">
+            <ButtonLink href="/dashboard" variant="bright">
               Apply now
             </ButtonLink>
             <ButtonLink href="/events" variant="outline-dark" icon={CalendarIcon}>

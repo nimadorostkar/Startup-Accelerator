@@ -31,11 +31,11 @@ export default function NewsletterPage() {
         <section className="relative isolate overflow-hidden bg-cream px-4 pt-[120px] pb-16 sm:px-8 sm:pb-24 lg:pt-[calc(min(5.74vw,110px)+64px)]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(0,15,22,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(0,15,22,0.045)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_30%_20%,#000,transparent_70%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.045)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_30%_20%,#000,transparent_70%)]"
           />
           <div
             aria-hidden="true"
-            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.22),transparent)]"
+            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.22),transparent)]"
           />
 
           <div className="mx-auto grid max-w-[1720px] items-center gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:px-6">
@@ -47,7 +47,7 @@ export default function NewsletterPage() {
                 <h1 className="mt-5 font-display text-[44px] leading-[0.98] font-extrabold tracking-[-0.03em] text-ink uppercase sm:text-[68px] xl:text-[84px]">
                   Build notes
                   <br />
-                  for <span className="text-gold-deep">ambitious</span>
+                  for <span className="text-brand-strong">ambitious</span>
                   <br />
                   founders
                 </h1>
@@ -66,7 +66,7 @@ export default function NewsletterPage() {
                 <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted">
                   {PERKS.map((p) => (
                     <li key={p} className="flex items-center gap-1.5">
-                      <CheckIcon className="h-3.5 w-3.5 text-gold-deep" />
+                      <CheckIcon className="h-3.5 w-3.5 text-brand-strong" />
                       {p}
                     </li>
                   ))}
@@ -90,7 +90,7 @@ export default function NewsletterPage() {
               />
               <Link
                 href={`/newsletter/${featured.slug}`}
-                className="float group relative block rounded-[24px] border border-line-soft bg-white p-5 shadow-[0_40px_80px_-40px_rgba(0,15,22,0.35)] [--fdur:7s] sm:p-6"
+                className="float group relative block rounded-[24px] border border-line-soft bg-white p-5 shadow-[0_40px_80px_-40px_rgba(20,26,34,0.35)] [--fdur:7s] sm:p-6"
               >
                 <div className="flex items-center gap-3">
                   <BrandMark className="h-10 w-auto shrink-0" />
@@ -102,7 +102,7 @@ export default function NewsletterPage() {
                       to you · Issue Nº{featured.issue}
                     </span>
                   </span>
-                  <span className="rounded-full bg-chip px-2.5 py-1 text-[11px] font-semibold text-gold-deep ring-1 ring-chip-line">
+                  <span className="rounded-full bg-chip px-2.5 py-1 text-[11px] font-semibold text-brand-strong ring-1 ring-chip-line">
                     New
                   </span>
                 </div>
@@ -119,7 +119,7 @@ export default function NewsletterPage() {
                 <p className="mt-4 line-clamp-2 text-[13px] leading-[1.6] text-muted">
                   {featured.excerpt}
                 </p>
-                <span className="mt-4 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-gold-deep uppercase">
+                <span className="mt-4 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand-strong uppercase">
                   Read this issue
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </span>
@@ -135,7 +135,7 @@ export default function NewsletterPage() {
         >
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <Reveal>
-              <article className="group relative grid overflow-hidden rounded-[28px] border border-line-soft bg-white shadow-[0_2px_6px_rgba(0,15,22,0.03),0_40px_90px_-60px_rgba(0,15,22,0.3)] lg:grid-cols-2">
+              <article className="group relative grid overflow-hidden rounded-[28px] border border-line-soft bg-white shadow-[0_2px_6px_rgba(20,26,34,0.03),0_40px_90px_-60px_rgba(20,26,34,0.3)] lg:grid-cols-2">
                 <div className="overflow-hidden">
                   <Cover
                     post={featured}
@@ -168,7 +168,7 @@ export default function NewsletterPage() {
                   <p className="mt-6 text-[13px] text-muted">
                     By {featured.author}
                   </p>
-                  <span className="mt-6 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 group-hover:text-gold-deep">
+                  <span className="mt-6 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 group-hover:text-brand-strong">
                     Read the issue
                     <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </span>
@@ -190,7 +190,7 @@ export default function NewsletterPage() {
             </Reveal>
             <Reveal delay={90}>
               <h2 id="latest-title" className="title-section mt-4">
-                Latest <span className="text-gold-deep">issues</span>
+                Latest <span className="text-brand-strong">issues</span>
               </h2>
             </Reveal>
             <FilterList
@@ -213,7 +213,7 @@ export default function NewsletterPage() {
         {/* Subscribe band */}
         <section
           aria-labelledby="subscribe-title"
-          className="relative isolate overflow-hidden bg-navy px-4 py-20 sm:px-8 sm:py-24"
+          className="relative isolate overflow-hidden bg-night px-4 py-20 sm:px-8 sm:py-24"
         >
           <div
             aria-hidden="true"
@@ -221,7 +221,7 @@ export default function NewsletterPage() {
           />
           <div
             aria-hidden="true"
-            className="cta-glow absolute -top-40 -right-24 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.35),transparent)]"
+            className="cta-glow absolute -top-40 -right-24 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)]"
           />
           <div className="mx-auto flex max-w-[1720px] flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:px-6">
             <div className="max-w-[560px]">
@@ -242,7 +242,7 @@ export default function NewsletterPage() {
               <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-white/65">
                 {PERKS.map((p) => (
                   <li key={p} className="flex items-center gap-1.5">
-                    <CheckIcon className="h-3.5 w-3.5 text-gold" />
+                    <CheckIcon className="h-3.5 w-3.5 text-brand" />
                     {p}
                   </li>
                 ))}

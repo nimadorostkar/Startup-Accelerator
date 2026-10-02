@@ -59,7 +59,7 @@ export default function ContactPage() {
           eyebrow="Contact"
           title={
             <>
-              Let&rsquo;s <span className="text-gold-deep">talk</span>
+              Let&rsquo;s <span className="text-brand-strong">talk</span>
             </>
           }
         >
@@ -90,7 +90,7 @@ export default function ContactPage() {
                     className="card card-lift group flex gap-4 p-6"
                   >
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-chip ring-1 ring-chip-line">
-                      <Icon className="h-5 w-5 text-gold-deep" />
+                      <Icon className="h-5 w-5 text-brand-strong" />
                     </span>
                     <span>
                       <span className="block text-[17px] font-bold text-ink">
@@ -99,7 +99,7 @@ export default function ContactPage() {
                       <span className="mt-1.5 block text-[14px] leading-[1.6] text-muted">
                         {body}
                       </span>
-                      <span className="mt-3 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-gold-deep uppercase">
+                      <span className="mt-3 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand-strong uppercase">
                         {cta}
                         <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                       </span>

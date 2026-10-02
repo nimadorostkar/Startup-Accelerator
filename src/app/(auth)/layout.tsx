@@ -26,13 +26,13 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           sizes="50vw"
           className="-z-20 object-cover object-[58%_center]"
         />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(160deg,rgba(0,15,22,0.92),rgba(0,15,22,0.55)_45%,rgba(0,15,22,0.88))]" />
-        <div className="cta-glow absolute -top-32 -left-24 -z-10 h-[340px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.35),transparent)] blur-2xl" />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(160deg,rgba(20,26,34,0.92),rgba(20,26,34,0.55)_45%,rgba(20,26,34,0.88))]" />
+        <div className="cta-glow absolute -top-32 -left-24 -z-10 h-[340px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)] blur-2xl" />
 
         <BrandLogo className="h-[40px] w-auto self-start" />
 
         <div className="max-w-[460px]">
-          <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-gold uppercase">
+          <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-brand uppercase">
             Founder access
           </p>
           <p className="mt-5 font-display text-[34px] leading-[1.1] font-bold tracking-[-0.02em] text-white xl:text-[40px]">
@@ -46,7 +46,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
                 key={line}
                 className="flex items-start gap-3 text-[15px] leading-[1.5] text-white/80"
               >
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/20 text-gold">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand/20 text-brand">
                   <CheckIcon className="h-3 w-3" />
                 </span>
                 {line}

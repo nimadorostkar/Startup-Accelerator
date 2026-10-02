@@ -63,7 +63,7 @@ export default function AboutPage() {
           eyebrow="About Fundup Club"
           title={
             <>
-              Where ideas <span className="text-gold-deep">meet capital</span>
+              Where ideas <span className="text-brand-strong">meet capital</span>
             </>
           }
         >
@@ -86,7 +86,7 @@ export default function AboutPage() {
               <Reveal delay={90}>
                 <h2 id="mission-title" className="title-section mt-4">
                   Back ambitious founders,{" "}
-                  <span className="text-gold-deep">wherever they start</span>
+                  <span className="text-brand-strong">wherever they start</span>
                 </h2>
               </Reveal>
               <Reveal delay={180}>
@@ -128,7 +128,7 @@ export default function AboutPage() {
         <section
           id="letter"
           aria-labelledby="letter-title"
-          className="scroll-mt-6 relative isolate overflow-hidden bg-navy px-4 py-16 text-white sm:px-8 sm:py-24"
+          className="scroll-mt-6 relative isolate overflow-hidden bg-night px-4 py-16 text-white sm:px-8 sm:py-24"
         >
           <div
             aria-hidden="true"
@@ -136,7 +136,7 @@ export default function AboutPage() {
           />
           <div
             aria-hidden="true"
-            className="cta-glow absolute -top-40 right-0 -z-10 h-[360px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.45),transparent)]"
+            className="cta-glow absolute -top-40 right-0 -z-10 h-[360px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.45),transparent)]"
           />
           <div className="mx-auto max-w-[760px]">
             <Reveal>
@@ -202,7 +202,7 @@ export default function AboutPage() {
             </Reveal>
             <Reveal delay={90}>
               <h2 id="values-title" className="title-section mt-4">
-                How we <span className="text-gold-deep">work</span>
+                How we <span className="text-brand-strong">work</span>
               </h2>
             </Reveal>
             <ul className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -214,7 +214,7 @@ export default function AboutPage() {
                   className="card p-6 sm:p-7"
                 >
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-chip ring-1 ring-chip-line">
-                    <Icon className="h-5 w-5 text-gold-deep" />
+                    <Icon className="h-5 w-5 text-brand-strong" />
                   </span>
                   <h3 className="mt-5 text-[18px] font-bold text-ink">
                     {title}
@@ -242,14 +242,14 @@ export default function AboutPage() {
                 <Reveal delay={90}>
                   <h2 id="journey-title" className="title-section mt-4">
                     Six stages,{" "}
-                    <span className="text-gold-deep">one journey</span>
+                    <span className="text-brand-strong">one journey</span>
                   </h2>
                 </Reveal>
               </div>
               <Reveal delay={180}>
                 <Link
                   href="/#program"
-                  className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 hover:text-gold-deep"
+                  className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 hover:text-brand-strong"
                 >
                   See the full program
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -261,12 +261,12 @@ export default function AboutPage() {
               <ol className="mt-10 grid gap-px overflow-hidden rounded-[18px] border border-line-soft bg-line-soft sm:grid-cols-2 lg:grid-cols-3">
                 {STAGES.map(({ id, title, body, Icon }, i) => (
                   <li key={id} className="flex gap-4 bg-white p-6 sm:p-7">
-                    <span className="font-display text-[13px] font-bold text-gold-deep tabular-nums">
+                    <span className="font-display text-[13px] font-bold text-brand-strong tabular-nums">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div>
                       <h3 className="flex items-center gap-2.5 text-[17px] font-bold text-ink">
-                        <Icon className="h-5 w-5 text-gold" />
+                        <Icon className="h-5 w-5 text-brand" />
                         {title}
                       </h3>
                       <p className="mt-2 text-[14px] leading-[1.6] text-muted">

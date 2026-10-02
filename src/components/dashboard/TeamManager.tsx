@@ -25,7 +25,7 @@ export default function TeamManager({
         <div>
           <h2 id="members-title" className="font-display text-[18px] font-bold tracking-[-0.01em] text-ink">
             Team members
-            <span className="ml-1 text-gold-deep" title="Required to submit">
+            <span className="ml-1 text-brand-strong" title="Required to submit">
               *<span className="sr-only"> (at least one founder is required to submit)</span>
             </span>
           </h2>
@@ -67,7 +67,7 @@ export default function TeamManager({
           <button
             type="button"
             onClick={() => setOpen("new")}
-            className="mt-3 flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-dashed border-gold/60 text-[14px] font-semibold text-gold-deep transition-colors duration-200 hover:border-gold hover:bg-chip"
+            className="mt-3 flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-dashed border-brand/60 text-[14px] font-semibold text-brand-strong transition-colors duration-200 hover:border-brand hover:bg-chip"
           >
             <PlusMark className="h-3.5 w-3.5" />
             Add team member
@@ -93,7 +93,7 @@ function EquityMeter({ total }: { total: number }) {
         aria-valuenow={pct}
         className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line-soft"
       >
-        <div className="h-full rounded-full bg-gold transition-[width] duration-500" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-brand transition-[width] duration-500" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -120,7 +120,7 @@ function MemberCard({
       <div className="flex items-start gap-3.5">
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-chip font-display text-[13px] font-bold text-gold-deep ring-1 ring-chip-line"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-chip font-display text-[13px] font-bold text-brand-strong ring-1 ring-chip-line"
         >
           {initials(m.name)}
         </span>
@@ -135,7 +135,7 @@ function MemberCard({
             {commitment && <span>{commitment}</span>}
             {m.email && <span className="truncate">{m.email}</span>}
             {m.linkedin && (
-              <a href={m.linkedin} target="_blank" rel="noreferrer" className="font-semibold text-gold-deep hover:underline">
+              <a href={m.linkedin} target="_blank" rel="noreferrer" className="font-semibold text-brand-strong hover:underline">
                 LinkedIn
               </a>
             )}
@@ -183,7 +183,7 @@ function MemberCard({
               <button
                 type="button"
                 onClick={onEdit}
-                className="h-9 rounded-full border border-line px-4 text-[13px] font-semibold text-ink transition-colors hover:border-gold"
+                className="h-9 rounded-full border border-line px-4 text-[13px] font-semibold text-ink transition-colors hover:border-brand"
               >
                 Edit
               </button>
@@ -212,7 +212,7 @@ function MemberForm({ member, onDone }: { member: TeamMember | null; onDone: () 
       action={formAction}
       noValidate
       aria-label={member ? `Edit ${member.name}` : "Add team member"}
-      className="rounded-xl border border-gold/50 bg-cream/60 p-4 sm:p-5"
+      className="rounded-xl border border-brand/50 bg-cream/60 p-4 sm:p-5"
     >
       <p className="font-display text-[15px] font-bold text-ink">{member ? `Edit ${member.name}` : "New team member"}</p>
       {state.message && !state.ok && !state.errors && <FormBanner className="mt-3">{state.message}</FormBanner>}
@@ -262,7 +262,7 @@ function MemberForm({ member, onDone }: { member: TeamMember | null; onDone: () 
         <button
           type="submit"
           disabled={pending}
-          className="h-11 rounded-full bg-gold-btn px-6 font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase disabled:opacity-60"
+          className="h-11 rounded-full bg-brand-strong px-6 font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase disabled:opacity-60"
         >
           {pending ? "Saving…" : member ? "Save member" : "Add member"}
         </button>

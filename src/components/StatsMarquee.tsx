@@ -18,7 +18,7 @@ function Row({ hidden = false }: { hidden?: boolean }) {
         >
           <span
             aria-hidden="true"
-            className="absolute top-0 left-8 h-[3px] w-9 rounded-b-full bg-gold transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-14 sm:left-10"
+            className="absolute top-0 left-8 h-[3px] w-9 rounded-b-full bg-brand transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-14 sm:left-10"
           />
           <p className="font-display text-[30px] leading-none font-extrabold tracking-[-0.01em] whitespace-nowrap text-ink sm:text-[36px]">
             {s.value}

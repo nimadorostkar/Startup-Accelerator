@@ -54,7 +54,7 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
                   active ? "bg-ink text-white" : "text-ink-soft hover:bg-cream hover:text-ink"
                 }`}
               >
-                <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-gold" : "text-muted group-hover:text-gold-deep"}`} />
+                <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-brand" : "text-muted group-hover:text-brand-strong"}`} />
                 <span className="flex-1">{item.label}</span>
                 {item.total !== undefined && (
                   <span className={active ? "[&_span]:text-white/70" : ""}>
@@ -89,7 +89,7 @@ export function TabNav({ items }: { items: NavItem[] }) {
             }`}
           >
             {item.label}
-            {complete && <CheckIcon className={`h-3.5 w-3.5 ${active ? "text-gold" : "text-green"}`} />}
+            {complete && <CheckIcon className={`h-3.5 w-3.5 ${active ? "text-brand" : "text-green"}`} />}
             {item.total !== undefined && !complete && (
               <span className={`text-[11px] tabular-nums ${active ? "text-white/60" : "text-muted"}`}>
                 {item.done}/{item.total}

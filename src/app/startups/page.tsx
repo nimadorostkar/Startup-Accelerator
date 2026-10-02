@@ -51,11 +51,11 @@ export default async function StartupsPage({
         <section className="relative isolate overflow-hidden bg-cream px-4 pt-[124px] pb-12 sm:px-8 sm:pb-16 lg:pt-[calc(min(5.74vw,110px)+72px)]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(0,15,22,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(0,15,22,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_70%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top,#000,transparent_70%)]"
           />
           <div
             aria-hidden="true"
-            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.2),transparent)]"
+            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.2),transparent)]"
           />
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
@@ -67,7 +67,7 @@ export default async function StartupsPage({
                   <h1 className="mt-5 font-display text-[40px] leading-[1.02] font-extrabold tracking-[-0.025em] text-ink uppercase sm:text-[60px] xl:text-[72px]">
                     The startups
                     <br />
-                    <span className="text-gold-deep">building with us</span>
+                    <span className="text-brand-strong">building with us</span>
                   </h1>
                 </Reveal>
                 <Reveal delay={180}>

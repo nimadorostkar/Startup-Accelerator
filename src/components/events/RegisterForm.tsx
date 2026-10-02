@@ -24,7 +24,7 @@ export default function RegisterForm({
   if (state.done) {
     return (
       <div role="status" aria-live="polite">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-chip text-gold-deep ring-1 ring-chip-line">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-chip text-brand-strong ring-1 ring-chip-line">
           <CheckIcon className="h-5 w-5" />
         </span>
         <p className="mt-4 font-display text-[20px] font-bold text-ink">
@@ -41,9 +41,9 @@ export default function RegisterForm({
           href={calendarUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-5 flex h-12 items-center justify-center gap-2.5 rounded-full border border-line bg-white font-display text-[13px] font-semibold text-ink transition-colors duration-200 hover:border-gold"
+          className="mt-5 flex h-12 items-center justify-center gap-2.5 rounded-full border border-line bg-white font-display text-[13px] font-semibold text-ink transition-colors duration-200 hover:border-brand"
         >
-          <CalendarIcon className="h-[18px] w-[18px] text-gold-deep" />
+          <CalendarIcon className="h-[18px] w-[18px] text-brand-strong" />
           Add to Google Calendar
         </a>
       </div>

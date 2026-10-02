@@ -107,9 +107,9 @@ function MissingList({ missing }: { missing: Missing[] }) {
                     <li key={m.field}>
                       <Link
                         href={`${section.href}#field-${m.field}`}
-                        className="group flex items-baseline justify-between gap-2 text-[14px] font-semibold text-ink hover:text-gold-deep"
+                        className="group flex items-baseline justify-between gap-2 text-[14px] font-semibold text-ink hover:text-brand-strong"
                       >
-                        <span className="underline decoration-line underline-offset-4 group-hover:decoration-gold">
+                        <span className="underline decoration-line underline-offset-4 group-hover:decoration-brand">
                           {m.label}
                         </span>
                         {m.reason && <span className="shrink-0 text-[12px] font-normal text-muted">{m.reason}</span>}

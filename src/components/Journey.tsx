@@ -124,7 +124,7 @@ export default function Journey() {
             <h2 id="program-title" className="title-section mt-4">
               Six stages,
               <br />
-              <span className="text-gold-deep">one founder journey</span>
+              <span className="text-brand-strong">one founder journey</span>
             </h2>
           </Reveal>
           <Reveal delay={180}>
@@ -151,7 +151,7 @@ export default function Journey() {
                 >
                   <span
                     aria-hidden="true"
-                    className="absolute top-0 left-7 h-[3px] 2xl:left-6 w-10 rounded-b-full bg-gold transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-16"
+                    className="absolute top-0 left-7 h-[3px] 2xl:left-6 w-10 rounded-b-full bg-brand transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-16"
                   />
 
                   {/* Stage counter — orients the swipe row on phones */}
@@ -159,7 +159,7 @@ export default function Journey() {
                     aria-hidden="true"
                     className="absolute top-6 right-6 font-display text-[13px] font-bold tracking-[0.04em] text-ink/30 tabular-nums sm:hidden"
                   >
-                    <span className="text-gold-deep">
+                    <span className="text-brand-strong">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     &thinsp;/&thinsp;{String(STAGES.length).padStart(2, "0")}
@@ -167,7 +167,7 @@ export default function Journey() {
 
                   <div className="relative px-7 pt-6 2xl:px-6">
                     <Icon
-                      className={`h-6 w-6 text-gold transition-[translate,rotate,scale] duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] ${iconMove}`}
+                      className={`h-6 w-6 text-brand transition-[translate,rotate,scale] duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] ${iconMove}`}
                     />
                     <p className="type-wide mt-4 text-[11px] font-semibold tracking-[0.14em] text-muted uppercase">
                       {eyebrow}
@@ -183,7 +183,7 @@ export default function Journey() {
                       aria-label={`Learn more about ${title}`}
                       className="mt-3.5 inline-flex items-center gap-2.5 text-[15px] font-semibold text-ink"
                     >
-                      <span className="bg-[linear-gradient(var(--gold),var(--gold))] bg-[length:100%_2px] bg-bottom bg-no-repeat pb-0.5">
+                      <span className="bg-[linear-gradient(var(--brand),var(--brand))] bg-[length:100%_2px] bg-bottom bg-no-repeat pb-0.5">
                         Learn more
                       </span>
                       <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />

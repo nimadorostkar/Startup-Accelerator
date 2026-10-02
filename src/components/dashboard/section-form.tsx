@@ -70,13 +70,13 @@ function SaveBar({ state, pending, dirty }: { state: SaveState; pending: boolean
     : failed
       ? { tone: "text-danger", icon: <AlertIcon className="h-4 w-4 shrink-0" />, text: state.message }
       : dirty
-        ? { tone: "text-gold-deep", icon: <span className="h-2 w-2 shrink-0 rounded-full bg-gold" />, text: "Unsaved changes" }
+        ? { tone: "text-brand-strong", icon: <span className="h-2 w-2 shrink-0 rounded-full bg-brand" />, text: "Unsaved changes" }
         : state.ok
           ? { tone: "text-green", icon: <CheckIcon className="h-4 w-4 shrink-0" />, text: state.message }
           : { tone: "text-muted", icon: null, text: "Your answers save as a draft — submit when everything is ready." };
 
   return (
-    <div className="sticky bottom-0 z-10 -mx-4 border-t border-line-soft bg-white/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md sm:mx-0 sm:rounded-2xl sm:border sm:px-5 sm:py-3 sm:shadow-[0_18px_40px_-24px_rgba(0,15,22,0.35)]">
+    <div className="sticky bottom-0 z-10 -mx-4 border-t border-line-soft bg-white/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md sm:mx-0 sm:rounded-2xl sm:border sm:px-5 sm:py-3 sm:shadow-[0_18px_40px_-24px_rgba(20,26,34,0.35)]">
       <div className="flex items-center justify-between gap-4">
         <p role="status" aria-live="polite" className={`flex min-w-0 items-center gap-2 text-[13px] leading-snug ${status.tone}`}>
           {status.icon}
@@ -85,7 +85,7 @@ function SaveBar({ state, pending, dirty }: { state: SaveState; pending: boolean
         <button
           type="submit"
           disabled={pending}
-          className="flex h-11 shrink-0 items-center justify-center rounded-full bg-gold-btn px-6 font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_12px_28px_-14px_rgba(214,150,67,0.9)] transition-[filter,opacity] duration-200 hover:brightness-105 disabled:opacity-60"
+          className="flex h-11 shrink-0 items-center justify-center rounded-full bg-brand-strong px-6 font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase shadow-[0_12px_28px_-14px_rgba(194,71,10,0.9)] transition-[filter,opacity] duration-200 hover:brightness-105 disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save"}
         </button>

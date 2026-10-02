@@ -46,11 +46,11 @@ export default function EventsPage() {
         <section className="relative isolate overflow-hidden bg-cream px-4 pt-[120px] pb-16 sm:px-8 sm:pb-24 lg:pt-[calc(min(5.74vw,110px)+64px)]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(0,15,22,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(0,15,22,0.045)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_30%_20%,#000,transparent_70%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.045)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_30%_20%,#000,transparent_70%)]"
           />
           <div
             aria-hidden="true"
-            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.22),transparent)]"
+            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.22),transparent)]"
           />
 
           <div className="mx-auto grid max-w-[1720px] items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-6">
@@ -62,7 +62,7 @@ export default function EventsPage() {
                 <h1 className="mt-5 font-display text-[44px] leading-[0.98] font-extrabold tracking-[-0.03em] text-ink uppercase sm:text-[68px] xl:text-[84px]">
                   Meet the
                   <br />
-                  <span className="text-gold-deep">network</span>
+                  <span className="text-brand-strong">network</span>
                   <br />
                   in person
                 </h1>
@@ -78,18 +78,18 @@ export default function EventsPage() {
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <a
                     href="#upcoming"
-                    className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-gold-btn px-7 shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105"
+                    className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-brand-strong px-7 shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)] transition-[filter] duration-200 hover:brightness-105"
                   >
-                    <span className="font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase">
+                    <span className="font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase">
                       Browse events
                     </span>
-                    <ArrowRight className="h-[18px] w-[18px] rotate-90 text-gold-ink" />
+                    <ArrowRight className="h-[18px] w-[18px] rotate-90 text-white" />
                   </a>
                 </div>
                 <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted">
                   {perks.map((p) => (
                     <li key={p} className="flex items-center gap-1.5">
-                      <CheckIcon className="h-3.5 w-3.5 text-gold-deep" />
+                      <CheckIcon className="h-3.5 w-3.5 text-brand-strong" />
                       {p}
                     </li>
                   ))}
@@ -105,7 +105,7 @@ export default function EventsPage() {
               >
                 <Link
                   href={`/events/${featured.slug}`}
-                  className="group relative isolate block overflow-hidden rounded-[28px] bg-navy p-6 text-white shadow-[0_50px_100px_-50px_rgba(0,15,22,0.7)] sm:p-8"
+                  className="group relative isolate block overflow-hidden rounded-[28px] bg-night p-6 text-white shadow-[0_50px_100px_-50px_rgba(20,26,34,0.7)] sm:p-8"
                 >
                   {/* Orbit art */}
                   <svg
@@ -120,29 +120,29 @@ export default function EventsPage() {
                         cx="200"
                         cy="200"
                         r={r}
-                        stroke="#dd9e42"
+                        stroke="#ef6f23"
                         strokeOpacity="0.3"
                         strokeDasharray="6 8"
                         strokeWidth="1.5"
                       />
                     ))}
-                    <circle cx="200" cy="10" r="6" fill="#dd9e42" />
+                    <circle cx="200" cy="10" r="6" fill="#ef6f23" />
                     <circle
                       cx="340"
                       cy="200"
                       r="4"
-                      fill="#dd9e42"
+                      fill="#ef6f23"
                       fillOpacity="0.7"
                     />
                     <circle cx="110" cy="200" r="5" fill="#e6c48f" />
                   </svg>
                   <div
                     aria-hidden="true"
-                    className="absolute -bottom-32 -left-24 -z-10 h-[300px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(221,158,66,0.28),transparent)]"
+                    className="absolute -bottom-32 -left-24 -z-10 h-[300px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.28),transparent)]"
                   />
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-gold px-3 py-1.5 text-[12px] leading-none font-bold text-gold-ink">
+                    <span className="rounded-full bg-brand px-3 py-1.5 text-[12px] leading-none font-bold text-white">
                       Featured
                     </span>
                     <span className="rounded-full bg-white/10 px-3 py-1.5 text-[12px] leading-none font-semibold text-white/85">
@@ -159,7 +159,7 @@ export default function EventsPage() {
                   <div className="mt-7">
                     <Countdown to={featured.start} />
                   </div>
-                  <span className="mt-7 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-gold uppercase">
+                  <span className="mt-7 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand uppercase">
                     Reserve your spot
                     <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </span>
@@ -181,7 +181,7 @@ export default function EventsPage() {
             </Reveal>
             <Reveal delay={90}>
               <h2 id="upcoming-title" className="title-section mt-4">
-                Upcoming <span className="text-gold-deep">events</span>
+                Upcoming <span className="text-brand-strong">events</span>
               </h2>
             </Reveal>
             {upcoming.length ? (
@@ -254,7 +254,7 @@ export default function EventsPage() {
         {/* Subscribe */}
         <section
           aria-labelledby="events-subscribe"
-          className="relative isolate overflow-hidden bg-navy px-4 py-20 sm:px-8 sm:py-24"
+          className="relative isolate overflow-hidden bg-night px-4 py-20 sm:px-8 sm:py-24"
         >
           <div
             aria-hidden="true"
@@ -262,7 +262,7 @@ export default function EventsPage() {
           />
           <div
             aria-hidden="true"
-            className="cta-glow absolute -bottom-40 -left-32 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(44,110,65,0.5),transparent)] [--glow-dir:-1]"
+            className="cta-glow absolute -bottom-40 -left-32 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.5),transparent)] [--glow-dir:-1]"
           />
           <div className="mx-auto flex max-w-[1720px] flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:px-6">
             <div className="max-w-[560px]">
@@ -284,7 +284,7 @@ export default function EventsPage() {
                 The Founder Brief, every other Thursday.{" "}
                 <Link
                   href="/newsletter"
-                  className="text-gold underline-offset-4 hover:underline"
+                  className="text-brand underline-offset-4 hover:underline"
                 >
                   See past issues
                 </Link>

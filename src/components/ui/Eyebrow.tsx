@@ -12,11 +12,11 @@ export default function Eyebrow({
     <span className={`flex items-center gap-[0.85em] text-[11px] ${className}`}>
       <span
         aria-hidden="true"
-        className="h-[1em] w-[1em] shrink-0 rounded-full bg-gold"
+        className="h-[1em] w-[1em] shrink-0 rounded-full bg-brand"
       />
       <span
         className={`font-display font-semibold tracking-[0.18em] uppercase ${
-          tone === "dark" ? "text-gold" : "text-gold-deep"
+          tone === "dark" ? "text-brand" : "text-brand-strong"
         }`}
       >
         {children}

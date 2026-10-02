@@ -7,7 +7,7 @@ import type { StageId, Status } from "./types";
 
 export const PUBLIC_STATUSES = {
   cohort: { label: "In the cohort", tone: "green" },
-  review: { label: "In review", tone: "gold" },
+  review: { label: "In review", tone: "brand" },
   applied: { label: "Applied", tone: "neutral" },
   passed: { label: "Not selected", tone: "neutral" },
 } as const;
@@ -170,10 +170,10 @@ export function compact(n: number) {
 /* Monogram tiles stand in for logos: one of eight brand gradients, picked
    from the name so a startup keeps its colour everywhere. */
 const PALETTE = [
-  ["#0d1d2a", "#2a4a63"],
-  ["#9c6a19", "#dd9e42"],
+  ["#141210", "#3a3029"],
+  ["#c2470a", "#ef6f23"],
   ["#165432", "#3b7f48"],
-  ["#3b2807", "#8a5a1e"],
+  ["#4a1d07", "#a8441a"],
   ["#1c2a5c", "#3d5aa8"],
   ["#5c1c3a", "#a8397a"],
   ["#0f4c5c", "#2a8fa5"],

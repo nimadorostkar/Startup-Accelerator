@@ -20,7 +20,7 @@ export function FormatBadge({
     >
       <span
         aria-hidden="true"
-        className={`h-1.5 w-1.5 rounded-full ${online ? "bg-green-bright" : "bg-gold"}`}
+        className={`h-1.5 w-1.5 rounded-full ${online ? "bg-green-bright" : "bg-brand"}`}
       />
       {online ? "Online" : e.city}
     </span>
@@ -39,7 +39,7 @@ export default function EventTicket({ e }: { e: SummitEvent }) {
         <span className="mt-1 font-display text-[40px] leading-none font-extrabold tracking-[-0.03em] text-ink sm:text-[48px]">
           {d.day}
         </span>
-        <span className="mt-1 font-display text-[12px] font-bold tracking-[0.16em] text-gold-deep uppercase">
+        <span className="mt-1 font-display text-[12px] font-bold tracking-[0.16em] text-brand-strong uppercase">
           {d.month}
         </span>
         {/* Perforation notches */}
@@ -74,7 +74,7 @@ export default function EventTicket({ e }: { e: SummitEvent }) {
             {e.summary}
           </p>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-line px-5 py-2.5 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 group-hover:border-gold group-hover:bg-gold-btn group-hover:text-gold-ink sm:self-center">
+        <span className="inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-line px-5 py-2.5 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 group-hover:border-brand group-hover:bg-brand-strong group-hover:text-white sm:self-center">
           Register
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
         </span>

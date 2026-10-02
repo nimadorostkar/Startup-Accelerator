@@ -21,7 +21,7 @@ function Value({ children, long = false }: { children: ReactNode; long?: boolean
 function LinkValue({ href }: { href: string }) {
   if (!href) return <Value>{""}</Value>;
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="break-all font-semibold text-gold-deep hover:underline">
+    <a href={href} target="_blank" rel="noreferrer" className="break-all font-semibold text-brand-strong hover:underline">
       {href.replace(/^https?:\/\//, "")}
     </a>
   );
@@ -56,7 +56,7 @@ function SummaryBlock({
       title={title}
       action={
         editable && (
-          <Link href={href} className="text-[13px] font-semibold text-gold-deep hover:underline">
+          <Link href={href} className="text-[13px] font-semibold text-brand-strong hover:underline">
             Edit
           </Link>
         )

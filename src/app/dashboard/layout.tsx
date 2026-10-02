@@ -49,7 +49,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
             <span className="text-[12px] text-muted">complete</span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line-soft">
-            <div className="h-full rounded-full bg-gold" style={{ width: `${p.percent}%` }} />
+            <div className="h-full rounded-full bg-brand" style={{ width: `${p.percent}%` }} />
           </div>
         </div>
 
@@ -61,19 +61,19 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
           {isReviewer(user) && (
             <Link
               href="/admin"
-              className="flex h-11 items-center justify-between rounded-xl px-3 text-[13px] font-semibold text-ink-soft ring-1 ring-line-soft hover:text-ink hover:ring-gold"
+              className="flex h-11 items-center justify-between rounded-xl px-3 text-[13px] font-semibold text-ink-soft ring-1 ring-line-soft hover:text-ink hover:ring-brand"
             >
               Review panel
-              <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-gold-deep uppercase">
+              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-brand-strong uppercase">
                 Team
               </span>
             </Link>
           )}
           <Link
             href="/#faq"
-            className="group flex items-start gap-3 rounded-2xl bg-navy p-4 text-white transition-[filter] hover:brightness-110"
+            className="group flex items-start gap-3 rounded-2xl bg-night p-4 text-white transition-[filter] hover:brightness-110"
           >
-            <ChatIcon className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+            <ChatIcon className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <span>
               <span className="block text-[13px] font-semibold">Questions?</span>
               <span className="mt-0.5 block text-[12px] leading-snug text-white/70">
@@ -85,7 +85,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
           <div className="flex items-center gap-3 border-t border-line-soft px-1 pt-4">
             <span
               aria-hidden="true"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink font-display text-[13px] font-bold text-gold"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink font-display text-[13px] font-bold text-brand"
             >
               {initials(name)}
             </span>
@@ -119,11 +119,11 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
               <details className="relative">
                 <summary
                   aria-label="Account menu"
-                  className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full bg-ink font-display text-[12px] font-bold text-gold [&::-webkit-details-marker]:hidden"
+                  className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full bg-ink font-display text-[12px] font-bold text-brand [&::-webkit-details-marker]:hidden"
                 >
                   {initials(name)}
                 </summary>
-                <div className="absolute top-11 right-0 z-30 w-60 rounded-2xl border border-line-soft bg-white p-2 shadow-[0_20px_50px_-20px_rgba(0,15,22,0.35)]">
+                <div className="absolute top-11 right-0 z-30 w-60 rounded-2xl border border-line-soft bg-white p-2 shadow-[0_20px_50px_-20px_rgba(20,26,34,0.35)]">
                   <p className="px-3 pt-2 pb-3 leading-tight">
                     <span className="block truncate text-[14px] font-semibold text-ink">{name}</span>
                     <span className="block truncate text-[12px] text-muted">{user.email}</span>

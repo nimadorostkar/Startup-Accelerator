@@ -46,13 +46,13 @@ export default function ErrorPage({
           <button
             type="button"
             onClick={reset}
-            className="h-12 rounded-full bg-gold-btn px-7 font-display text-[12px] font-bold tracking-[0.06em] text-gold-ink uppercase shadow-[0_16px_38px_-16px_rgba(214,150,67,0.85)] transition-[filter] duration-200 hover:brightness-105"
+            className="h-12 rounded-full bg-brand-strong px-7 font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)] transition-[filter] duration-200 hover:brightness-105"
           >
             Try again
           </button>
           <Link
             href="/contact"
-            className="flex h-12 items-center justify-center rounded-full border border-line bg-white px-7 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors hover:border-gold"
+            className="flex h-12 items-center justify-center rounded-full border border-line bg-white px-7 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors hover:border-brand"
           >
             Contact us
           </Link>

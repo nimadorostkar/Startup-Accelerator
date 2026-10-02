@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 
-const GOLD = "var(--gold)";
+const GOLD = "var(--brand)";
 const LINE = "#dcd6ca";
 const SOFT = "#f4f1eb";
-const TINT = "#fbf0dc";
+const TINT = "#fde9dc";
 
 const v = (vars: Record<string, string | number>) => vars as CSSProperties;
 
