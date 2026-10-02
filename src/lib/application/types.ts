@@ -88,14 +88,14 @@ export const STATUSES = {
   submitted: {
     label: "Submitted",
     headline: "In the review queue",
-    tone: "gold",
+    tone: "brand",
     blurb:
       "Your application is in the queue. The team usually starts a review within 5 working days.",
   },
   in_review: {
     label: "In review",
     headline: "Our team is reviewing your startup",
-    tone: "gold",
+    tone: "brand",
     blurb:
       "Our team is validating your idea and analysing the market. We'll be in touch here.",
   },
