@@ -1,36 +1,34 @@
 @import "tailwindcss";
 
 :root {
+  /* Fundup Club palette: white, warm near-black and the logo orange.
+     Contrast notes are against white unless stated. */
   --background: #ffffff;
-  --foreground: #000f16;
+  --foreground: #141a22;
 
-  --ink: #000f16;
-  --ink-soft: #12232f;
-  --gold: #dd9e42;
-  --gold-light: #dfa962;
-  --gold-btn: #d69643;
-  --gold-ink: #1a1005;
-  --gold-deep: #9c6a19; /* gold text on white — 4.7:1, WCAG AA */
-  --muted: #6b7079;
-  --line: #ece4d6;
-  --line-soft: #efebe3; /* card borders */
-  --cream: #fbf8f3; /* light section background */
-  --danger: #b3261e; /* error text on white — 7.3:1 */
-  --chip: #fdf6e9;
-  --chip-line: #efdcb8;
+  --ink: #141a22; /* text — 17:1 */
+  --ink-soft: #2b3038;
+  --muted: #6b7079; /* secondary text — 4.9:1, 4.6:1 on --cream */
+  --line: #ebe6e1;
+  --line-soft: #f0ece8; /* card borders */
+  --cream: #faf7f4; /* light section background */
+  --danger: #b3261e; /* error text — 7.3:1 */
 
-  /* Dark bands + the green accent family (used by the CTA bands only) */
-  --navy: #0d1d2a;
+  --brand: #ef6f23; /* logo orange: accents, dots, large text (3:1) */
+  --brand-strong: #c2470a; /* buttons, links, small orange text — 5:1, 4.6:1 on --chip */
+  --brand-soft: #ffb088; /* orange text on dark surfaces — 9:1 on --night */
+  --chip: #fff3eb; /* orange-tinted tag */
+  --chip-line: #fbd3bd;
+
+  /* Dark bands: warm near-black, with a deep ember for orange gradients */
+  --night: #141210;
+  --ember: #4a1d07;
+
+  /* Success states only (accepted, complete, saved) */
   --green-deep: #165432;
   --green: #2c6e41;
   --green-bright: #3b7f48;
-  --green-light: #d6f3cc; /* label text on --green — 5.1:1 */
-
-  --brand: #ef6f23; /* Fundup Club logo orange (components/Logo.tsx); large text only on white */
-  --brand-strong: #c84a0a; /* orange buttons + small orange text — 4.7:1 with white */
-
-  /* Landing hero + its nav */
-  --summit-ink: #141a22;
+  --green-light: #d6f3cc;
 }
 
 @theme inline {
@@ -38,26 +36,22 @@
   --color-foreground: var(--foreground);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
-  --color-gold: var(--gold);
-  --color-gold-btn: var(--gold-btn);
-  --color-gold-ink: var(--gold-ink);
-  --color-gold-light: var(--gold-light);
-  --color-gold-deep: var(--gold-deep);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-line-soft: var(--line-soft);
   --color-cream: var(--cream);
   --color-danger: var(--danger);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
   --color-chip: var(--chip);
   --color-chip-line: var(--chip-line);
-  --color-navy: var(--navy);
+  --color-night: var(--night);
+  --color-ember: var(--ember);
   --color-green-deep: var(--green-deep);
   --color-green: var(--green);
   --color-green-bright: var(--green-bright);
   --color-green-light: var(--green-light);
-  --color-brand: var(--brand);
-  --color-brand-strong: var(--brand-strong);
-  --color-summit-ink: var(--summit-ink);
   --font-display: var(--font-dm-sans), system-ui, sans-serif;
   --font-heavy: var(--font-dm-sans), system-ui, sans-serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
