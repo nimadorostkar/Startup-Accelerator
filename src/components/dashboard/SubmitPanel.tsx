@@ -3,6 +3,7 @@
 import { useActionState, useTransition, useState } from "react";
 import { submitApplication, withdrawApplication, type SaveState } from "@/app/dashboard/actions";
 import FormBanner from "../auth/FormBanner";
+import SignInAgain from "../auth/SignInAgain";
 import { ArrowRight, CheckIcon } from "../icons";
 
 export function SubmitPanel({
@@ -26,7 +27,12 @@ export function SubmitPanel({
         until the review starts.
       </p>
 
-      {state.message && !state.ok && <FormBanner className="mt-4">{state.message}</FormBanner>}
+      {state.message && !state.ok && (
+        <FormBanner className="mt-4">
+          {state.message}
+          <SignInAgain href={state.signInHref} />
+        </FormBanner>
+      )}
 
       <label className="mt-5 flex items-start gap-3 text-[14px] leading-[1.55] text-ink-soft">
         <input
@@ -108,7 +114,12 @@ export function WithdrawButton() {
           Withdraw to make changes
         </button>
       )}
-      {result && !result.ok && <FormBanner className="mt-3">{result.message}</FormBanner>}
+      {result && !result.ok && (
+        <FormBanner className="mt-3">
+          {result.message}
+          <SignInAgain href={result.signInHref} />
+        </FormBanner>
+      )}
     </div>
   );
 }

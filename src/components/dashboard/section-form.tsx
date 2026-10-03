@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState, type ReactNode } from "react";
 import type { SaveState } from "@/app/dashboard/actions";
+import SignInAgain from "../auth/SignInAgain";
 import { AlertIcon, CheckIcon } from "../icons";
 
 type Action = (prev: SaveState, form: FormData) => Promise<SaveState>;
@@ -87,7 +88,10 @@ function SaveBar({ state, pending, dirty }: { state: SaveState; pending: boolean
       <div className="flex items-center justify-between gap-4">
         <p role="status" aria-live="polite" className={`flex min-w-0 items-center gap-2 text-[13px] leading-snug ${status.tone}`}>
           {status.icon}
-          <span className="min-w-0">{status.text}</span>
+          <span className="min-w-0">
+            {status.text}
+            {failed && <SignInAgain href={state.signInHref} />}
+          </span>
         </p>
         <button
           type="submit"

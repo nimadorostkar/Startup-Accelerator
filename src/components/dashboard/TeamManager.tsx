@@ -5,6 +5,7 @@ import { removeMember, saveMember, type SaveState } from "@/app/dashboard/action
 import { COMMITMENTS, type TeamMember } from "@/lib/application/types";
 import { PlusMark } from "../icons";
 import FormBanner from "../auth/FormBanner";
+import SignInAgain from "../auth/SignInAgain";
 import { ChoiceCards, TextField } from "./fields";
 import { initials } from "./initials";
 
@@ -216,7 +217,12 @@ function MemberForm({ member, onDone }: { member: TeamMember | null; onDone: () 
       className="rounded-xl border border-brand/50 bg-cream/60 p-4 sm:p-5"
     >
       <p className="font-display text-[15px] font-bold text-ink">{member ? `Edit ${member.name}` : "New team member"}</p>
-      {state.message && !state.ok && !state.errors && <FormBanner className="mt-3">{state.message}</FormBanner>}
+      {state.message && !state.ok && !state.errors && (
+        <FormBanner className="mt-3">
+          {state.message}
+          <SignInAgain href={state.signInHref} />
+        </FormBanner>
+      )}
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <TextField idPrefix={prefix} name="name" label="Name" autoFocus defaultValue={v("name", member?.name)} error={err("name")} />
