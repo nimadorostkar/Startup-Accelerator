@@ -41,14 +41,15 @@ function fields(form: FormData, names: string[]): Record<string, string> {
 async function send(
   form: FormData | null,
   path: string,
-  method: "PATCH" | "POST" | "DELETE",
+  method: "PATCH" | "POST" | "PUT" | "DELETE",
   body: unknown,
   message = "Changes saved.",
+  upload?: FormData,
 ): Promise<SaveState> {
   const values = form ? echo(form) : undefined;
   let result;
   try {
-    result = await api(path, { method, body, auth: true });
+    result = await api(path, { method, body, form: upload, auth: true });
   } catch (err) {
     if (err instanceof BackendUnavailable) {
       console.error(err);
@@ -162,6 +163,28 @@ export async function removeMember(memberId: string): Promise<SaveState> {
     undefined,
     "Team member removed.",
   );
+}
+
+/* ---------- Logo and founder photo ---------- */
+
+type ImageKind = "logo" | "photo";
+const IMAGE_LABEL: Record<ImageKind, string> = { logo: "Logo", photo: "Photo" };
+const isImageKind = (kind: string): kind is ImageKind => kind === "logo" || kind === "photo";
+
+/** Uploads the startup's logo or the founder's photo. The API checks and resizes it. */
+export async function uploadImage(kind: ImageKind, form: FormData): Promise<SaveState> {
+  const file = form.get("file");
+  if (!isImageKind(kind) || !(file instanceof File) || file.size === 0)
+    return { ok: false, message: "Choose an image to upload." };
+  if (file.size > 5 * 1024 * 1024) return { ok: false, message: "Keep the image under 5 MB." };
+  const upload = new FormData();
+  upload.set("file", file, file.name);
+  return send(null, `/me/application/${kind}`, "PUT", undefined, `${IMAGE_LABEL[kind]} saved.`, upload);
+}
+
+export async function removeImage(kind: ImageKind): Promise<SaveState> {
+  if (!isImageKind(kind)) return { ok: false };
+  return send(null, `/me/application/${kind}`, "DELETE", undefined, `${IMAGE_LABEL[kind]} removed.`);
 }
 
 /* ---------- Submission ---------- */

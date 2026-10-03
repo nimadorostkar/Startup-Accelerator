@@ -46,6 +46,7 @@ python manage.py runserver 8000
 | `seed_content [--if-empty] [--update]` | Loads the launch events and newsletter issues |
 | `seed_dev_accounts` | Development only: `founder@example.com`, `reviewer@example.com` and back-office admin `admin@example.com` |
 | `seed_demo [--reset]` | Development only: 23 sample applications across every status, for the review queue |
+| `seed_startups [--reset]` | 50 complete sample startups with logos for the public directory (`--force` to run with DEBUG off) |
 | `createsuperuser` | A back-office admin (also a reviewer) |
 | `wait_for_db` | Blocks until Postgres answers (container start-up) |
 

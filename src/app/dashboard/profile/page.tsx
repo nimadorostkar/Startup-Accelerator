@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ImageUpload from "@/components/dashboard/ImageUpload";
 import ProfileForm from "@/components/dashboard/ProfileForm";
 import { FeedbackNotice, LockedNotice, NextStep, PageHeader } from "@/components/dashboard/ui";
 import { canEdit, getMyApplication } from "@/lib/application/dal";
@@ -18,6 +19,7 @@ export default async function ProfilePage() {
       />
       <FeedbackNotice app={app} compact />
       {!editable && <LockedNotice status={app.status} />}
+      <ImageUpload kind="photo" current={app.photo} name={app.profile.fullName} editable={editable} />
       <ProfileForm profile={app.profile} editable={editable} />
       <NextStep href="/dashboard/startup" label="Next: startup details" />
     </>

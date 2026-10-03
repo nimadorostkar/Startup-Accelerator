@@ -20,19 +20,27 @@ export default function JoinBanner() {
         className="cta-glow absolute -bottom-44 -left-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.55),transparent)] [--glow-dir:-1]"
       />
 
-      {/* Photo on the right half, fading into the dark panel. */}
-      <div className="absolute inset-y-0 right-0 -z-10 w-full md:w-1/2">
+      {/* The team photo, whole: on the right half, as tall as its own shape
+          makes it (4:3), standing on the bottom edge. On wide screens it fills
+          the panel's height and only the floor is cropped; nobody at the sides
+          is cut off. Its left and top edges fade into the dark panel. On
+          phones it is a dimmed backdrop behind the text. */}
+      <div className="absolute right-0 bottom-0 -z-10 w-full max-md:inset-y-0 md:aspect-[1237/932] md:max-h-full md:w-1/2">
         <Image
           src="/images/fundup-team.png"
           alt="The Fundup Club team: ten people in suits, three seated in front and seven standing behind them"
           fill
-          quality={55}
+          quality={75}
           sizes="(min-width: 768px) 50vw, 100vw"
           className="object-cover object-top"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-r from-night via-night/35 via-15% to-transparent to-35% max-md:bg-night/80"
+          className="absolute inset-0 bg-gradient-to-r from-night via-night/25 via-8% to-transparent to-20% max-md:bg-night/80"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-night to-transparent max-md:hidden"
         />
       </div>
 

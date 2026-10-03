@@ -16,6 +16,8 @@ As of 2026-10-03. How to run the whole site in production with Docker Compose, s
 | `db` | `postgres:17-alpine` | PostgreSQL, data in the `pgdata` volume | — |
 | `redis` | `redis:7.4-alpine` | Cache, rate limits and the job queue (append-only file in `redisdata`) | — |
 
+Startup logos and founder photos are files in the `media` volume: the API writes them, Caddy serves them (`/api/v1/media/…`, cached for good, since a file never changes once written).
+
 Only Caddy is reachable from outside. **Never publish the API's port**: it trusts the forwarding headers that Caddy and the website set.
 
 **Connections between the containers:** Caddy drops an idle connection to the website or the API after 30 s, and both keep theirs open for 75 s (`keepalive` in the Caddyfile; `KEEP_ALIVE_TIMEOUT` in the website's Dockerfile; `keepalive` in [gunicorn.conf.py](../backend/gunicorn.conf.py)). Keep it that way round if you change any of them: when the website or the API closes first (both default to 5 s), Caddy now and then sends a request down a connection that is just closing and answers 502, and a form being submitted can't be retried, so the visitor gets an error page.
@@ -63,11 +65,12 @@ The API applies new migrations as it starts (under a database lock, so it's safe
 
 ## Backups
 
-Everything that matters is in Postgres. A nightly dump, kept for 14 days:
+Everything that matters is in Postgres, plus the uploaded logos and photos in the `media` volume. A nightly dump and a copy of the images, kept for 14 days:
 
 ```bash
 docker compose exec -T db pg_dump -U fundup -Fc fundup > backups/fundup-$(date +%F).dump
-find backups -name 'fundup-*.dump' -mtime +14 -delete
+docker compose exec -T backend tar -czf - -C /app media > backups/media-$(date +%F).tar.gz
+find backups \( -name 'fundup-*.dump' -o -name 'media-*.tar.gz' \) -mtime +14 -delete
 ```
 
 Run it from cron, and copy `backups/` off the server (object storage). Restore into an empty database with `pg_restore -U fundup -d fundup --clean`. Test a restore before you need one. Redis holds only the cache and queued jobs; losing it loses at most a few unsent emails.
@@ -101,9 +104,10 @@ cp .env.example .env    # set POSTGRES_PASSWORD; DJANGO_DEBUG=true
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend python manage.py seed_dev_accounts
 docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend python manage.py seed_demo
+docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend python manage.py seed_startups
 npm install && npm run dev
 ```
 
-That runs Postgres, Redis, the API (auto-reloading, at http://localhost:8000), a worker and Mailpit (every email lands at http://localhost:8025); the website runs on your machine at http://localhost:3000. `seed_dev_accounts` creates `founder@example.com`, `reviewer@example.com` and a back-office admin, `admin@example.com` (password in [the command](../backend/apps/accounts/management/commands/seed_dev_accounts.py)); `seed_demo` adds 23 sample applications for the review queue (`seed_demo --reset` removes them). If ports clash with other projects, move them with `DEV_DB_PORT`, `DEV_REDIS_PORT`, `DEV_API_PORT` and `DEV_MAIL_PORT` in `.env`, and point the website at the API with `BACKEND_URL`. The dev API keeps no database connections open between requests (`DATABASE_CONN_MAX_AGE=0`): Django's development server starts a thread per request, and kept-open connections from finished threads used to pile up until Postgres refused new ones ("too many clients"). Gunicorn's threads are long-lived, so production keeps them for 60 s.
+That runs Postgres, Redis, the API (auto-reloading, at http://localhost:8000), a worker and Mailpit (every email lands at http://localhost:8025); the website runs on your machine at http://localhost:3000. `seed_dev_accounts` creates `founder@example.com`, `reviewer@example.com` and a back-office admin, `admin@example.com` (password in [the command](../backend/apps/accounts/management/commands/seed_dev_accounts.py)); `seed_demo` adds 23 sample applications for the review queue (`seed_demo --reset` removes them), and `seed_startups` fills the public directory with 50 complete startups with logos (`seed_startups --reset` removes them). If ports clash with other projects, move them with `DEV_DB_PORT`, `DEV_REDIS_PORT`, `DEV_API_PORT` and `DEV_MAIL_PORT` in `.env`, and point the website at the API with `BACKEND_URL`. The dev API keeps no database connections open between requests (`DATABASE_CONN_MAX_AGE=0`): Django's development server starts a thread per request, and kept-open connections from finished threads used to pile up until Postgres refused new ones ("too many clients"). Gunicorn's threads are long-lived, so production keeps them for 60 s.
 
 To try the production setup locally: set `SITE_URL=http://localhost`, `SITE_ADDRESS=http://localhost` and `COOKIE_SECURE=false` in `.env`, then `docker compose up -d --build` and open http://localhost. To run the end-to-end suite against the production build without touching `.env` or your dev data, use the test overlay instead: [testing.md → Against the production build](testing.md#against-the-production-build).

@@ -83,6 +83,7 @@ Always the signed-in founder's own; no endpoint takes a user id. Responses carry
 | POST | `/me/application/team/members` | Member fields | 201 `{ application, memberId }`; 422 `errors.equity` past 100% |
 | PATCH | `/me/application/team/members/:id` | Member fields | Merged into the stored member, then checked |
 | DELETE | `/me/application/team/members/:id` | — | 409 for the last remaining member |
+| PUT / DELETE | `/me/application/logo`, `/me/application/photo` | multipart `file` | The startup's logo, the founder's photo. PNG, JPEG or WebP up to 5 MB, stored as a WebP of at most 512 × 512 (photos cropped square). 422 `errors.file`; 409 while locked. The application then carries `logo` and `photo`: addresses under `/api/v1/media/`, or `""` |
 | POST | `/me/application/submit` | `{ confirm: true }` | 422 `{ message, missing: [...] }` with every answer still missing |
 | POST | `/me/application/withdraw` | — | Only while Submitted; 409 once review has started, or (another message) when it isn't submitted |
 
@@ -102,7 +103,8 @@ Always the signed-in founder's own; no endpoint takes a user id. Responses carry
 
 | Method | Path | Notes |
 | --- | --- | --- |
-| GET | `/startups` | Every submitted startup as directory cards, newest first. Drafts never appear |
+| GET | `/startups` | Every submitted startup as directory cards, newest first, each with its `logo` and `founder: { name, role, photo }` (the applicant). Drafts never appear |
+| GET | `/media/startups/<name>.webp`, `/media/founders/<name>.webp` | An uploaded logo or photo. Names are random and a file never changes, so they're served with `Cache-Control: immutable`. In production Caddy serves these straight from the `media` volume; the API's own view is what development uses |
 | GET | `/startups/:slug` | One startup's public page |
 | GET | `/events?when=upcoming\|past\|all` | Published events in the `SummitEvent` shape; venue and joining link never included |
 | GET | `/events/:slug` | |
@@ -126,6 +128,7 @@ PostgreSQL, created by Django migrations (`backend/apps/*/migrations/`).
 | `accounts_authsession` | SHA-256 of the session token, expiry, revoked-at, last used, IP, user agent | Purged 30 days after expiry |
 | `accounts_usertoken` | SHA-256 of emailed tokens (password reset, email verification), expiry, used-at | Single use; a new one cancels the old |
 | `applications_application` | Status, `profile` / `startup` / `team` (JSON, read and written as whole sections), assignee, public `slug`, timestamps | Copies of `startup_name`, `stage`, `industry`, `founder_name`, `tagline` and `team_score` are kept in columns for the queue's filters and sorting |
+| *(files)* `media/startups/`, `media/founders/` | Logos and founder photos, named by `applications_application.logo` / `.photo` | The `media` Docker volume. A replaced or removed image, and those of a deleted account, are deleted from it |
 | `applications_applicationevent` | The founder-visible timeline: who (`founder`/`support`), kind, title, message | `actor` is audit-only and never sent to founders |
 | `applications_scorecard` | One per reviewer per application: five 1–5 scores, recommendation, summary | Database constraints enforce both |
 | `applications_internalnote` | Reviewer-only notes | |
@@ -156,6 +159,7 @@ Each has an automated test (`backend/tests/`).
 13. **Public LinkedIn links go to LinkedIn**, not anywhere that mentions it. *(test_profile_validation_messages)*
 14. **Answers mean what the founder saw:** line breaks count once (browsers send two characters), and numbers are capped at 10¹² (whole numbers for people counts), so a value can't be stored that the form can't send back. *(test_line_breaks_count_once_and_are_stored_as_newlines, test_startup_validation_messages)*
 15. **Only a decision changes the public directory**; assignments, scorecards and notes leave its cache alone. *(test_only_decisions_refresh_the_public_directory)*
+16. **Uploads are never stored as sent.** Every image is decoded, resized and re-encoded as WebP; anything that isn't a PNG, JPEG or WebP image is refused, and media addresses only match the names the API itself gives out. *(test_files_that_are_not_images_are_refused, test_made_up_media_addresses_are_not_found)*
 
 ## Notifications
 
@@ -182,6 +186,7 @@ All sent by the Celery worker after the change commits; failed sends are retried
 - **On change**, the API's worker calls the website's [`/api/revalidate`](../src/app/api/revalidate/route.ts) with the tag (authorised by `REVALIDATE_SECRET`), so an event edited in the back office or a decided application shows within seconds. Founder submissions and withdrawals, and reviewer decisions, refresh the `startups` tag themselves; assignments, scorecards and notes don't touch it (on either side: the API's directory cache ignores saves of review-only columns, `REVIEW_ONLY` in `applications/signals.py`).
 - **The API's refreshes are stale-while-revalidate** (`revalidateTag(tag, "max")` in the route): the tag's pages are marked out of date; the next visitor gets the old copy while a new one renders, and everyone after sees the change. If the API can't be reached for that render (a deploy, a restart), the old copy stays. (Expiring tags outright, `{ expire: 0 }`, made those pages answer 500 for as long as the API was down.) **The website's own actions** (a founder submitting or withdrawing, a reviewer deciding) use `updateTag("startups")`, which expires at once so the person sees their own change on the next page they open; the API has just answered them, so it's up to render it.
 - **Pages rendered after the build stay in memory** (`experimental.isrFlushToDisk: false` in `next.config.ts`; an LRU of `cacheMaxMemorySize`, 50 MB by default), so requests for endless made-up addresses can't fill the website container's disk. A restart starts from the build's copies again.
+- **Uploaded logos and photos** aren't optimised by the website at all: the API already made them small WebP files, so pages point straight at `/api/v1/media/…` (`unoptimized` on the `<Image>`). In development, where there is no Caddy, `next.config.ts` passes that path on to the API.
 - **Optimised images** (`/_next/image`) are cached in the website's memory, up to 64 MB, by [cache-handler.mjs](../cache-handler.mjs) (`cacheHandler` and `images.customCacheHandler` in `next.config.ts`). Next's own image cache is on disk and is switched off by `isrFlushToDisk: false`; without the handler every image request re-encoded its image (about a second of CPU each), which stalled the whole website under load. Everything else goes through Next's built-in cache unchanged.
 - **At build time** the API isn't reachable, so public pages are prerendered without data (`BUILDING` in `lib/api.ts`) and [scripts/expire-prerendered.mjs](../scripts/expire-prerendered.mjs) backdates them; the first visit after a deploy renders them with live data. So that this first visit doesn't race the API (after a host reboot, Docker's restart policy ignores `depends_on`), the website's container waits up to 90 seconds for `/api/v1/health/ready` before starting ([scripts/start.mjs](../scripts/start.mjs); `API_WAIT_SECONDS`). If the API is down later, the last good copy keeps being served.
 - Signed-in pages (`/dashboard`, `/admin`) are always rendered per request and never cached.
@@ -209,7 +214,7 @@ The website reads `BACKEND_URL` (where the API is; `http://backend:8000` in Dock
 
 ## Tests
 
-`cd backend && pytest` runs 144 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections, and `npm run test:e2e` runs 66 end-to-end tests against a running stack: every endpoint over HTTP, and the website in a browser. Details: [testing.md](testing.md). The list that was checked by hand before the backend existed is now automated:
+`cd backend && pytest` runs 154 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections, and `npm run test:e2e` runs 69 end-to-end tests against a running stack: every endpoint over HTTP, and the website in a browser. Details: [testing.md](testing.md). The list that was checked by hand before the backend existed is now automated:
 
 - [x] A founder can't read or change another founder's application.
 - [x] No founder payload contains scorecards, notes, assignee or `review`.

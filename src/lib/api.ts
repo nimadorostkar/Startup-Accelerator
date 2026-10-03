@@ -62,6 +62,8 @@ export const UNAVAILABLE = "We couldn't reach the server just now. Please try ag
 type Options = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
+  /** A multipart body instead (file uploads). */
+  form?: FormData;
   /** Act as the signed-in visitor (forwards their session). */
   auth?: boolean;
   /** Cache a public GET for `PUBLIC_TTL` seconds under these tags. */
@@ -86,7 +88,7 @@ async function forwardedHeaders(): Promise<Record<string, string>> {
 }
 
 export async function api<T = unknown>(path: string, options: Options = {}): Promise<ApiResult<T>> {
-  const { method = "GET", body, auth = false, tags, raw = false } = options;
+  const { method = "GET", body, form, auth = false, tags, raw = false } = options;
   const cached = Boolean(tags) && method === "GET" && !auth;
 
   const requestHeaders: Record<string, string> = { Accept: "application/json" };
@@ -106,7 +108,8 @@ export async function api<T = unknown>(path: string, options: Options = {}): Pro
     response = await fetch(`${BACKEND_URL}/api/v1${path}`, {
       method,
       headers: requestHeaders,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      // A FormData body sets its own multipart Content-Type, boundary included.
+      body: form ?? (body === undefined ? undefined : JSON.stringify(body)),
       signal: controller.signal,
       ...(cached ? { next: { revalidate: PUBLIC_TTL, tags } } : { cache: "no-store" as const }),
     });

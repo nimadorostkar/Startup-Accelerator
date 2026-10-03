@@ -13,7 +13,6 @@ test.beforeAll(async () => {
 test.afterAll(() => api.dispose());
 
 test("home: the next Demo Day and the startup count come from the API", async ({ page }) => {
-  const startups = (await json(await api.get("/startups"))).startups;
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Built to launch.");
   const demo = upcoming.find((e) => e.type === "Demo Day");
@@ -21,11 +20,13 @@ test("home: the next Demo Day and the startup count come from the API", async ({
   await expect(band).toContainText(demo ? monthDay(demo.start, demo.tz) : "Date soon");
   // Other tests submit startups through the API as this runs: the page catches up
   // within seconds (the first visit after a change may still get the previous copy).
-  const count = `${startups.length} ${startups.length === 1 ? "startup" : "startups"}`;
+  // So the count is read again on every try, rather than once before the others add to it.
   await expect(async () => {
+    const { startups } = await json(await api.get("/startups"));
+    const count = `${startups.length} ${startups.length === 1 ? "startup" : "startups"}`;
     await page.reload();
     await expect(page.locator("#startups")).toContainText(count, { timeout: 1000 });
-  }).toPass({ timeout: 15_000 });
+  }).toPass({ timeout: 30_000 });
 });
 
 test("events: the list, one event with its agenda, and a 404 for unknown ones", async ({ page }) => {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ImageUpload from "@/components/dashboard/ImageUpload";
 import StartupForm from "@/components/dashboard/StartupForm";
 import { FeedbackNotice, LockedNotice, NextStep, PageHeader } from "@/components/dashboard/ui";
 import { canEdit, getMyApplication } from "@/lib/application/dal";
@@ -41,6 +42,7 @@ export default async function StartupPage() {
         ))}
       </nav>
 
+      <ImageUpload kind="logo" current={app.logo} name={app.startup.name} editable={editable} />
       <StartupForm startup={app.startup} editable={editable} />
       <NextStep href="/dashboard/team" label="Next: your team" />
     </>
