@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { confirmEmail, type VerifyState } from "@/app/(auth)/actions";
+import { confirmEmail, type VerifyState } from "@/app/[lang]/(auth)/actions";
 import { CheckIcon } from "../icons";
 import FormBanner from "./FormBanner";
 import SubmitButton from "./SubmitButton";

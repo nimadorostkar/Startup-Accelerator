@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
+import { LOCALE_INFO, LOCALES, localePath } from "@/i18n/config";
 import { listPublicStartups } from "@/lib/application/public";
 import { listEvents } from "@/lib/events";
 import { listPosts } from "@/lib/newsletter";
 import { SITE_URL } from "@/lib/site";
 
 // Rebuilt hourly, or as soon as an event, article or startup changes (cache tags).
+// Each public page is listed in English, Turkish and Persian.
 export const revalidate = 3600;
 
 /** A payload's `updated` time, when it has a valid one. */
@@ -57,5 +59,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...pages, ...posts, ...events, ...startups];
+  // Every page in each language, each entry naming its translations (hreflang).
+  return [...pages, ...posts, ...events, ...startups].flatMap((entry) => {
+    const path = entry.url.slice(SITE_URL.length) || "/";
+    const languages = Object.fromEntries(LOCALES.map((l) => [LOCALE_INFO[l].intl, url(localePath(l, path))]));
+    return LOCALES.map((l) => ({ ...entry, url: url(localePath(l, path)), alternates: { languages } }));
+  });
 }

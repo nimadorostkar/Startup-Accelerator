@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveAccountName, savePassword, type SaveState } from "@/app/dashboard/actions";
+import { saveAccountName, savePassword, type SaveState } from "@/app/(app)/dashboard/actions";
 import FormBanner from "../auth/FormBanner";
 import SignInAgain from "../auth/SignInAgain";
 import { CheckIcon } from "../icons";

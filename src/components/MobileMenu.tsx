@@ -1,14 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
+import { LocalLink as Link } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import { ArrowRight } from "./icons";
-import { NAV_LINKS } from "./nav-links";
+import { LanguageSegments } from "./LanguageSwitcher";
 
 export default function MobileMenu({
   buttonClassName = "text-ink",
+  links,
+  t,
 }: {
   buttonClassName?: string;
+  links: { href: string; label: string }[];
+  t: Messages["common"]["header"] & { navLabel: string; languageLabel: string };
 }) {
   const [open, setOpen] = useState(false);
 
@@ -30,22 +35,22 @@ export default function MobileMenu({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls="mobile-nav"
-        aria-label={open ? "Close menu" : "Open menu"}
+        aria-label={open ? t.closeMenu : t.openMenu}
         className={`flex h-11 w-11 items-center justify-center rounded-full border border-current/25 transition-colors duration-200 hover:border-current/60 ${buttonClassName}`}
       >
         <span className="relative block h-3.5 w-5">
           <span
-            className={`absolute left-0 block h-[1.5px] w-full bg-current transition-transform duration-200 ${
+            className={`absolute start-0 block h-[1.5px] w-full bg-current transition-transform duration-200 ${
               open ? "top-1.5 rotate-45" : "top-0"
             }`}
           />
           <span
-            className={`absolute top-1.5 left-0 block h-[1.5px] w-full bg-current transition-opacity duration-200 ${
+            className={`absolute top-1.5 start-0 block h-[1.5px] w-full bg-current transition-opacity duration-200 ${
               open ? "opacity-0" : "opacity-100"
             }`}
           />
           <span
-            className={`absolute left-0 block h-[1.5px] w-full bg-current transition-transform duration-200 ${
+            className={`absolute start-0 block h-[1.5px] w-full bg-current transition-transform duration-200 ${
               open ? "top-1.5 -rotate-45" : "top-3"
             }`}
           />
@@ -58,13 +63,13 @@ export default function MobileMenu({
           className="menu-in fixed inset-x-0 top-[64px] bottom-0 z-40 overflow-y-auto overscroll-contain bg-white"
         >
           <nav
-            aria-label="Mobile"
+            aria-label={t.navLabel}
             className="flex min-h-full flex-col px-6 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
           >
             <ul>
-              {NAV_LINKS.map((link, i) => (
+              {links.map((link, i) => (
                 <li
-                  key={link.label}
+                  key={link.href}
                   className="menu-item"
                   style={{ "--i": i } as CSSProperties}
                 >
@@ -82,15 +87,18 @@ export default function MobileMenu({
 
             <div
               className="menu-item mt-auto pt-8"
-              style={{ "--i": NAV_LINKS.length } as CSSProperties}
+              style={{ "--i": links.length } as CSSProperties}
             >
+              <div className="mb-8">
+                <LanguageSegments label={t.languageLabel} />
+              </div>
               <p className="flex items-center gap-2.5 text-[11px]">
                 <span
                   aria-hidden="true"
                   className="h-[1em] w-[1em] shrink-0 rounded-full bg-brand"
                 />
                 <span className="font-display font-semibold tracking-[0.18em] text-brand-strong uppercase">
-                  Registration open &middot; 2026
+                  {t.registrationOpen}
                 </span>
               </p>
               <Link
@@ -98,17 +106,17 @@ export default function MobileMenu({
                 onClick={() => setOpen(false)}
                 className="mt-4 flex h-14 items-center justify-center gap-3 rounded-full bg-brand-strong font-display text-[13px] font-bold tracking-[0.06em] text-white uppercase shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)]"
               >
-                Apply Now
+                {t.applyNow}
                 <ArrowRight className="h-[18px] w-[18px] shrink-0" />
               </Link>
               <p className="mt-4 text-center text-[14px] text-muted">
-                Already have an account?{" "}
+                {t.haveAccount}{" "}
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
                   className="font-semibold text-brand-strong"
                 >
-                  Sign in
+                  {t.signIn}
                 </Link>
               </p>
             </div>

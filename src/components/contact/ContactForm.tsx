@@ -4,7 +4,7 @@ import { useActionState, useId, useRef, useState } from "react";
 import {
   sendContactMessage,
   type ContactFormState,
-} from "@/app/contact/actions";
+} from "@/app/[lang]/contact/actions";
 import Field from "../auth/Field";
 import { FormAlert } from "../auth/FormBanner";
 import SubmitButton from "../auth/SubmitButton";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { removeImage, uploadImage, type SaveState } from "@/app/dashboard/actions";
+import { removeImage, uploadImage, type SaveState } from "@/app/(app)/dashboard/actions";
 import SignInAgain from "../auth/SignInAgain";
 import Monogram, { FounderDot } from "../startups/Monogram";
 

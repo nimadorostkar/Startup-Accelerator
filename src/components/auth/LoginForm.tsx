@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { login, type AuthFormState } from "@/app/(auth)/actions";
+import { login, type AuthFormState } from "@/app/[lang]/(auth)/actions";
 import Field from "./Field";
 import FormBanner from "./FormBanner";
 import SubmitButton from "./SubmitButton";

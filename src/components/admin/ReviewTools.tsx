@@ -8,7 +8,7 @@ import {
   saveScorecard,
   unassign,
   type ReviewState,
-} from "@/app/admin/actions";
+} from "@/app/(app)/admin/actions";
 import { DECISIONS, type Decision } from "@/lib/application/decisions";
 import { RECOMMENDATIONS, SCORE_AREAS, type Scorecard, type Status } from "@/lib/application/types";
 import FormBanner from "../auth/FormBanner";

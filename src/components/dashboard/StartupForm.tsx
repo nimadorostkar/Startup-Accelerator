@@ -1,6 +1,6 @@
 "use client";
 
-import { saveStartup } from "@/app/dashboard/actions";
+import { saveStartup } from "@/app/(app)/dashboard/actions";
 import { requiredFields } from "@/lib/application/progress";
 import { BUSINESS_MODELS, INDUSTRIES, STAGES, type Startup } from "@/lib/application/types";
 import { ChoiceCards, FormSection, SelectField, TextArea, TextField } from "./fields";

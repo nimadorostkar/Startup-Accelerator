@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { requestReset, type ResetFormState } from "@/app/(auth)/actions";
+import { requestReset, type ResetFormState } from "@/app/[lang]/(auth)/actions";
 import { CheckIcon } from "../icons";
 import Field from "./Field";
 import FormBanner from "./FormBanner";

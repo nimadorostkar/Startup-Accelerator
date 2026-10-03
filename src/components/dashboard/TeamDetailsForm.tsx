@@ -1,6 +1,6 @@
 "use client";
 
-import { saveTeamDetails } from "@/app/dashboard/actions";
+import { saveTeamDetails } from "@/app/(app)/dashboard/actions";
 import { requiredFields } from "@/lib/application/progress";
 import { WORKED_TOGETHER, type Team } from "@/lib/application/types";
 import { FormSection, SelectField, TextArea } from "./fields";

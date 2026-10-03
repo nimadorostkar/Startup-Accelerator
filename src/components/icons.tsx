@@ -1,6 +1,7 @@
 export function ArrowRight({ className = "" }: { className?: string }) {
   return (
     <svg
+      data-flip=""
       viewBox="0 0 24 24"
       fill="none"
       strokeWidth="2.2"
@@ -19,6 +20,7 @@ export function ArrowRight({ className = "" }: { className?: string }) {
 export function ChevronRight({ className = "" }: { className?: string }) {
   return (
     <svg
+      data-flip=""
       viewBox="0 0 24 24"
       fill="none"
       strokeWidth="2.4"

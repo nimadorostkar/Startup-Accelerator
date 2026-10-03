@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useRef } from "react";
-import { leaveNewsletter, type UnsubscribeState } from "@/app/newsletter/unsubscribe/actions";
+import { leaveNewsletter, type UnsubscribeState } from "@/app/[lang]/newsletter/unsubscribe/actions";
 import { FormAlert } from "../auth/FormBanner";
 import { useResponseFocus } from "../auth/useResponseFocus";
 

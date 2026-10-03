@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useId } from "react";
-import { subscribe, type SubscribeState } from "@/app/newsletter/actions";
+import { subscribe, type SubscribeState } from "@/app/[lang]/newsletter/actions";
 import { ArrowRight, CheckIcon } from "../icons";
 
 /* Inline email + button pill. `tone="dark"` for dark bands. */

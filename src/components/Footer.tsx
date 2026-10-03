@@ -1,42 +1,47 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { LocalLink as Link } from "@/i18n/client";
+import { format } from "@/i18n/format";
+import type { Messages } from "@/i18n/messages";
+import { getDictionary } from "@/i18n/server";
 import { PlusMark } from "./icons";
 import { BrandLogo } from "./Logo";
 
-const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+type Common = Messages["common"]["footer"];
+
+const COLUMNS: { title: keyof Common; links: { label: keyof Common; href: string }[] }[] = [
   {
-    title: "Program",
+    title: "program",
     links: [
-      { label: "Apply now", href: "/dashboard" },
-      { label: "The six stages", href: "/#program" },
-      { label: "Demo Day", href: "/demo-day" },
-      { label: "Admissions FAQ", href: "/#faq" },
+      { label: "applyNow", href: "/dashboard" },
+      { label: "sixStages", href: "/#program" },
+      { label: "demoDay", href: "/demo-day" },
+      { label: "faq", href: "/#faq" },
     ],
   },
   {
-    title: "Discover",
+    title: "discover",
     links: [
-      { label: "Startups", href: "/startups" },
-      { label: "Events", href: "/events" },
-      { label: "Newsletter", href: "/newsletter" },
-      { label: "Founder stories", href: "/#results" },
+      { label: "startups", href: "/startups" },
+      { label: "events", href: "/events" },
+      { label: "newsletter", href: "/newsletter" },
+      { label: "stories", href: "/#results" },
     ],
   },
   {
-    title: "Company",
+    title: "company",
     links: [
-      { label: "About", href: "/about" },
-      { label: "Contact", href: "/contact" },
-      { label: "Featured founders", href: "/#founders" },
-      { label: "Sign in", href: "/login" },
+      { label: "about", href: "/about" },
+      { label: "contact", href: "/contact" },
+      { label: "featured", href: "/#founders" },
+      { label: "signIn", href: "/login" },
     ],
   },
 ];
 
-const LEGAL = [
-  { label: "Privacy policy", href: "/privacy" },
-  { label: "Terms of use", href: "/terms" },
-  { label: "Code of conduct", href: "/code-of-conduct" },
+const LEGAL: { label: keyof Common; href: string }[] = [
+  { label: "privacy", href: "/privacy" },
+  { label: "terms", href: "/terms" },
+  { label: "conduct", href: "/code-of-conduct" },
 ];
 
 const icon = (d: ReactNode) => (
@@ -100,7 +105,9 @@ const SOCIAL: { label: string; href: string; svg: ReactNode }[] = [
   },
 ];
 
-export default function Footer() {
+export default async function Footer() {
+  const { common } = await getDictionary();
+  const t = common.footer;
   const social = SOCIAL.filter((s) => s.href);
   const year = new Date().getFullYear();
 
@@ -111,20 +118,14 @@ export default function Footer() {
           <div>
             <Link
               href="/"
-              aria-label="Fundup Club home"
+              aria-label={common.site.home}
               className="inline-flex items-center"
             >
               <BrandLogo className="h-[40px] w-auto" />
             </Link>
-            <p className="mt-6 text-[14px] leading-[1.75] text-muted">
-              Fundup Club brings together the world&rsquo;s top investors,
-              founders and decision makers. Our accelerator helps ambitious
-              founders from 65+ markets validate ideas, ship products and raise
-              from a network of 180+ investment firms, from first idea to Demo
-              Day and beyond.
-            </p>
+            <p className="mt-6 text-[14px] leading-[1.75] text-muted">{t.blurb}</p>
             {social.length > 0 && (
-              <ul className="mt-7 flex gap-2.5" aria-label="Social media">
+              <ul className="mt-7 flex gap-2.5" aria-label={t.social}>
                 {social.map((s) => (
                   <li key={s.label}>
                     <a
@@ -143,27 +144,27 @@ export default function Footer() {
           </div>
 
           <nav
-            aria-label="Footer"
+            aria-label={t.nav}
             className="border-t border-line-soft sm:grid sm:grid-cols-3 sm:gap-x-8 sm:gap-y-10 sm:border-0"
           >
             {COLUMNS.map((col) => (
-              <div key={col.title}>
+              <div key={t[col.title]}>
                 {/* Phones: each group collapses to a single row */}
                 <details className="group border-b border-line-soft sm:hidden">
                   <summary className="flex cursor-pointer list-none items-center justify-between py-4 [&::-webkit-details-marker]:hidden">
                     <span className="type-wide text-[11px] font-semibold tracking-[0.16em] text-ink uppercase">
-                      {col.title}
+                      {t[col.title]}
                     </span>
                     <PlusMark className="h-4 w-4 text-ink-soft transition-transform duration-300 group-open:rotate-45" />
                   </summary>
                   <ul className="grid grid-cols-2 gap-x-6 pb-4">
                     {col.links.map((l) => (
-                      <li key={l.label}>
+                      <li key={l.href}>
                         <Link
                           href={l.href}
                           className="block py-2 text-[14px] text-muted transition-colors duration-200 active:text-brand-strong"
                         >
-                          {l.label}
+                          {t[l.label]}
                         </Link>
                       </li>
                     ))}
@@ -172,16 +173,16 @@ export default function Footer() {
 
                 <div className="hidden sm:block">
                   <h3 className="type-wide text-[11px] font-semibold tracking-[0.16em] text-ink uppercase">
-                    {col.title}
+                    {t[col.title]}
                   </h3>
                   <ul className="mt-5 space-y-3">
                     {col.links.map((l) => (
-                      <li key={l.label}>
+                      <li key={l.href}>
                         <Link
                           href={l.href}
                           className="text-[14px] text-muted transition-colors duration-200 hover:text-brand-strong"
                         >
-                          {l.label}
+                          {t[l.label]}
                         </Link>
                       </li>
                     ))}
@@ -193,7 +194,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-4 pt-2 text-[13px] text-muted sm:mt-16 sm:flex-row sm:items-center sm:justify-between sm:border-t sm:border-line-soft sm:pt-7">
-          <p>Copyright &copy; {year} Fundup Club. All rights reserved.</p>
+          <p>{format(t.copyright, { year })}</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {LEGAL.map((l) => (
               <li key={l.href}>
@@ -201,7 +202,7 @@ export default function Footer() {
                   href={l.href}
                   className="transition-colors duration-200 hover:text-brand-strong"
                 >
-                  {l.label}
+                  {t[l.label]}
                 </Link>
               </li>
             ))}

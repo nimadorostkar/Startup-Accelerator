@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useRef } from "react";
-import { registerForEvent, type RegisterState } from "@/app/events/actions";
+import { registerForEvent, type RegisterState } from "@/app/[lang]/events/actions";
 import Field from "../auth/Field";
 import { FormAlert } from "../auth/FormBanner";
 import SubmitButton from "../auth/SubmitButton";

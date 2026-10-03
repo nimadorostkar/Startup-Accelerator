@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { continueWithGoogle, type AuthFormState } from "@/app/(auth)/actions";
+import { continueWithGoogle, type AuthFormState } from "@/app/[lang]/(auth)/actions";
 import { GoogleMark } from "../icons";
 import FormBanner from "./FormBanner";
 

@@ -566,3 +566,26 @@ html {
     opacity: 0;
   }
 }
+
+/* ---------------------------------------------------------------- right-to-left (Persian)
+
+   Arrows and chevrons that point "forward" (icons.tsx marks them data-flip)
+   point the other way, and their hover nudge (translate-x utilities) goes that
+   way too. Unlayered, so it wins over the utilities. */
+[dir="rtl"] [data-flip] {
+  scale: -1 1;
+  translate: calc(var(--tw-translate-x, 0) * -1) var(--tw-translate-y, 0);
+}
+
+/* Persian is set in Vazirmatn (DM Sans has no Arabic-script letters). The
+   theme is `@theme inline`, so the font utilities hold var(--font-dm-sans)
+   itself: pointing that at Vazirmatn switches every font on the page (its
+   Latin letters included, so mixed text matches). Letter spacing pulls joined
+   letters apart, so it's switched off; uppercase has no effect on the script. */
+html[lang="fa"] {
+  --font-dm-sans: var(--font-vazirmatn);
+}
+html[lang="fa"] body,
+html[lang="fa"] body * {
+  letter-spacing: 0 !important;
+}

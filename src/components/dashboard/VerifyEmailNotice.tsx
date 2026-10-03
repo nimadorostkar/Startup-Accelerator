@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { resendVerificationEmail, type SaveState } from "@/app/dashboard/actions";
+import { resendVerificationEmail, type SaveState } from "@/app/(app)/dashboard/actions";
 
 /* Shown until the founder confirms their address, so decisions and
    reminders reach a real inbox. */

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { removeMember, saveMember, type SaveState } from "@/app/dashboard/actions";
+import { removeMember, saveMember, type SaveState } from "@/app/(app)/dashboard/actions";
 import { COMMITMENTS, type TeamMember } from "@/lib/application/types";
 import { PlusMark } from "../icons";
 import FormBanner from "../auth/FormBanner";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, type ReactNode } from "react";
-import type { SaveState } from "@/app/dashboard/actions";
+import type { SaveState } from "@/app/(app)/dashboard/actions";
 import SignInAgain from "../auth/SignInAgain";
 import { AlertIcon, CheckIcon } from "../icons";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { saveProfile } from "@/app/dashboard/actions";
+import { saveProfile } from "@/app/(app)/dashboard/actions";
 import { requiredFields } from "@/lib/application/progress";
 import { COMMITMENTS, HEARD_FROM, type Profile } from "@/lib/application/types";
 import { ChoiceCards, FormSection, SelectField, TextArea, TextField } from "./fields";

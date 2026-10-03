@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useTransition, useState } from "react";
-import { submitApplication, withdrawApplication, type SaveState } from "@/app/dashboard/actions";
+import { submitApplication, withdrawApplication, type SaveState } from "@/app/(app)/dashboard/actions";
 import FormBanner from "../auth/FormBanner";
 import SignInAgain from "../auth/SignInAgain";
 import { ArrowRight, CheckIcon } from "../icons";
