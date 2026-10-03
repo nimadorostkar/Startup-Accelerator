@@ -9,6 +9,8 @@ case "$1" in
       # Only the web role migrates, under an advisory lock so parallel starts take turns.
       python manage.py migrate_safely
       if [ "${SEED_CONTENT:-0}" = "1" ]; then
+        # Loads the launch events and posts once per database (recorded in content_seedrecord),
+        # so deleting the placeholders in the back office is final.
         python manage.py seed_content --if-empty
       fi
     fi

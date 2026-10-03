@@ -85,4 +85,7 @@ def test_make_reviewer_never_confirms_an_address_on_the_owners_behalf(client):
     client.post("/backoffice/accounts/user/", {"action": "make_reviewer", "_selected_action": [newcomer.pk]})
     newcomer.refresh_from_db()
     assert newcomer.role == "reviewer" and not newcomer.email_verified and not newcomer.is_reviewer
-    assert any("verify-email?token=" in m.body for m in mail.outbox if m.to == ["new.reviewer@example.com"])
+    [message] = [m for m in mail.outbox if m.to == ["new.reviewer@example.com"]]
+    assert "verify-email?token=" in message.body
+    # A reviewer's own wording, not the founder's "so we can reach you about your application".
+    assert "reviewer access" in message.body and "your application" not in message.body

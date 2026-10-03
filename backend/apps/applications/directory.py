@@ -1,4 +1,5 @@
-"""The public startup directory: every submitted application, never drafts.
+"""The public startup directory: every submitted application, never drafts,
+and never one whose founder's account is deactivated.
 
 The list is cached (it's read on the landing page and /startups) and the
 cache is dropped whenever a public application changes.
@@ -6,7 +7,7 @@ cache is dropped whenever a public application changes.
 
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 
 from apps.core.signals import refresh_public_pages
 
@@ -36,9 +37,12 @@ def invalidate() -> None:
 def public_queryset():
     return (
         payloads.founder_queryset()
-        .filter(status__in=rules.PUBLIC_VISIBLE, slug__isnull=False)
-        .exclude(startup_name="")
-        .order_by(F("submitted_at").desc(nulls_last=True), "created_at")
+        .filter(status__in=rules.PUBLIC_VISIBLE, slug__isnull=False, user__is_active=True)
+        # Unnamed ones stay out; while changes are requested the name shown is the
+        # submitted one (a submission always has a name), whatever the live draft says.
+        .exclude(Q(startup_name=""), ~Q(status="changes_requested"))
+        # Newest first by first submission, so a resubmission doesn't jump to the top.
+        .order_by(F("first_submitted_at").desc(nulls_last=True), "created_at")
     )
 
 

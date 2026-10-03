@@ -1,6 +1,7 @@
 import csv
 import zoneinfo
 
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.db import models
@@ -8,7 +9,15 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import AgendaItem, ContactMessage, Event, EventRegistration, Post, Subscriber
+from .models import (
+    AgendaItem,
+    ContactMessage,
+    Event,
+    EventRegistration,
+    Post,
+    Subscriber,
+    timezone_names,
+)
 
 
 def export_csv(filename: str, header: list[str], rows) -> HttpResponse:
@@ -29,8 +38,57 @@ class AgendaInline(admin.TabularInline):
     fields = ("order", "time", "item")
 
 
+def _event_formfield(db_field, **kwargs):
+    # A joining link typed without a scheme gets https:// (Django 6's default).
+    if isinstance(db_field, models.URLField):
+        kwargs.setdefault("assume_scheme", "https")
+    return db_field.formfield(**kwargs)
+
+
+class EventForm(forms.ModelForm):
+    """The time zone is picked from a list, so only names the website can show are possible."""
+
+    class Meta:
+        model = Event
+        formfield_callback = _event_formfield
+        fields = (
+            "title",
+            "slug",
+            "type",
+            "format",
+            "is_published",
+            "tz",
+            "start",
+            "end",
+            "city",
+            "capacity",
+            "venue",
+            "online_url",
+            "summary",
+            "about",
+            "takeaways",
+            "audience",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["tz"]
+        choices = [(name, name.replace("_", " ")) for name in timezone_names()]
+        current = self.instance.tz if self.instance and self.instance.pk else None
+        if current and current not in timezone_names():
+            # A name saved before the list existed: show it, so the form explains why it's refused.
+            choices.insert(0, (current, current))
+        self.fields["tz"] = forms.ChoiceField(
+            choices=choices,
+            label=field.label,
+            help_text="Start and end are read and shown in this zone.",
+            initial=field.initial,
+        )
+
+
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
+    form = EventForm
     list_display = (
         "title",
         "type",
@@ -119,8 +177,20 @@ class EventRegistrationAdmin(admin.ModelAdmin):
         )
 
 
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ("title", "slug", "issue", "category", "author", "published_on", "is_published")
+        fields += ("excerpt", "body", "minutes")
+
+    def clean_minutes(self):
+        # An emptied box means "estimate", the same as 0 (the column can't be empty).
+        return self.cleaned_data.get("minutes") or 0
+
+
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
+    form = PostForm
     list_display = ("issue", "title", "category", "published_on", "is_published", "page")
     list_filter = ("category", "is_published")
     search_fields = ("title", "excerpt", "slug")

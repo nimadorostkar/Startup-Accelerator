@@ -14,8 +14,17 @@ from urllib.parse import urlsplit
 from django.contrib.auth.password_validation import CommonPasswordValidator
 from django.core.exceptions import ValidationError
 
-# Deliberately loose: the only real proof an address works is a sent email.
-EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
+# Deliberately loose: the only real proof an address works is a sent email. But it refuses
+# what the mailer can't put in a To or Reply-To header: whitespace, control characters and
+# the address-list punctuation , ; : < > ( ) " [ ] \ (website: src/lib/validation.ts, same regex).
+EMAIL = re.compile(
+    r'^[^\s@,;:<>()"\[\]\\\x00-\x1f\x7f-\x9f]+@[^\s@,;:<>()"\[\]\\\x00-\x1f\x7f-\x9f]+'
+    r'\.[^\s@,;:<>()"\[\]\\\x00-\x1f\x7f-\x9f]{2,}$'
+)
+# Line breaks, tabs and other control characters (C0, DEL, C1) and the Unicode line and
+# paragraph separators: none belongs in a one-line value, and in an email subject or header
+# they make the message unsendable.
+CONTROL_CHARACTERS = re.compile(r"[\x00-\x1f\x7f-\x9f\u2028\u2029]")
 NUMBER = re.compile(r"^(\d+\.?\d*|\.\d+)$")
 HOST_LABEL = re.compile(r"^[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?$", re.IGNORECASE)
 MAX_URL_LENGTH = 2000
@@ -97,9 +106,18 @@ class Fields:
         return self.data.get(key) in (True, 1, "on", "true", "1", "yes")
 
 
+def check_single_line(value: str) -> str | None:
+    """For one-line values (names, titles): no line breaks or other control characters."""
+    if value and CONTROL_CHARACTERS.search(value):
+        return "Use a single line."
+    return None
+
+
 def check_name(value: str) -> str | None:
     if not value:
         return "Enter your full name."
+    if bad := check_single_line(value):
+        return bad
     if text_length(value) < 2:
         return "That name looks too short."
     if text_length(value) > 80:
@@ -110,7 +128,7 @@ def check_name(value: str) -> str | None:
 def check_email(value: str) -> str | None:
     if not value:
         return "Enter your email address."
-    if text_length(value) > 254 or not EMAIL.match(value):
+    if text_length(value) > 254 or not EMAIL.fullmatch(value):
         return "That doesn't look like a valid email address."
     return None
 
@@ -134,7 +152,7 @@ def check_new_password(value: str) -> str | None:
 
 
 def max_length(value: str, limit: int) -> str | None:
-    return f"Keep this under {limit} characters." if text_length(value) > limit else None
+    return f"Keep this to {limit} characters or fewer." if text_length(value) > limit else None
 
 
 def optional_email(value: str) -> str | None:

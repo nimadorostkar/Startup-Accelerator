@@ -16,6 +16,7 @@ from datetime import UTC, datetime, timedelta
 from apps.core.exceptions import Invalid
 from apps.core.validation import (
     Fields,
+    check_single_line,
     max_length,
     normalize_url,
     optional_email,
@@ -319,6 +320,18 @@ def _text(f: Fields, key: str, limit: int) -> str:
     return value
 
 
+def _line(f: Fields, key: str, limit: int) -> str:
+    """One-line text (names, titles): they go into email subjects and headings."""
+    value = f.text(key)
+    f.error(key, check_single_line(value))
+    f.error(key, max_length(value, limit))
+    return value
+
+
+# Startup answers that must be a single line.
+STARTUP_LINES = {"name", "tagline", "country", "keyMetric"}
+
+
 def _url(f: Fields, key: str, check=optional_url) -> str:
     value = f.text(key)
     f.error(key, check(value))
@@ -329,10 +342,10 @@ def parse_profile(data: dict) -> dict:
     f = Fields(data)
     out = {}
     readers = {
-        "fullName": lambda: _text(f, "fullName", 80),
-        "title": lambda: _text(f, "title", 80),
-        "country": lambda: _text(f, "country", 60),
-        "city": lambda: _text(f, "city", 60),
+        "fullName": lambda: _line(f, "fullName", 80),
+        "title": lambda: _line(f, "title", 80),
+        "country": lambda: _line(f, "country", 60),
+        "city": lambda: _line(f, "city", 60),
         "bio": lambda: _text(f, "bio", 1200),
         "linkedin": lambda: _url(f, "linkedin", optional_linkedin),
         "commitment": lambda: _choice(f, "commitment", COMMITMENTS, "Pick an option."),
@@ -385,7 +398,7 @@ def parse_startup(data: dict, *, today: datetime | None = None) -> dict:
     out = {}
     for key, limit in STARTUP_TEXT_LIMITS.items():
         if f.has(key):
-            out[key] = _text(f, key, limit)
+            out[key] = (_line if key in STARTUP_LINES else _text)(f, key, limit)
     for key in STARTUP_URLS:
         if f.has(key):
             out[key] = _url(f, key)
@@ -443,8 +456,10 @@ def parse_member(data: dict) -> dict:
     """A whole team member (name and role required). For edits, merge the stored member in first."""
     f = Fields(data)
     name, role = f.text("name"), f.text("role")
-    f.error("name", "Add their name." if not name else max_length(name, 80))
-    f.error("role", "Add their role, e.g. CTO." if not role else max_length(role, 80))
+    f.error("name", "Add their name." if not name else check_single_line(name) or max_length(name, 80))
+    f.error(
+        "role", "Add their role, e.g. CTO." if not role else check_single_line(role) or max_length(role, 80)
+    )
     email = f.text("email")
     f.error("email", optional_email(email))
     linkedin = _url(f, "linkedin", optional_linkedin)

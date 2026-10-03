@@ -72,7 +72,7 @@ def test_profile_save_normalises_and_never_takes_the_email_from_the_form(founder
         ({"experienceYears": "61"}, "experienceYears", "That's more than 60 years."),
         ({"experienceYears": "-1"}, "experienceYears", "Enter a positive number."),
         ({"commitment": "weekends"}, "commitment", "Pick an option."),
-        ({"bio": "x" * 1201}, "bio", "Keep this under 1200 characters."),
+        ({"bio": "x" * 1201}, "bio", "Keep this to 1200 characters or fewer."),
     ],
 )
 def test_profile_validation_messages(founder_client, body, field, message):
@@ -307,6 +307,42 @@ def test_withdraw_only_before_review_starts(submitted, founder_client):
     nothing = founder_client.post("/api/v1/me/application/withdraw")
     assert nothing.status_code == 409
     assert nothing.json()["message"] == "This application isn't submitted, so there's nothing to withdraw."
+
+
+@pytest.mark.parametrize(
+    ("path", "field"),
+    [
+        ("profile", "fullName"),
+        ("profile", "title"),
+        ("profile", "city"),
+        ("profile", "country"),
+        ("startup", "name"),
+        ("startup", "tagline"),
+        ("startup", "country"),
+        ("startup", "keyMetric"),
+    ],
+)
+def test_one_line_answers_refuse_line_breaks(founder_client, path, field):
+    for value in ["Ledgerly\nBcc: everyone@example.com", "Ledgerly\tLtd", "Ledgerly\u0007"]:
+        response = founder_client.patch(f"/api/v1/me/application/{path}", {field: value}, format="json")
+        assert response.status_code == 422, value
+        assert response.json()["errors"][field] == "Use a single line."
+    # Long answers still take line breaks.
+    other = "bio" if path == "profile" else "problem"
+    ok = founder_client.patch(f"/api/v1/me/application/{path}", {other: "Line one\nLine two"}, format="json")
+    assert ok.status_code == 200
+
+
+def test_team_member_name_and_role_are_one_line(founder_client):
+    members = app_of(founder_client)["team"]["members"]
+    member = members[0]
+    for field in ["name", "role"]:
+        body = {**member, "role": "CEO", field: "Maya\nRosen"}
+        response = founder_client.patch(
+            f"/api/v1/me/application/team/members/{member['id']}", body, format="json"
+        )
+        assert response.status_code == 422
+        assert response.json()["errors"][field] == "Use a single line."
 
 
 def test_resubmitting_after_changes_requested(submitted, founder_client):

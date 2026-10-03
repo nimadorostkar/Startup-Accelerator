@@ -3,6 +3,8 @@ and Post (src/components/newsletter/posts.ts)."""
 
 from zoneinfo import ZoneInfo
 
+from apps.core.utils import iso
+
 from .models import Event, Post, split_lines, split_paragraphs
 
 
@@ -27,6 +29,8 @@ def event(e: Event) -> dict:
         "takeaways": split_lines(e.takeaways),
         "agenda": [{"time": a.time, "item": a.item} for a in e.agenda.all()],
         "audience": e.audience,
+        # Last edit, for the sitemap's <lastmod>.
+        "updated": iso(e.updated_at),
     }
 
 
@@ -40,6 +44,8 @@ def post(p: Post, *, body: bool = False) -> dict:
         "author": p.author,
         "date": p.published_on.isoformat(),
         "minutes": p.read_minutes(),
+        # Last edit, for the sitemap's <lastmod>.
+        "updated": iso(p.updated_at),
     }
     if body:
         out["body"] = p.blocks()

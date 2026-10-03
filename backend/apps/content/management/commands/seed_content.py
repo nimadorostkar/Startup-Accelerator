@@ -2,7 +2,8 @@
 shipped with) into the database, so the site isn't empty on day one.
 
     python manage.py seed_content            add any that are missing (by slug)
-    python manage.py seed_content --if-empty only on a brand-new database
+    python manage.py seed_content --if-empty only once per database: never again after
+                                             a first load, nor where content already exists
     python manage.py seed_content --update   also overwrite ones that exist
 
 Edit or delete them afterwards in the back office (/backoffice/).
@@ -15,7 +16,10 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.content.models import AgendaItem, Event, Post
+from apps.content.models import AgendaItem, Event, Post, SeedRecord
+
+# The SeedRecord name that marks this load as done on this database.
+SEED_NAME = "content"
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
 
@@ -29,7 +33,10 @@ def blocks_to_text(blocks: list[dict]) -> str:
         elif kind == "h2":
             parts.append(f"## {block['text']}")
         elif kind == "list":
-            parts.append("\n".join(f"- {item}" for item in block["items"]))
+            if block.get("ordered"):
+                parts.append("\n".join(f"{n}. {item}" for n, item in enumerate(block["items"], 1)))
+            else:
+                parts.append("\n".join(f"- {item}" for item in block["items"]))
         elif kind == "quote":
             quote = f"> {block['text']}"
             if block.get("cite"):
@@ -42,16 +49,25 @@ class Command(BaseCommand):
     help = "Load the launch events and newsletter issues."
 
     def add_arguments(self, parser):
-        parser.add_argument("--if-empty", action="store_true", help="Do nothing if any event or post exists.")
+        parser.add_argument(
+            "--if-empty",
+            action="store_true",
+            help="Do nothing if content was loaded before on this database, or any event or post exists.",
+        )
         parser.add_argument(
             "--update", action="store_true", help="Overwrite existing items with the same slug."
         )
 
     @transaction.atomic
     def handle(self, *args, if_empty=False, update=False, **options):
-        if if_empty and (Event.objects.exists() or Post.objects.exists()):
-            self.stdout.write("Content already exists; nothing loaded.")
-            return
+        if if_empty:
+            if SeedRecord.objects.filter(name=SEED_NAME).exists():
+                self.stdout.write("Launch content was loaded on this database before; nothing loaded.")
+                return
+            if Event.objects.exists() or Post.objects.exists():
+                SeedRecord.objects.get_or_create(name=SEED_NAME)
+                self.stdout.write("Content already exists; nothing loaded.")
+                return
         events = json.loads((FIXTURES / "placeholder_events.json").read_text())
         posts = json.loads((FIXTURES / "placeholder_posts.json").read_text())
         created = {"events": 0, "posts": 0}
@@ -102,11 +118,15 @@ class Command(BaseCommand):
             if post and not update:
                 continue
             if post:
-                Post.objects.filter(pk=post.pk).update(**fields)
+                # save(), not a queryset update: the change signals refresh the newsletter pages.
+                for key, value in fields.items():
+                    setattr(post, key, value)
+                post.save()
             else:
                 Post.objects.create(slug=p["slug"], **fields)
                 created["posts"] += 1
 
+        SeedRecord.objects.get_or_create(name=SEED_NAME)
         self.stdout.write(
             self.style.SUCCESS(f"Loaded {created['events']} new event(s) and {created['posts']} new post(s).")
         )

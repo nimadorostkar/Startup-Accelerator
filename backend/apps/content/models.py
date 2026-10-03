@@ -1,7 +1,9 @@
 import re
 import zoneinfo
+from functools import cache
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -19,8 +21,23 @@ CONTACT_TOPICS = [
 ]
 
 
+# Region/City names only (plus UTC). zoneinfo also lists names such as "Factory",
+# "localtime", "posixrules", "posix/…", "right/…" and "Etc/…", which the website's
+# Intl.DateTimeFormat rejects (a RangeError that takes the events pages down).
+TIMEZONE_NAME = re.compile(
+    r"^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific)"
+    r"/[A-Za-z0-9_+\-]+(/[A-Za-z0-9_+\-]+)?$"
+)
+
+
+@cache
+def timezone_names() -> tuple[str, ...]:
+    """Every time zone an event may use, sorted: UTC first, then Region/City names."""
+    return ("UTC", *sorted(name for name in zoneinfo.available_timezones() if TIMEZONE_NAME.match(name)))
+
+
 def validate_timezone(value: str) -> None:
-    if value not in zoneinfo.available_timezones():
+    if value not in timezone_names():
         raise ValidationError(f"{value!r} isn't a time zone name, e.g. America/Los_Angeles or Europe/London.")
 
 
@@ -28,8 +45,88 @@ def split_paragraphs(text: str) -> list[str]:
     return [" ".join(p.split()) for p in re.split(r"\n\s*\n", text or "") if p.strip()]
 
 
+# A list marker: "- " or "* " (with the space, so "-50% fees" keeps its minus), or "•".
+BULLET = re.compile(r"^(?:[-*]\s+|•\s*)")
+
+
 def split_lines(text: str) -> list[str]:
-    return [line.strip().lstrip("-•* ").strip() for line in (text or "").splitlines() if line.strip()]
+    """One item per line, without a leading list marker."""
+    lines = (BULLET.sub("", line.strip()).strip() for line in (text or "").splitlines())
+    return [line for line in lines if line]
+
+
+HEADING = re.compile(r"^#{2,3}\s+(.*)$")
+UNORDERED_ITEM = re.compile(r"^[-*]\s+(.*)$")
+ORDERED_ITEM = re.compile(r"^\d{1,3}[.)]\s+(.*)$")
+QUOTE_LINE = re.compile(r"^>\s?(.*)$")
+# A quote's last line credits it only when it starts with a dash and a space ("— Name",
+# "-- Name", "- Name"), so a quoted "-10% churn" stays part of the quote.
+CITE = re.compile(r"^(?:—|–|--|-\s)\s*(.+)$")
+
+
+def body_blocks(body: str) -> list[dict]:
+    """A newsletter body as the article page's blocks: p, h2, list, quote.
+
+    Read line by line, so a list or quote straight under a heading or a
+    paragraph line (no blank line between) still becomes a list or quote.
+    "## " and "### " both make a heading (the website has one heading style);
+    "1. " lines make a list marked "ordered".
+    """
+    out: list[dict] = []
+    for chunk in re.split(r"\n\s*\n", body or ""):
+        current: dict | None = None  # the block the next line may continue
+        for raw in chunk.splitlines():
+            if not raw.strip():
+                continue
+            line = raw.strip()
+            heading = HEADING.match(line)
+            unordered = UNORDERED_ITEM.match(line)
+            ordered = None if unordered else ORDERED_ITEM.match(line)
+            quote = QUOTE_LINE.match(line)
+            if heading:
+                current = None
+                if heading.group(1).strip():
+                    out.append({"type": "h2", "text": heading.group(1).strip()})
+            elif unordered or ordered:
+                item = (unordered or ordered).group(1).strip()
+                is_ordered = bool(ordered)
+                if not (
+                    current and current["type"] == "list" and current.get("ordered", False) == is_ordered
+                ):
+                    current = {"type": "list", "items": []}
+                    if is_ordered:
+                        current["ordered"] = True
+                    out.append(current)
+                current["items"].append(item)
+            elif quote:
+                if not (current and current["type"] == "quote"):
+                    current = {"type": "quote", "lines": []}
+                    out.append(current)
+                if quote.group(1).strip():
+                    current["lines"].append(quote.group(1).strip())
+            elif current and current["type"] == "list" and raw[:1].isspace() and current["items"]:
+                current["items"][-1] += " " + line  # an indented line continues the item above
+            elif current and current["type"] == "p":
+                current["text"] += " " + line
+            else:
+                current = {"type": "p", "text": line}
+                out.append(current)
+    blocks = []
+    for block in out:
+        if block["type"] == "quote":
+            lines = block.pop("lines")
+            cite = CITE.match(lines[-1]) if len(lines) > 1 else None
+            if cite:
+                lines = lines[:-1]
+            if not lines:
+                continue
+            block["text"] = " ".join(lines)
+            if cite:
+                block["cite"] = cite.group(1).strip()
+        elif block["type"] == "p":
+            block["text"] = " ".join(block["text"].split())
+        blocks.append(block)
+    return blocks
 
 
 class Event(models.Model):
@@ -47,7 +144,7 @@ class Event(models.Model):
         validators=[validate_timezone],
         help_text="Times are shown in this zone, e.g. America/Los_Angeles, Europe/London.",
     )
-    capacity = models.PositiveIntegerField(default=100)
+    capacity = models.PositiveIntegerField(default=100, validators=[MinValueValidator(1)])
     summary = models.TextField(max_length=400)
     about = models.TextField(help_text="Paragraphs, separated by a blank line.")
     takeaways = models.TextField("what you'll get", blank=True, help_text="One per line.")
@@ -131,9 +228,9 @@ class Post(models.Model):
     )
     body = models.TextField(
         help_text=(
-            "Paragraphs separated by a blank line. A line starting with '## ' is a heading; "
-            "lines starting with '- ' make a list; lines starting with '> ' make a quote, "
-            "and a last line '> — Name' credits it."
+            "Paragraphs separated by a blank line. A line starting with '## ' (or '### ') is a "
+            "heading; lines starting with '- ' (or '1. ') make a list; lines starting with '> ' "
+            "make a quote, and a last line '> — Name' credits it."
         )
     )
     is_published = models.BooleanField(default=True)
@@ -153,30 +250,12 @@ class Post(models.Model):
 
     def blocks(self) -> list[dict]:
         """The body as the article page's blocks: p, h2, list, quote."""
-        out = []
-        for chunk in re.split(r"\n\s*\n", self.body or ""):
-            lines = [line.rstrip() for line in chunk.strip().splitlines() if line.strip()]
-            if not lines:
-                continue
-            if lines[0].startswith("## "):
-                out.append({"type": "h2", "text": lines[0][3:].strip()})
-                rest = " ".join(line.strip() for line in lines[1:])
-                if rest:
-                    out.append({"type": "p", "text": rest})
-            elif all(line.lstrip().startswith(("- ", "* ")) for line in lines):
-                out.append({"type": "list", "items": [line.lstrip()[2:].strip() for line in lines]})
-            elif all(line.lstrip().startswith(">") for line in lines):
-                quoted = [line.lstrip()[1:].strip() for line in lines]
-                cite = None
-                if len(quoted) > 1 and re.match(r"^(—|--|-)\s*", quoted[-1]):
-                    cite = re.sub(r"^(—|--|-)\s*", "", quoted.pop())
-                block = {"type": "quote", "text": " ".join(quoted)}
-                if cite:
-                    block["cite"] = cite
-                out.append(block)
-            else:
-                out.append({"type": "p", "text": " ".join(line.strip() for line in lines)})
-        return out
+        return body_blocks(self.body)
+
+    def save(self, *args, **kwargs):
+        if self.minutes is None:  # the read-time box cleared in the back office
+            self.minutes = 0
+        super().save(*args, **kwargs)
 
 
 class Subscriber(models.Model):
@@ -214,3 +293,14 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"{self.topic} — {self.name}"
+
+
+class SeedRecord(models.Model):
+    """One row per one-off data load that has run on this database (e.g. "content"), so a
+    start-up script that loads launch content does it once, never again after staff delete it."""
+
+    name = models.CharField(max_length=40, unique=True)
+    at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.name} ({self.at:%Y-%m-%d})"

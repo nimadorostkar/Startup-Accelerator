@@ -14,7 +14,14 @@
       <a href="{{ site_url }}" style="color:#ffffff;text-decoration:none;font-weight:700;font-size:18px;letter-spacing:-0.01em;">fundup <span style="color:#ef6f23;">club</span></a>
     </td></tr>
     <tr><td style="padding:28px;font-size:15px;line-height:1.6;color:#2b2622;">
-      {{ body|urlize|linebreaks }}
+      {# Never urlize: the body holds text people typed (startup names, messages), which must not become links. #}
+      {{ body|linebreaks }}
+      {% if links %}
+      <ul style="margin:20px 0 0;padding:0 0 0 18px;">
+        {% for link in links %}<li style="margin:0 0 6px;"><a href="{{ link.url }}" style="color:#c4501a;">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
       {% if action_url and action_label %}
       <p style="margin:28px 0 8px;">
         <a href="{{ action_url }}" style="display:inline-block;background:#ef6f23;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;">{{ action_label }}</a>

@@ -1,6 +1,6 @@
 {% autoescape off %}Hi {{ name }},
 
-A reminder: {{ title }} is tomorrow.
+A reminder: {{ title }} is {{ day }}.
 
 When: {{ when }}
 {% if online %}Joining link: {{ where }}{% else %}Where: {{ where }}{% endif %}

@@ -1,9 +1,9 @@
 {% autoescape off %}Hi {{ name }},
 
-Welcome to Fundup Club! Please confirm this is your email address, so we can reach you about your application:
+{% if reason == "reviewer" %}You've been given reviewer access to Fundup Club. Please confirm this is your email address before you open the review panel:{% elif reason == "changed" %}The email address on your Fundup Club account was changed to this one. Please confirm it's yours:{% else %}Welcome to Fundup Club! Please confirm this is your email address, so we can reach you about your application:{% endif %}
 
 {{ action_url }}
 
-The link works for 3 days. If you didn't create an account, you can ignore this email.
+The link works for 3 days. {% if reason == "reviewer" %}If you weren't expecting this, you can ignore this email.{% elif reason == "changed" %}If you didn't expect this change, you can ignore this email.{% else %}If you didn't create an account, you can ignore this email.{% endif %}
 
 — The Fundup Club team{% endautoescape %}

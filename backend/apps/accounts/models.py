@@ -69,7 +69,23 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         self.email = (self.email or "").strip().lower()
+        update_fields = kwargs.get("update_fields")
+        changed = False
+        if not self._state.adding and (update_fields is None or "email" in update_fields):
+            previous = User.objects.filter(pk=self.pk).values_list("email", flat=True).first()
+            changed = previous is not None and previous != self.email
+        if changed:
+            # A new address is unconfirmed until its owner follows the link (so review access
+            # pauses too), and links already emailed to the old address stop working.
+            self.email_verified_at = None
+            if update_fields is not None:
+                kwargs["update_fields"] = {*update_fields, "email_verified_at"}
         super().save(*args, **kwargs)
+        if changed:
+            UserToken.objects.filter(user=self, used_at__isnull=True).update(used_at=timezone.now())
+            from .services import send_verification
+
+            send_verification(self, reason="changed")  # sent once the change commits
 
     @property
     def email_verified(self) -> bool:

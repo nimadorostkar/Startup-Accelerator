@@ -1,0 +1,12 @@
+{% autoescape off %}Hi {{ name }},
+
+{% if online %}Here's the joining link for {{ title }}, as promised:{% else %}Here's the venue for {{ title }}, as promised:{% endif %}
+
+{{ where }}
+
+When: {{ when }}
+
+{{ action_url }}
+
+See you there!
+— The Fundup Club team{% endautoescape %}

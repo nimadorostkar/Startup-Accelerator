@@ -94,4 +94,6 @@ def decision_made(app: Application, decision: str, message: str) -> None:
             "action_url": f"{settings.SITE_URL}/dashboard",
             "action_label": "Open your dashboard",
         },
+        # Founders reply to decisions; the sender is usually a no-reply address.
+        reply_to=settings.SUPPORT_EMAILS[:1] or None,
     )

@@ -5,7 +5,7 @@ You're registered for {{ title }}.
 When: {{ when }}
 {% if online %}Joining link: {{ where }}{% else %}Where: {{ where }}{% endif %}
 
-The calendar invite is attached. We'll send a reminder the day before.
+The calendar invite is attached.{% if reminder %} We'll send a reminder the day before.{% endif %}
 
 {{ action_url }}
 

@@ -79,7 +79,8 @@ def sign_in(data: dict) -> User:
         raise Invalid({"code": "Missing sign-in code."})
     claims = exchange_code(code)
     sub, email = claims["sub"], claims["email"].strip().lower()
-    name = (claims.get("name") or email.split("@")[0]).strip()[:80] or "Founder"
+    # One line, like every name (a stray line break would break the subjects of later emails).
+    name = " ".join(str(claims.get("name") or email.split("@")[0]).split())[:80] or "Founder"
 
     with transaction.atomic():
         user = User.objects.select_for_update().filter(google_sub=sub).first()

@@ -138,16 +138,21 @@ def clear_failed_logins(email: str) -> None:
 # ---------------------------------------------------------------- email verification
 
 
-def send_verification(user: User) -> None:
+def send_verification(user: User, *, reason: str = "signup") -> None:
+    """The confirmation link. `reason` picks the wording: "signup" (a founder's new account),
+    "reviewer" (just given review access) or "changed" (the address was changed for them)."""
     if user.email_verified:
         return
     token = UserToken.issue(user, UserToken.Purpose.VERIFY_EMAIL)
     queue_email(
         user.email,
-        "Confirm your email for Fundup Club",
+        "Confirm your email to review for Fundup Club"
+        if reason == "reviewer"
+        else "Confirm your email for Fundup Club",
         "verify_email",
         {
             "name": user.name.split(" ")[0],
+            "reason": reason,
             "action_url": f"{settings.SITE_URL}/verify-email?token={token}",
             "action_label": "Confirm my email",
         },
@@ -242,7 +247,11 @@ def password_changed_notice(user: User) -> None:
         user.email,
         "Your Fundup Club password was changed",
         "password_changed",
-        {"name": user.name.split(" ")[0], "action_url": f"{settings.SITE_URL}/forgot-password"},
+        {
+            "name": user.name.split(" ")[0],
+            "action_url": f"{settings.SITE_URL}/forgot-password",
+            "action_label": "Reset my password",
+        },
     )
 
 

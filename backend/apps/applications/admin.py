@@ -78,6 +78,10 @@ class ApplicationForm(forms.ModelForm):
         except Invalid as refused:
             raise forms.ValidationError(refused.errors["file"]) from None
 
+    def clean_slug(self):
+        # Emptied: no address (NULL, as before submission), not "" — which only one row could have.
+        return self.cleaned_data.get("slug") or None
+
     def clean_logo(self):
         return self._image("logo")
 
@@ -119,10 +123,12 @@ class ApplicationAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "submitted_at",
+        "first_submitted_at",
         "team_score",
         "profile_json",
         "startup_json",
         "team_json",
+        "public_json",
     )
     readonly_fields = (
         "user",
@@ -132,14 +138,22 @@ class ApplicationAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "submitted_at",
+        "first_submitted_at",
         "team_score",
         "profile_json",
         "startup_json",
         "team_json",
+        "public_json",
     )
 
     def has_add_permission(self, request):
         return False
+
+    def save_model(self, request, obj, form, change):
+        if "slug" in form.changed_data:
+            # A fixed address is kept until the startup is renamed (services._assign_slug).
+            obj.slug_source = obj.startup_name
+        super().save_model(request, obj, form, change)
 
     @admin.display(description="Email", ordering="user__email")
     def email(self, obj):
@@ -161,3 +175,7 @@ class ApplicationAdmin(admin.ModelAdmin):
     @admin.display(description="Team")
     def team_json(self, obj):
         return pretty(obj.team_data)
+
+    @admin.display(description="Public version (as last submitted)")
+    def public_json(self, obj):
+        return pretty(obj.public_snapshot) if obj.public_snapshot else "—"

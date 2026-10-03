@@ -7,7 +7,6 @@ reviewers can't both decide". A refusal raises, the transaction rolls back
 and nothing is written.
 """
 
-import re
 import uuid
 from collections.abc import Callable
 
@@ -182,8 +181,12 @@ def remove_image(user: User, kind: str) -> Application:
 
 
 def free_slug(name: str, *, exclude=None) -> str:
-    """The startup's public address: its slugified name, or name-2, name-3… if taken."""
-    base = slugify(name)
+    """The startup's public address: its slugified name, or name-2, name-3… if taken.
+
+    `exclude` is the application's own id: its current slug doesn't count as taken,
+    and a name with no ASCII letters gets "startup-<first 8 hex digits of the id>".
+    """
+    base = slugify(name, exclude)
     taken = set(
         Application.objects.filter(slug__startswith=base).exclude(pk=exclude).values_list("slug", flat=True)
     )
@@ -195,11 +198,15 @@ def free_slug(name: str, *, exclude=None) -> str:
 
 
 def _assign_slug(app: Application) -> None:
-    """Public address, kept stable: only re-made if the startup was renamed."""
-    base = slugify(app.startup_name)
-    if app.slug and re.fullmatch(rf"{re.escape(base)}(-\d+)?", app.slug):
+    """Public address, kept stable: only re-made if the startup was renamed since it was made.
+
+    Compared with the name it was made for (not with the slug itself), so an address
+    fixed in the back office survives a resubmission.
+    """
+    if app.slug and slugify(app.slug_source, app.pk) == slugify(app.startup_name, app.pk):
         return
     app.slug = free_slug(app.startup_name, exclude=app.pk)
+    app.slug_source = app.startup_name
 
 
 def submit(user: User, data: dict) -> Application:
@@ -220,6 +227,9 @@ def submit(user: User, data: dict) -> Application:
         resubmitted = app.status == "changes_requested"
         app.status = "submitted"
         app.submitted_at = now()
+        # The public "Applied" date: the first submission, kept through resubmissions.
+        if app.first_submitted_at is None:
+            app.first_submitted_at = app.submitted_at
         _event(
             app, "submitted", "Application resubmitted" if resubmitted else "Application submitted for review"
         )

@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsReviewer, IsSignedIn
+from apps.content.models import CONTACT_TOPICS
 from apps.core.exceptions import NotFound
 
 from . import directory, export, payloads, queue, rules, services
@@ -297,7 +298,7 @@ class OptionsView(APIView):
     @extend_schema(
         tags=["public"],
         responses={200: OpenApiTypes.OBJECT},
-        description="Every option list the application form uses.",
+        description="Every option list the forms use (the application, and the contact form's topics).",
     )
     def get(self, request):
         return Response(
@@ -308,6 +309,7 @@ class OptionsView(APIView):
                 "commitments": [{"id": k, "label": v} for k, v in rules.COMMITMENTS.items()],
                 "workedTogether": rules.WORKED_TOGETHER,
                 "heardFrom": rules.HEARD_FROM,
+                "contactTopics": CONTACT_TOPICS,
                 "statuses": [{"id": k, "label": v} for k, v in rules.STATUS_LABELS.items()],
                 "scoreAreas": rules.SCORE_AREAS,
                 "recommendations": rules.RECOMMENDATIONS,

@@ -13,6 +13,8 @@ from apps.core.utils import iso, now
 from . import images, rules
 from .models import Application, ApplicationEvent, InternalNote, Scorecard
 
+FORMER_REVIEWER = "Former reviewer"
+
 
 def founder_queryset():
     return Application.objects.select_related("user").prefetch_related(
@@ -60,8 +62,9 @@ def review(app: Application) -> dict:
             {
                 "id": str(n.id),
                 "at": iso(n.at),
-                "authorId": str(n.author_id),
-                "authorName": n.author.name,
+                # A deleted reviewer's notes stay, without their name.
+                "authorId": str(n.author_id) if n.author_id else None,
+                "authorName": n.author.name if n.author_id else FORMER_REVIEWER,
                 "body": n.body,
             }
             for n in app.notes.all()
@@ -133,10 +136,14 @@ def queue_row(app: Application, at=None) -> dict:
 # An allowlist, on purpose (src/lib/application/public.ts). Kept out: founder
 # emails and phones, equity, money (revenue, growth, raised, seeking, use of
 # funds), the deck, how they heard of us, review messages and all reviewer data.
+#
+# The answers come from the last submission (Application.public_sections), so
+# edits made while changes are requested stay private until resubmitted; the
+# status, dates, timeline, logo and photo are live.
 
 
 def public_card(app: Application) -> dict:
-    startup, profile, team = app.startup_data, app.profile_data, app.team_data
+    profile, startup, team = app.public_sections()
     return {
         "slug": app.slug,
         "name": startup["name"].strip(),
@@ -154,7 +161,10 @@ def public_card(app: Application) -> dict:
         "country": startup["country"],
         "foundedOn": startup["foundedOn"],
         "status": rules.PUBLIC_STATUS[app.status],
-        "appliedAt": iso(app.submitted_at),
+        # The first submission: a resubmission doesn't make it "new" again.
+        "appliedAt": iso(app.first_submitted_at or app.submitted_at),
+        # Last change to the record, for the sitemap's <lastmod>.
+        "updated": iso(app.updated_at),
         "founders": [m["name"].strip() for m in team["members"] if m.get("isFounder") and m["name"].strip()],
         "users": startup["activeUsers"],
         "customers": startup["payingCustomers"],
@@ -162,7 +172,7 @@ def public_card(app: Application) -> dict:
 
 
 def public_startup(app: Application) -> dict:
-    startup, profile, team = app.startup_data, app.profile_data, app.team_data
+    profile, startup, team = app.public_sections()
     return {
         **public_card(app),
         "website": startup["website"],

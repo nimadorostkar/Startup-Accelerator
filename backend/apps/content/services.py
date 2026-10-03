@@ -6,6 +6,7 @@ answer as if it worked and store nothing.
 """
 
 import logging
+from datetime import timedelta
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -13,11 +14,19 @@ from django.core import signing
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import F, Prefetch
+from django.utils import timezone
 
-from apps.core.emails import queue_email
+from apps.core.emails import queue_email, queue_individually
 from apps.core.exceptions import ApiError, Conflict, Invalid, NotFound
 from apps.core.utils import now
-from apps.core.validation import Fields, check_email, check_name, max_length, text_length
+from apps.core.validation import (
+    Fields,
+    check_email,
+    check_name,
+    check_single_line,
+    max_length,
+    text_length,
+)
 
 from . import ics, payloads
 from .models import CONTACT_TOPICS, AgendaItem, ContactMessage, Event, EventRegistration, Post, Subscriber
@@ -92,18 +101,60 @@ def _joining_details(event: Event) -> str:
     return event.venue or f"{event.city}. We'll email the exact venue before the event."
 
 
-def _event_email_context(event: Event, name: str) -> dict:
+# Guests who sign up at least this long before the start get a reminder (see send_reminders).
+REMINDER_LEAD = timedelta(hours=24)
+
+
+def _zone_label(moment) -> str:
+    """ "PST", "BST"; zones without a common abbreviation (tzdata prints "-03") get "UTC−03:00"."""
+    name = moment.tzname() or ""
+    if name and name[0] not in "+-":
+        return name
+    minutes = int(moment.utcoffset().total_seconds() // 60)
+    if not minutes:
+        return "UTC"
+    sign, minutes = ("+" if minutes > 0 else "\u2212"), abs(minutes)
+    return f"UTC{sign}{minutes // 60:02d}:{minutes % 60:02d}"
+
+
+def _day(moment) -> str:
+    return f"{moment:%A, %B} {moment.day}, {moment.year}"
+
+
+def _time(moment) -> str:
+    return f"{moment:%-I:%M %p}"
+
+
+def event_when(event: Event) -> str:
+    """ "Tuesday, December 1, 2026 · 9:00 AM – 10:00 AM PST", in the event's own time zone,
+    naming the end date too when the event runs past midnight."""
     tz = ZoneInfo(event.tz)
     start, end = event.start.astimezone(tz), event.end.astimezone(tz)
-    return {
+    start_zone, end_zone = _zone_label(start), _zone_label(end)
+    if start.date() == end.date():
+        if start_zone == end_zone:
+            return f"{_day(start)} · {_time(start)} – {_time(end)} {start_zone}"
+        return f"{_day(start)} · {_time(start)} {start_zone} – {_time(end)} {end_zone}"
+    if start_zone == end_zone:
+        return f"{_day(start)}, {_time(start)} – {_day(end)}, {_time(end)} {start_zone}"
+    return f"{_day(start)}, {_time(start)} {start_zone} – {_day(end)}, {_time(end)} {end_zone}"
+
+
+def _event_email_context(event: Event, name: str) -> dict:
+    url = f"{settings.SITE_URL}/events/{event.slug}"
+    context = {
         "name": name.split(" ")[0],
         "title": event.title,
-        "when": f"{start:%A, %B} {start.day}, {start.year} · {start:%-I:%M %p} – {end:%-I:%M %p} {start:%Z}",
+        "when": event_when(event),
         "where": _joining_details(event),
         "online": event.format == "Online",
-        "action_url": f"{settings.SITE_URL}/events/{event.slug}",
+        "action_url": url,
         "action_label": "Event details",
     }
+    if event.format == "Online" and event.online_url:
+        # Explicit links in the HTML version (the layout never turns text into links).
+        context["links"] = [{"label": "Join the event online", "url": event.online_url}]
+    return context
 
 
 def register_for_event(slug: str, data: dict, *, ip: str | None = None) -> tuple[bool, dict]:
@@ -120,7 +171,7 @@ def register_for_event(slug: str, data: dict, *, ip: str | None = None) -> tuple
         return True, {"existing": False, "name": name, "email": email}
     f.error("name", check_name(name))
     f.error("email", check_email(email))
-    f.error("company", max_length(company, 120))
+    f.error("company", check_single_line(company) or max_length(company, 120))
     if f.errors:
         raise Invalid(f.errors)
 
@@ -139,27 +190,62 @@ def register_for_event(slug: str, data: dict, *, ip: str | None = None) -> tuple
         except IntegrityError:
             return False, {"existing": True, "name": name, "email": email}
 
-        context = _event_email_context(event, name)
-        invite = ics.invite(
-            event,
-            uid=f"{event.slug}-{registration.pk}",
-            location=context["where"] if event.format == "In person" else "Online",
-            description=f"{event.summary}\n\n{context['action_url']}",
-        )
+        context = {
+            **_event_email_context(event, name),
+            # Only promised to guests the reminder job will actually remind.
+            "reminder": event.start - registration.created_at >= REMINDER_LEAD,
+        }
         queue_email(
             email,
             f"You're registered: {event.title}",
             "event_registration",
             context,
-            attachments=[("invite.ics", invite, "text/calendar")],
+            attachments=[("invite.ics", _invite(event, registration), ICS_MIMETYPE)],
         )
     return True, {"existing": False, "name": name, "email": email}
 
 
+ICS_MIMETYPE = "text/calendar; method=PUBLISH; charset=utf-8"
+
+
+def _invite(event: Event, registration: EventRegistration) -> str:
+    online = event.format == "Online"
+    page = f"{settings.SITE_URL}/events/{event.slug}"
+    description = event.summary
+    if online and event.online_url:
+        description += f"\n\nJoin online: {event.online_url}"
+    elif not online and event.venue:
+        description += f"\n\nWhere: {event.venue}"
+    description += f"\n\nEvent details: {page}"
+    return ics.invite(
+        event,
+        uid=f"{event.slug}-{registration.pk}",
+        # Never the "We'll email…" sentence: the venue, else the city (or "Online").
+        location="Online" if online else (event.venue or event.city),
+        description=description,
+    )
+
+
+def send_joining_details(event_id: int) -> int:
+    """The joining link (online) or venue (in person) that the confirmation promised, to every
+    guest, once it's set on an upcoming published event. Called after the change commits."""
+    event = Event.objects.filter(pk=event_id, is_published=True).first()
+    if event is None or event.is_past or not (event.online_url if event.format == "Online" else event.venue):
+        return 0
+    sent = 0
+    for registration in event.registrations.order_by("created_at"):
+        queue_email(
+            registration.email,
+            f"{'Joining link' if event.format == 'Online' else 'Venue'}: {event.title}",
+            "event_joining_details",
+            _event_email_context(event, registration.name),
+        )
+        sent += 1
+    return sent
+
+
 def send_reminders() -> int:
     """Day-before reminders, once per guest, for guests who signed up more than a day ahead."""
-    from datetime import timedelta
-
     at = now()
     due = (
         EventRegistration.objects.select_related("event")
@@ -167,11 +253,11 @@ def send_reminders() -> int:
             reminded_at__isnull=True,
             event__is_published=True,
             event__start__gt=at,
-            event__start__lte=at + timedelta(hours=24),
+            event__start__lte=at + REMINDER_LEAD,
             # Guests who signed up within a day of the start just had their
             # confirmation. Filtered here, not in the loop, so they can't fill
             # the batch and crowd out guests of later events.
-            created_at__lte=F("event__start") - timedelta(hours=24),
+            created_at__lte=F("event__start") - REMINDER_LEAD,
         )
         .order_by("event__start")[:500]
     )
@@ -183,17 +269,38 @@ def send_reminders() -> int:
                 reminded_at=at
             )
             if updated:
+                day = _relative_day(event, at)
                 queue_email(
                     registration.email,
-                    f"Tomorrow: {event.title}",
+                    f"{day[0].upper()}{day[1:]}: {event.title}",
                     "event_reminder",
-                    _event_email_context(event, registration.name),
+                    {**_event_email_context(event, registration.name), "day": day},
                 )
                 sent += 1
     return sent
 
 
+def _relative_day(event: Event, at) -> str:
+    """ "today" or "tomorrow", as a guest in the event's time zone would say it at `at`."""
+    tz = ZoneInfo(event.tz)
+    start, today = event.start.astimezone(tz).date(), at.astimezone(tz).date()
+    if start == today:
+        return "today"
+    if start == today + timedelta(days=1):
+        return "tomorrow"
+    return f"coming up on {_day(event.start.astimezone(tz))}"
+
+
 # ---------------------------------------------------------------- newsletter
+
+
+# An issue dated in the future is scheduled: it appears on its date (in the server's time
+# zone). The cache holds every published issue with its date and the date is checked on each
+# read, so a scheduled issue shows up the moment its day starts, whatever is cached.
+
+
+def _today() -> str:
+    return timezone.localdate(now()).isoformat()
 
 
 def list_posts() -> list[dict]:
@@ -202,7 +309,8 @@ def list_posts() -> list[dict]:
     if posts is None:
         posts = [payloads.post(p) for p in Post.objects.filter(is_published=True)]
         cache.set(key, posts, TTL)
-    return posts
+    today = _today()
+    return [p for p in posts if p["date"] <= today]
 
 
 def find_post(slug: str) -> dict | None:
@@ -216,7 +324,7 @@ def find_post(slug: str) -> dict | None:
             return None  # misses aren't cached: made-up addresses would fill the cache
         found = payloads.post(post, body=True)
         cache.set(key, found, TTL)
-    return found
+    return found if found["date"] <= _today() else None
 
 
 def unsubscribe_url(subscriber: Subscriber) -> str:
@@ -289,7 +397,7 @@ def send_contact_message(data: dict, *, ip: str | None = None, user_agent: str =
         return {"name": name, "email": email}
     f.error("name", check_name(name))
     f.error("email", check_email(email))
-    f.error("company", max_length(company, 120))
+    f.error("company", check_single_line(company) or max_length(company, 120))
     if topic not in CONTACT_TOPICS:
         f.error("topic", "Choose what this is about.")
     if not message:
@@ -312,20 +420,19 @@ def send_contact_message(data: dict, *, ip: str | None = None, user_agent: str =
     )
     from apps.applications.notifications import reviewer_emails
 
-    team = settings.SUPPORT_EMAILS or reviewer_emails()
-    queue_email(
-        team,
-        f"[Contact] {topic} — {name}",
-        "contact_message",
-        {
-            "name": name,
-            "email": email,
-            "company": company,
-            "topic": topic,
-            "message": message,
-            "action_url": f"{settings.SITE_URL}/backoffice/content/contactmessage/{saved.pk}/change/",
-            "action_label": "Open in the back office",
-        },
-        reply_to=[email],
-    )
+    subject = f"[Contact] {topic} — {name}"
+    context = {
+        "name": name,
+        "email": email,
+        "company": company,
+        "topic": topic,
+        "message": message,
+        "action_url": f"{settings.SITE_URL}/backoffice/content/contactmessage/{saved.pk}/change/",
+        "action_label": "Open in the back office",
+    }
+    if settings.SUPPORT_EMAILS:
+        queue_email(settings.SUPPORT_EMAILS, subject, "contact_message", context, reply_to=[email])
+    else:
+        # No support inbox: each reviewer gets their own copy, so nobody sees the others' addresses.
+        queue_individually(reviewer_emails(), subject, "contact_message", context, reply_to=[email])
     return {"name": name, "email": email}

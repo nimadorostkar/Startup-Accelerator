@@ -172,7 +172,7 @@ def test_scorecard_validation(submitted, reviewer_client):
         "score-problem": "Score from 1 to 5.",
         "score-market": "Score from 1 to 5.",
         "recommendation": "Pick a recommendation.",
-        "summary": "Keep this under 2000 characters.",
+        "summary": "Keep this to 2000 characters or fewer.",
     }
 
 
@@ -184,6 +184,15 @@ def test_internal_notes(submitted, reviewer_client):
     assert response.status_code == 201
     [note] = response.json()["application"]["review"]["notes"]
     assert note["body"] == "Call references" and note["authorName"] == "Alex Rivera"
+
+
+def test_a_deleted_reviewers_notes_stay(submitted, reviewer, reviewer_client):
+    reviewer_client.post(url(submitted.pk, "/notes"), {"body": "Strong team, check churn"}, format="json")
+    reviewer.delete()
+    other = client_for(make_reviewer("second@example.com", "Sam Lee"))
+    [note] = other.get(url(submitted.pk)).json()["application"]["review"]["notes"]
+    assert note["body"] == "Strong team, check churn"
+    assert note["authorName"] == "Former reviewer" and note["authorId"] is None
 
 
 # ---------------------------------------------------------------- queue

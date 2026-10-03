@@ -68,6 +68,17 @@ class UserAdmin(DjangoUserAdmin):
     )
     actions = ["make_reviewer", "make_founder", "sign_out_everywhere"]
 
+    def save_model(self, request, obj, form, change):
+        before = User.objects.filter(pk=obj.pk).values_list("email", flat=True).first() if change else None
+        super().save_model(request, obj, form, change)  # User.save() handles the new address
+        if before is not None and before != obj.email:
+            self.message_user(
+                request,
+                f"The email address changed, so it needs confirming again: a link is on its way to "
+                f"{obj.email}. Until then the account counts as unverified (and has no review access).",
+                messages.WARNING,
+            )
+
     @admin.display(boolean=True, description="Verified", ordering="email_verified_at")
     def verified(self, obj):
         return obj.email_verified
@@ -84,7 +95,7 @@ class UserAdmin(DjangoUserAdmin):
             user.role = User.Role.REVIEWER
             user.save(update_fields=["role"])
             if not user.email_verified:
-                send_verification(user)
+                send_verification(user, reason="reviewer")
                 waiting += 1
         self.message_user(
             request,

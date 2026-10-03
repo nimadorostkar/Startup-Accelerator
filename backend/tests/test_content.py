@@ -74,10 +74,16 @@ def test_registration_new_existing_and_calendar_invite():
 
     [message] = mail.outbox
     assert message.to == ["lena@example.com"] and "https://meet.example/abc" in message.body
-    [(name, content, mimetype)] = message.attachments
-    assert name == "invite.ics" and mimetype == "text/calendar"
-    text = content if isinstance(content, str) else content.decode()
-    assert "BEGIN:VEVENT" in text and "SUMMARY:Info Session" in text
+    assert "We'll send a reminder the day before." in message.body  # registered 3 days ahead
+    [invite] = message.attachments
+    assert invite.get_filename() == "invite.ics" and invite.get_content_type() == "text/calendar"
+    assert invite.get_param("method") == "PUBLISH" and invite.get_content_charset() == "utf-8"
+    text = invite.get_payload(decode=True).decode()
+    assert "METHOD:PUBLISH" in text and "BEGIN:VEVENT" in text and "SUMMARY:Info Session" in text
+    unfolded = text.replace("\r\n ", "")
+    assert "LOCATION:Online" in unfolded and "https://meet.example/abc" in unfolded  # the joining link
+    html = message.alternatives[0][0]
+    assert 'href="https://meet.example/abc"' in html  # an explicit link, not urlized text
 
 
 def test_registration_refuses_ended_full_and_unknown_events():
@@ -214,7 +220,10 @@ def test_contact_message_is_saved_and_sent_to_support():
         ({"topic": "Other"}, "topic", "Choose what this is about."),
         ({"message": ""}, "message", "Write a short message."),
         ({"message": "Too short"}, "message", "Tell us a little more (at least 10 characters)."),
-        ({"company": "x" * 121}, "company", "Keep this under 120 characters."),
+        ({"company": "x" * 121}, "company", "Keep this to 120 characters or fewer."),
+        ({"company": "Relay\nwave"}, "company", "Use a single line."),
+        ({"name": "Lena\nOrtiz"}, "name", "Use a single line."),
+        ({"email": "lena,reader@example.com"}, "email", "That doesn't look like a valid email address."),
     ],
 )
 def test_contact_validation(body, field, message):
