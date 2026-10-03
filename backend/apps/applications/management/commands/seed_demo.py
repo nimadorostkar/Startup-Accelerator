@@ -24,7 +24,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.applications import rules
 from apps.applications.models import Application, ApplicationEvent, InternalNote, Scorecard, slugify
-from apps.applications.services import team_average
+from apps.applications.services import free_slug, team_average
 from apps.core.utils import plural
 
 DOMAIN = "demo.fundup.example"
@@ -728,7 +728,8 @@ def add_application(spec: Spec, reviewers: dict[str, User], now: datetime) -> Ap
         startup=_startup(spec, slug),
         team=_team(spec, founder.email),
         assignee=assignee,
-        slug=None if spec.status == "draft" else slug,
+        # A real startup may already use the name: take the next free address, like a real submission.
+        slug=None if spec.status == "draft" else free_slug(spec.startup),
         created_at=created,
         updated_at=events[-1].at,
         submitted_at=submitted_at,

@@ -18,8 +18,10 @@ export const metadata: Metadata = {
     "Demo Days, workshops, office hours and founder meetups, online and in cities around the world. Free to attend.",
 };
 
-// Events come from the API at request time (cached for a minute), and
-// upcoming vs past is decided as the page renders.
+// Static, refreshed every minute and as soon as the API reports a change
+// (cache tags). The data comes from the API, see lib/api.ts (BUILDING).
+export const revalidate = 60;
+
 export default async function EventsPage() {
   const [upcoming, past] = await Promise.all([upcomingEvents(), pastEvents().then((p) => p.slice(0, 3))]);
   const featured = upcoming.find((e) => e.type === "Demo Day") ?? upcoming[0];

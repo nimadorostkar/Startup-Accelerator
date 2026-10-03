@@ -1,21 +1,11 @@
 import type { MetadataRoute } from "next";
-import { unstable_rethrow } from "next/navigation";
-import { connection } from "next/server";
 import { listPublicStartups } from "@/lib/application/public";
 import { listEvents } from "@/lib/events";
 import { listPosts } from "@/lib/newsletter";
 import { SITE_URL } from "@/lib/site";
 
-/** If the API can't answer, the sitemap still lists the fixed pages. */
-async function orNone<T>(load: () => Promise<T[]>): Promise<T[]> {
-  try {
-    return await load();
-  } catch (err) {
-    unstable_rethrow(err);
-    console.error(err);
-    return [];
-  }
-}
+// Rebuilt hourly, or as soon as an event, article or startup changes (cache tags).
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = (path: string) => `${SITE_URL}${path}`;
@@ -33,11 +23,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: url("/code-of-conduct"), changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  await connection(); // listed at request time, so new startups and events appear
   const [allPosts, allEvents, allStartups] = await Promise.all([
-    orNone(listPosts),
-    orNone(listEvents),
-    orNone(listPublicStartups),
+    listPosts(),
+    listEvents(),
+    listPublicStartups(),
   ]);
 
   const posts = allPosts.map((p) => ({

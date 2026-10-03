@@ -18,8 +18,13 @@ import {
   listPublicStartups,
 } from "@/lib/application/public";
 
-/* Rendered per request from the API's directory (cached for a minute and
-   refreshed the moment an application is submitted or decided). */
+// Rendered on first visit, then static: refreshed every minute and as soon
+// as the API reports a change (cache tags). Unknown slugs are a 404.
+export const revalidate = 60;
+
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({
   params,

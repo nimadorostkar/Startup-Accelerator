@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     "Fundraising playbooks, AI build guides and founder stories from the Fundup Club network. Every other Thursday, free.",
 };
 
+// Static, refreshed every minute and as soon as the API reports a change
+// (cache tags). The data comes from the API, see lib/api.ts (BUILDING).
+export const revalidate = 60;
+
 const PERKS = ["Every other Thursday", "A 5-minute read", "Free, always"];
 
 export default async function NewsletterPage() {

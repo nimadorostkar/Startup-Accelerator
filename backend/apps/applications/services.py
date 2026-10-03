@@ -148,19 +148,25 @@ def remove_member(user: User, member_id: str) -> Application:
     return _founder_change(user, change)
 
 
-def _assign_slug(app: Application) -> None:
-    """Public address, kept stable: only re-made if the startup was renamed."""
-    base = slugify(app.startup_name)
-    if app.slug and re.fullmatch(rf"{re.escape(base)}(-\d+)?", app.slug):
-        return
+def free_slug(name: str, *, exclude=None) -> str:
+    """The startup's public address: its slugified name, or name-2, name-3… if taken."""
+    base = slugify(name)
     taken = set(
-        Application.objects.filter(slug__startswith=base).exclude(pk=app.pk).values_list("slug", flat=True)
+        Application.objects.filter(slug__startswith=base).exclude(pk=exclude).values_list("slug", flat=True)
     )
     slug, n = base, 1
     while slug in taken:
         n += 1
         slug = f"{base}-{n}"
-    app.slug = slug
+    return slug
+
+
+def _assign_slug(app: Application) -> None:
+    """Public address, kept stable: only re-made if the startup was renamed."""
+    base = slugify(app.startup_name)
+    if app.slug and re.fullmatch(rf"{re.escape(base)}(-\d+)?", app.slug):
+        return
+    app.slug = free_slug(app.startup_name, exclude=app.pk)
 
 
 def submit(user: User, data: dict) -> Application:

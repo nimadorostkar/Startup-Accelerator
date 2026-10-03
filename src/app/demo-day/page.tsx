@@ -105,7 +105,10 @@ const FAQS: QA[] = [
   },
 ];
 
-// "Next Demo Day" comes from the events API at request time (cached for a minute).
+// Static, refreshed every minute and as soon as the API reports a change
+// (cache tags). The data comes from the API, see lib/api.ts (BUILDING).
+export const revalidate = 60;
+
 export default async function DemoDayPage() {
   const next = await nextDemoDay();
   const nextDate = next && eventDate(next);

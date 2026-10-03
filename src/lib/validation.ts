@@ -1,10 +1,10 @@
-/* Field checks shared by the auth and dashboard actions. Kept dependency-free
-   on purpose — swap in Zod or Valibot if the rules grow past this.
+/* Field checks for the sign-in and public forms (auth, contact, events,
+   newsletter), so obvious mistakes are caught before a call to the API.
+   The API checks everything again, in the same words, along with every
+   dashboard field: backend/apps/core/validation.py and
+   backend/apps/applications/rules.py.
 
-   Every checker returns an error message, or null when the value is fine.
-   Empty values pass the format checkers: whether a field is *required* is
-   decided at submission time (see lib/application/progress.ts), so founders
-   can save a half-finished draft. */
+   Every checker returns an error message, or null when the value is fine. */
 
 export type FieldErrors = Record<string, string>;
 
@@ -40,57 +40,8 @@ export function checkNewPassword(value: string) {
   return null;
 }
 
-/* ---------- Optional-field format checks (dashboard) ---------- */
-
 export function maxLength(value: string, max: number) {
   return value.length > max ? `Keep this under ${max} characters.` : null;
-}
-
-export function optionalEmail(value: string) {
-  return value ? checkEmail(value) : null;
-}
-
-/** Accepts "acme.com" as well as full URLs; saves always carry a scheme. */
-export function normalizeUrl(value: string) {
-  if (!value) return "";
-  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
-}
-
-export function optionalUrl(value: string) {
-  if (!value) return null;
-  try {
-    const url = new URL(normalizeUrl(value));
-    if (!url.hostname.includes(".")) throw new Error();
-    return null;
-  } catch {
-    return "That doesn't look like a valid link.";
-  }
-}
-
-export function optionalLinkedIn(value: string) {
-  const bad = optionalUrl(value);
-  if (bad) return bad;
-  if (value && !/linkedin\.com\//i.test(value))
-    return "Use your LinkedIn profile link (linkedin.com/in/…).";
-  return null;
-}
-
-export function optionalPhone(value: string) {
-  if (!value) return null;
-  const digits = value.replace(/\D/g, "");
-  return digits.length < 7 || digits.length > 15 || /[^\d\s()+.-]/.test(value)
-    ? "Enter a phone number with country code, e.g. +1 415 555 0100."
-    : null;
-}
-
-/** Reads a whole, non-negative number; "" stays null. Commas are allowed. */
-export function readNumber(form: FormData, key: string) {
-  const raw = readString(form, key).replace(/[,\s]/g, "");
-  if (!raw) return { value: null, error: null };
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n < 0)
-    return { value: null, error: "Enter a positive number." };
-  return { value: n, error: null };
 }
 
 export function oneOf<T extends string>(

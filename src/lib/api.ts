@@ -12,7 +12,8 @@ import { cookies, headers } from "next/headers";
      Bearer token, so the API acts as that visitor and nobody else.
    - Public reads (events, articles, the startup directory) are cached
      for a minute and tagged, so the API can refresh them the moment they
-     change (see app/api/revalidate).
+     change (see app/api/revalidate). The pages that show them are static
+     (ISR): see BUILDING below.
    - Errors come back in one shape: { message, errors?: { field: msg } },
      with the same field names as the forms.
    ══════════════════════════════════════════════════════════════════════ */
@@ -25,6 +26,16 @@ export const SESSION_COOKIE = "vcs_session";
 
 /** How long public data is cached before it's fetched again (seconds). */
 export const PUBLIC_TTL = 60;
+
+/**
+ * True during `next build`. The API isn't reachable then (the image is built
+ * before anything runs), so public pages are prerendered without data and
+ * scripts/expire-prerendered.mjs backdates them: the server treats them as
+ * expired and renders the first visit with live data. After that they're
+ * served from the cache, refreshed every minute or the moment the API says
+ * something changed; if the API is down, the last good copy keeps being served.
+ */
+export const BUILDING = process.env.NEXT_PHASE === "phase-production-build";
 
 export type ApiErrorBody = {
   message?: string;

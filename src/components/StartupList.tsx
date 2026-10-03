@@ -1,5 +1,3 @@
-import { unstable_rethrow } from "next/navigation";
-import { connection } from "next/server";
 import {
   PUBLIC_STATUS_ORDER,
   type StartupCardData,
@@ -39,20 +37,8 @@ function toItems(all: StartupCardData[], now = Date.now()): ListItem[] {
     }));
 }
 
-/** The landing page still renders if the directory can't be loaded; this section just shows its empty state. */
-async function startupsOrNone() {
-  await connection(); // outside the try: Next signals "render at request time" by throwing
-  try {
-    return await listPublicStartups();
-  } catch (err) {
-    unstable_rethrow(err);
-    console.error(err);
-    return [];
-  }
-}
-
 export default async function StartupList() {
-  const all = await startupsOrNone();
+  const all = await listPublicStartups();
   const items = toItems(all);
   const industries = new Set(all.map((s) => s.industry).filter(Boolean)).size;
   const countries = new Set(all.map((s) => s.country).filter(Boolean)).size;

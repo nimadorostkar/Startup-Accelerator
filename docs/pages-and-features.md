@@ -1,13 +1,13 @@
 # Fundup Club — Pages & Features Reference
 
-As of 2026-09-24. Every page in the app: what it shows, every field and its rules, and how the pieces connect.
+As of 2026-10-03. Every page in the app: what it shows, every field and its rules, and how the pieces connect.
 Online copy (for sharing and comments): [claude.ai doc](https://claude.ai/code/artifact/2a03db74-a0d6-470e-8f68-c69424658a6b). **This file is the source of truth** — update it in the same commit as any change it describes.
 
-Backend work starts in [backend-integration.md](backend-integration.md).
+The API behind these pages (endpoints, data model, emails, caching) is in [backend-integration.md](backend-integration.md); running it is in [deployment.md](deployment.md).
 
 ## Overview
 
-The site has four areas: a public landing page, sign-in pages, a founder dashboard where startups submit their application, and an admin panel where the support team reviews them. It is built with Next.js 16 (App Router), React 19 and Tailwind CSS 4, with no extra dependencies.
+The site has four areas: a public landing page, sign-in pages, a founder dashboard where startups submit their application, and an admin panel where the support team reviews them. The website is built with Next.js 16 (App Router), React 19 and Tailwind CSS 4, with no extra dependencies; its data lives in a Django API ([backend/](../backend/)), which also has a back office at `/backoffice/` for content, accounts and roles.
 
 | Route | Page | Who uses it | Access |
 | --- | --- | --- | --- |
@@ -26,6 +26,9 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | `/login` | Sign in | Founders, reviewers | Public |
 | `/register` | Create account | New founders | Public |
 | `/forgot-password` | Reset password request | Founders | Public |
+| `/reset-password` | Choose a new password (from the emailed link) | Founders | Public |
+| `/verify-email` | Confirm the email address (from the emailed link) | Founders | Public |
+| `/newsletter/unsubscribe` | Leave the newsletter (from the emailed link) | Subscribers | Public |
 | `/dashboard` | Founder overview | Founders | Signed in |
 | `/dashboard/profile` | Your profile (step 1 of 3) | Founders | Signed in |
 | `/dashboard/startup` | Startup details (step 2 of 3) | Founders | Signed in |
@@ -34,6 +37,7 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | `/admin` | Review queue | Support team | Reviewers only |
 | `/admin/applications/[id]` | Review one application | Support team | Reviewers only |
 | `/admin/export` | CSV download of all applications | Support team | Reviewers only |
+| `/backoffice/` | Back office (Django admin): events, articles, users and roles, subscribers, messages | Staff | Back-office accounts |
 
 ```mermaid
 flowchart LR
@@ -47,7 +51,7 @@ flowchart LR
 
 A founder fills in the application in the dashboard and submits it; a reviewer picks it up in the admin queue, scores it and decides; the decision and any message appear back on the founder's dashboard.
 
-**Two parts are still stand-ins:** sign-in is not connected to a real account system, and data is saved to a local file rather than a database. Both are covered in [Data model and storage](#data-model-and-storage) and [backend-integration.md](backend-integration.md).
+**Everything is live:** accounts and sessions, the applications, events, articles, subscribers and messages are all stored by the API in PostgreSQL, and the emails described on this page are sent. See [Data model and storage](#data-model-and-storage) and [backend-integration.md](backend-integration.md).
 
 ## Landing page (`/`)
 
@@ -59,11 +63,11 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 | --- | --- | --- |
 | Header | Logo, 6 links (About → `/about`, Contact → `/contact`, Startups → `/startups`, Events → `/events`, Demo Day → `/demo-day`, Newsletter → `/newsletter`), Sign in, Apply Now. On this page it is the white bar from the hero design (`<Navbar variant="summit" />`: orange underline on hover, orange **Launch your startup** button); other pages keep the classic bar | Pinned to the top; frosted on scroll; hides scrolling down, returns scrolling up; compact **Apply** button once the hero is out of view |
 | Mobile menu | Same 6 links, Apply Now, Sign in link | Large tap targets, fade-in, CTA at the bottom clear of the home bar |
-| Hero | Light intro: "Where founders find their next", **Built to launch. Made to connect.**, sub-copy, **Explore startups** (→ `/startups`), **Join the club** (→ `/dashboard`), five founder faces with 25,000+ founders trained · 180+ investment firms; on the right the **Featured founders** panel. Dark **Demo Day** band: "Tomorrow's big ideas. Live on stage.", **Explore Demo Day** (→ `/demo-day`), the next Demo Day from [events.ts](../src/components/events/events.ts) (date links to its event page; "date soon" + newsletter link when none is scheduled), and three numbered pitch cards (→ `/demo-day`). The pitch line-up in [hero/demo-day.ts](../src/components/hero/demo-day.ts) (Orbit, Numa, Relay) is **placeholder** content with low-resolution photos cropped from the design | Everything stacks; full-width buttons; pitch cards become a swipe row |
+| Hero | Light intro: "Where founders find their next", **Built to launch. Made to connect.**, sub-copy, **Explore startups** (→ `/startups`), **Join the club** (→ `/dashboard`), five founder faces with 25,000+ founders trained · 180+ investment firms; on the right the **Featured founders** panel. Dark **Demo Day** band: "Tomorrow's big ideas. Live on stage.", **Explore Demo Day** (→ `/demo-day`), the next Demo Day from the events API ([src/lib/events.ts](../src/lib/events.ts)) (date links to its event page; "date soon" + newsletter link when none is scheduled), and three numbered pitch cards (→ `/demo-day`). The pitch line-up in [hero/demo-day.ts](../src/components/hero/demo-day.ts) (Orbit, Numa, Relay) is **placeholder** content with low-resolution photos cropped from the design | Everything stacks; full-width buttons; pitch cards become a swipe row |
 | Featured founders panel | Dark card on the right of the hero's intro: title, tagline, **All startups** (→ `/startups`), two auto-scrolling rows of founder cards (each → `/startups`), pausing on hover or keyboard focus. Cards come from [hero/founders.ts](../src/components/hero/founders.ts): the 5 founders in `portfolio/data.ts` (also on `/demo-day`) plus 3 **placeholders** from the handoff (Omar Haddad, Lucas Weber, Mei Tanaka; initials, no photo) to replace with real founders | With reduced motion the rows stand still and scroll sideways instead |
 | Stats marquee | 5 scrolling programme stats | Unchanged |
 | Six-stage journey | Discover, Build MVP, Validate, Traction, Demo Day / Fundraise, Scale. Each stage carries its week range and a one-line focus (`STAGES` in `Journey.tsx`); every card's **Learn more** opens the roadmap on `/demo-day`, the Demo Day card the page itself | Swipe row with a 01 / 06 counter instead of six stacked cards |
-| Our startups (`#startups`) | "Building with us right now" with a count line (startups, industries, countries) and **Explore startups** (→ `/startups`). Filter chips with counts (All, In the cohort, In review, Applied). Every submitted startup in a numbered two-column list (cohort first, then in review, then applied; newest first within each): 8 at first, **Load more** adds 8 at a time (focus moves to the first new startup; "Showing N of M" with a progress bar is announced to screen readers), then a link to the directory, keeping the active filter (`/startups?status=…`). Each row: monogram tile, number and name (→ `/startups/[slug]`), "In the cohort" / "In review" / "New" (applied this week) pill, tagline, industry · stage · country, and active users on the right. Read from the application store like `/startups` (drafts never appear), refreshed with the page hourly; an empty state shows when nothing is submitted. Code: [StartupList.tsx](../src/components/StartupList.tsx), [startup-list/Browser.tsx](../src/components/startup-list/Browser.tsx). Rows slide in batch by batch; on hover the row tints, the tile tilts with a light sweep, an orange bar grows and an arrow replaces the user count | One column; filter chips scroll sideways; country and user count hidden; Load more and Explore startups full width |
+| Our startups (`#startups`) | "Building with us right now" with a count line (startups, industries, countries) and **Explore startups** (→ `/startups`). Filter chips with counts (All, In the cohort, In review, Applied). Every submitted startup in a numbered two-column list (cohort first, then in review, then applied; newest first within each): 8 at first, **Load more** adds 8 at a time (focus moves to the first new startup; "Showing N of M" with a progress bar is announced to screen readers), then a link to the directory, keeping the active filter (`/startups?status=…`). Each row: monogram tile, number and name (→ `/startups/[slug]`), "In the cohort" / "In review" / "New" (applied this week) pill, tagline, industry · stage · country, and active users on the right. Read from the API's public directory like `/startups` (drafts never appear), refreshed with the page; an empty state shows when nothing is submitted. Code: [StartupList.tsx](../src/components/StartupList.tsx), [startup-list/Browser.tsx](../src/components/startup-list/Browser.tsx). Rows slide in batch by batch; on hover the row tints, the tile tilts with a light sweep, an orange bar grows and an arrow replaces the user count | One column; filter chips scroll sideways; country and user count hidden; Load more and Explore startups full width |
 | CTA band | Apply now, Join a free event | Full-width stacked buttons |
 | Alumni stories | Logo marquee, 6 testimonials, View more alumni (→ `/startups?status=cohort`) | Swipe row of equal-height cards |
 | Join banner | Apply now, Attend a free event | Full-width buttons, eyebrow on two clean lines |
@@ -73,7 +77,7 @@ Code: [src/app/page.tsx](../src/app/page.tsx), sections in [src/components/](../
 
 Across the page, hover effects only apply to devices with a mouse, so tapped cards don't stay lifted. Anchor links also stop clear of the pinned header.
 
-The hero's motion (staggered entrance, line-by-line headline reveal, pulsing label dot, founders marquee, hover lifts) is all off under the system's reduced-motion setting. The page rebuilds hourly (`revalidate = 3600`) so the next Demo Day date stays current. The footer's **Featured founders** link and the "Meet the portfolio" link on `/demo-day` point to `/#founders`. The old separate Startup Accelerator section (accelerator intro and founder carousel) was removed when the panel replaced it.
+The hero's motion (staggered entrance, line-by-line headline reveal, pulsing label dot, founders marquee, hover lifts) is all off under the system's reduced-motion setting. The page is static: refreshed every minute, and as soon as an event or a startup's status changes, so the next Demo Day date and the startup list stay current. The footer's **Featured founders** link and the "Meet the portfolio" link on `/demo-day` point to `/#founders`. The old separate Startup Accelerator section (accelerator intro and founder carousel) was removed when the panel replaced it.
 
 ## About page (`/about`)
 
@@ -101,7 +105,7 @@ Code: [src/app/contact/page.tsx](../src/app/contact/page.tsx), form in [src/comp
 
 - A hidden `website` field catches bots: if it's filled in, the form shows success but saves nothing.
 - On success the form is replaced by **Message sent** (with the sender's email) and a **Send another message** button.
-- Messages are saved to `.data/messages.json` by [src/lib/contact.ts](../src/lib/contact.ts) (through the shared [src/lib/json-file.ts](../src/lib/json-file.ts)). **Nobody is notified yet**; see [backend-integration.md](backend-integration.md#notifications).
+- Messages are stored by the API ([src/lib/contact.ts](../src/lib/contact.ts) → `POST /api/v1/contact`) and emailed to the support team (`SUPPORT_EMAILS`, or every reviewer) with the sender as reply-to. They're also listed in the back office, where they can be marked handled. Limited to 10 per hour per address.
 - Beside the form: shortcut cards to apply (`/dashboard`), the FAQ (`/#faq`) and sign in (`/login`).
 
 ## Newsletter (`/newsletter`)
@@ -115,7 +119,8 @@ Code: [src/app/contact/page.tsx](../src/app/contact/page.tsx), form in [src/comp
 | Latest issues | Topic chips (All, Fundraising, Building, AI, Founder Stories, Program News) over a 3-column grid. "All" leaves out the featured article; a topic shows every article in it |
 | Sign-up band | Dark band with a second sign-up form |
 
-- **Articles are placeholders**, written to show the layout, in [posts.ts](../src/components/newsletter/posts.ts). Replace them with real issues (or a CMS) before launch.
+- **Articles come from the API** ([src/lib/newsletter.ts](../src/lib/newsletter.ts)) and are written in the back office (Posts): title, issue number, topic, author, date, excerpt and the text, in a simple format (blank lines between paragraphs, `## ` headings, `- ` lists, `> ` quotes with a last `> — Name` line for the credit). Read time is estimated if left at 0. The launch set (the site's original placeholder issues) is loaded by `seed_content`; replace it with real issues before launch. With no published issue, the page shows just the sign-up and an empty archive.
+- The page is static and refreshed every minute, or as soon as an issue is saved in the back office.
 - **Covers are drawn in SVG** ([Cover.tsx](../src/components/newsletter/Cover.tsx)): one motif and colour scheme per topic plus the issue number, so the pages load no images.
 - Only the topic filter and the sign-up forms run JavaScript; the cards are server-rendered. The filter is the shared [src/components/ui/FilterList.tsx](../src/components/ui/FilterList.tsx), also used by `/events`.
 
@@ -137,7 +142,11 @@ Code: [src/app/newsletter/[slug]/page.tsx](<../src/app/newsletter/[slug]/page.ts
 - Server action: [src/app/newsletter/actions.ts](../src/app/newsletter/actions.ts). Each form also sends a hidden `source` (`newsletter-hero`, `newsletter-band`, `article:<slug>`), saved with the address.
 - Success: **"You're in. The next issue goes to …"**. An address already on the list (any capitalisation) gets **"… is already on the list."**
 - Same hidden `website` bot trap as the contact form.
-- Subscribers are saved to `.data/subscribers.json` by [src/lib/newsletter.ts](../src/lib/newsletter.ts). **No emails are sent yet.**
+- Subscribers are stored by the API (`POST /api/v1/newsletter/subscribers`, 20 per hour per address). A new subscriber gets a welcome email with an unsubscribe link; someone who unsubscribed and signs up again is welcomed back. Subscribers can be exported as CSV from the back office.
+
+### Unsubscribe (`/newsletter/unsubscribe?token=…`)
+
+The link in every newsletter email. The page explains what stops and asks the subscriber to press **Unsubscribe** (a button rather than the link itself, so mail scanners that open every link can't unsubscribe anyone). The token names the subscriber by id, never by address. Hidden from search engines.
 
 ## Events (`/events`)
 
@@ -150,8 +159,8 @@ Code: [src/app/events/page.tsx](../src/app/events/page.tsx), pieces in [src/comp
 | Recently | The 3 most recent past events, marked Ended |
 | Sign-up band | Newsletter sign-up (`source: events`), linking to `/newsletter` |
 
-- **Events are placeholders** in [events.ts](../src/components/events/events.ts). Replace them with the real calendar before launch. Venues read "shared with registered guests".
-- An event moves from Upcoming to Recently once its end time passes. The pages rebuild at most hourly (`revalidate = 3600`).
+- **Events come from the API** ([src/lib/events.ts](../src/lib/events.ts)) and are managed in the back office (Events): title, type, format, city, start and end, time zone, capacity, summary, about (paragraphs), what you'll get (one per line), the agenda, who it's for, and the private venue or joining link, which is only ever emailed to registered guests. Unpublished events are hidden. The launch set (the site's original placeholder events) is loaded by `seed_content`; replace it with the real calendar before launch.
+- An event moves from Upcoming to Recently once its end time passes. The pages are static, refreshed every minute and as soon as an event is saved in the back office.
 - Times are shown in each event's own time zone (e.g. `4:00 PM – 8:00 PM PDT`).
 - The countdown shows dashes until the page loads in the browser, then ticks every second. It is hidden from screen readers because the date is always shown as text.
 
@@ -170,10 +179,10 @@ Code: [src/app/events/[slug]/page.tsx](<../src/app/events/[slug]/page.tsx>). Unk
 | Email | `email` | Required; valid format |
 | Company | `company` | Optional; max 120 characters |
 
-- Server action: [src/app/events/actions.ts](../src/app/events/actions.ts). It rejects unknown events and events that have ended, whatever the page shows.
+- Server action: [src/app/events/actions.ts](../src/app/events/actions.ts). The API rejects unknown events, events that have ended and full events (capacity), whatever the page shows.
 - Success: **You're registered** (or **You're already registered** if that email, in any capitalisation, already signed up for this event), plus an **Add to Google Calendar** link with the event's times.
 - Same hidden `website` bot trap as the other forms.
-- Registrations are saved to `.data/registrations.json` by [src/lib/events.ts](../src/lib/events.ts). **No confirmation emails are sent yet.**
+- Registrations are stored by the API (one per email per event; 30 per hour per address) and listed, with a CSV export, in the back office. The guest gets a confirmation email with the venue or joining link and a calendar invite (`invite.ics`), and, if they registered more than a day ahead, a reminder the day before.
 
 ## Demo Day (`/demo-day`)
 
@@ -191,13 +200,13 @@ Code: [src/app/demo-day/page.tsx](../src/app/demo-day/page.tsx); the roadmap is 
 | Two ways in | Come and watch (→ next Demo Day event) and Pitch at the next one (→ `/dashboard`) |
 | Questions | Five-question accordion, with a link to `/contact` |
 
-- "Next Demo Day" is the soonest upcoming event of type Demo Day in [events.ts](../src/components/events/events.ts). With none scheduled, the hero card and the "come and watch" card say a date is coming and point to the newsletter and events pages. The page rebuilds hourly (`revalidate = 3600`).
+- "Next Demo Day" is the soonest upcoming event of type Demo Day from the events API ([src/lib/events.ts](../src/lib/events.ts)). With none scheduled, the hero card and the "come and watch" card say a date is coming and point to the newsletter and events pages. The page is static, refreshed every minute and as soon as an event changes.
 - The run-up, walk-in checklist, pitch timings and FAQ answers describe the intended format and are **placeholders to confirm** before launch, like the rest of the site's copy.
 - Demo Day event pages link here ("How Demo Day works").
 
 ## Startup directory (`/startups`)
 
-Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the application store: **every application that has been submitted appears; drafts never do.** Read on every request, so a new submission shows up immediately.
+Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the API's public directory (`GET /api/v1/startups`): **every application that has been submitted appears; drafts never do.** A submission, withdrawal or decision shows up within seconds (the cached copy is refreshed straight away).
 
 | Section | Content |
 | --- | --- |
@@ -212,7 +221,7 @@ Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src
 
 ### Startup page (`/startups/[slug]`)
 
-Code: [src/app/startups/[slug]/page.tsx](<../src/app/startups/[slug]/page.tsx>). The slug is the startup's name (`greenloop`); a second startup with the same name gets `-2`. Unknown slugs return 404.
+Code: [src/app/startups/[slug]/page.tsx](<../src/app/startups/[slug]/page.tsx>). The slug is the startup's name (`greenloop`), fixed when it's first submitted; a second startup with the same name gets `-2`. It only changes if the startup is renamed and resubmitted, so shared links keep working. Unknown slugs return 404.
 
 - Header: back link, monogram, name, public status, one-liner, industry / stage / country chips, and links to the website, product demo and video when given.
 - Main column: active users and paying customers (when given), The problem, The solution, Who it's for, Market, Competition and edge, Headline metric, The team (why this team, worked together, hiring) and About the founder (title, location, years of experience, bio, LinkedIn). Sections with no content are left out.
@@ -221,7 +230,7 @@ Code: [src/app/startups/[slug]/page.tsx](<../src/app/startups/[slug]/page.tsx>).
 
 ### What is public, and what is not
 
-The public view is an allowlist in [src/lib/application/public.ts](../src/lib/application/public.ts). **Shown:** startup name, one-liner, website, demo and video links, industry, stage, HQ, founded, incorporated, business model, problem, solution, target customer, market, competitors, advantage, headline metric, active users, paying customers, team names, roles, commitment and LinkedIn, why-us, worked-together, hiring needs, the applicant's name, title, location, bio, experience and LinkedIn, and the dated milestones (titles only). **Never shown:** emails, phones, equity, monthly revenue, growth rate, raised, seeking, use of funds, the deck link, how they heard of us, review messages, and all reviewer data. Widen or narrow it there, nowhere else.
+The public view is an allowlist in the API, `public_card` and `public_startup` in [backend/apps/applications/payloads.py](../backend/apps/applications/payloads.py) (the website just shows it: [src/lib/application/public.ts](../src/lib/application/public.ts)). **Shown:** startup name, one-liner, website, demo and video links, industry, stage, HQ, founded, incorporated, business model, problem, solution, target customer, market, competitors, advantage, headline metric, active users, paying customers, team names, roles, commitment and LinkedIn, why-us, worked-together, hiring needs, the applicant's name, title, location, bio, experience and LinkedIn, and the dated milestones (titles only). **Never shown:** emails, phones, equity, monthly revenue, growth rate, raised, seeking, use of funds, the deck link, how they heard of us, review messages, and all reviewer data. Widen or narrow it there, nowhere else.
 
 **Before launch, decide:** whether applicants must opt in to a public listing (the application form has no such consent today), and whether declined applications should be listed at all.
 
@@ -235,7 +244,7 @@ The public view is an allowlist in [src/lib/application/public.ts](../src/lib/ap
 
 ## Authentication pages
 
-The three pages look and validate like finished pages, but none of them signs anyone in yet: each form ends at a stub in [src/lib/auth.ts](../src/lib/auth.ts) that returns "not connected yet". They share one layout ([src/app/(auth)/layout.tsx](<../src/app/(auth)/layout.tsx>)): a dark brand panel on the left (desktop only) and the form on the right. All three are hidden from search engines (`noindex`). Server actions: [src/app/(auth)/actions.ts](<../src/app/(auth)/actions.ts>).
+Accounts and sessions live in the API; [src/lib/auth.ts](../src/lib/auth.ts) is the website's side (it copies the API's `vcs_session` cookie onto the browser and forwards it on every signed-in call). The pages share one layout ([src/app/(auth)/layout.tsx](<../src/app/(auth)/layout.tsx>)): a dark brand panel on the left (desktop only) and the form on the right. All of them are hidden from search engines (`noindex`). Server actions: [src/app/(auth)/actions.ts](<../src/app/(auth)/actions.ts>).
 
 ### Sign in — `/login`
 
@@ -243,11 +252,13 @@ The three pages look and validate like finished pages, but none of them signs an
 | --- | --- | --- | --- |
 | Email | `email` | email | Required; must look like an email address |
 | Password | `password` | password (show/hide toggle) | Required |
-| Keep me signed in | `remember` | checkbox | Optional; meant to set how long the session lasts |
+| Keep me signed in | `remember` | checkbox | Optional: ticked, the session lasts 30 days; otherwise it ends when the browser closes (and after 24 hours at most) |
 
 - **Continue with Google** button above an "or with email" divider.
 - **Forgot password?** carries any email already typed into `/forgot-password?email=…`.
-- On success it redirects to `/dashboard` (`AFTER_SIGN_IN`).
+- On success founders go to `/dashboard` (`AFTER_SIGN_IN`) and reviewers to `/admin`.
+- A wrong email or password gets one message for both, so the form never reveals who has an account. Sign-in is limited to 10 attempts a minute per address and 20 an hour per email; past that the banner says how long to wait.
+- `?error=google…` (after a failed Google sign-in) shows why in the banner.
 
 ### Create account — `/register`
 
@@ -255,11 +266,11 @@ The three pages look and validate like finished pages, but none of them signs an
 | --- | --- | --- | --- |
 | Full name | `name` | text | Required; 2–80 characters |
 | Email | `email` | email | Required; valid format; max 254 characters |
-| Password | `password` | password (show/hide toggle) | Required; 8–200 characters; at least one letter and one number |
+| Password | `password` | password (show/hide toggle) | Required; 8–200 characters; at least one letter and one number; not a common password (checked by the API) |
 | Terms of Use and Privacy Policy | `terms` | checkbox | Must be ticked |
 
 - **Sign up with Google** button above the form.
-- On success it redirects to `/dashboard`.
+- On success it redirects to `/dashboard`, signed in, and the API emails a link to confirm the address (see `/verify-email`). An address that's already registered gets *"That email is already registered."* under the email field.
 
 ### Reset password — `/forgot-password`
 
@@ -268,18 +279,27 @@ The three pages look and validate like finished pages, but none of them signs an
 | Email | `email` | email | Required; valid format; prefilled from `?email=` |
 
 - After sending, the page switches to **Check your inbox**, with a **Use a different email** button back to the form.
-- The confirmation says *"If an account exists for …"*, so the page never reveals which addresses are registered.
+- The confirmation says *"If an account exists for …"*, so the page never reveals which addresses are registered: the API answers the same way either way and sends the email (if any) in the background. The link works once, for 30 minutes.
+
+### Choose a new password — `/reset-password?token=…`
+
+Where the emailed link lands. One field, **New password** (`password`, same rules as sign-up). Success signs the user in, ends their other sessions, emails a "your password was changed" notice and goes to `/dashboard`. A used or expired link shows a banner with a link back to `/forgot-password`. Code: [ResetPasswordForm.tsx](../src/components/auth/ResetPasswordForm.tsx), action `chooseNewPassword`.
+
+### Confirm your email — `/verify-email?token=…`
+
+Where the sign-up email's link lands. The visitor presses **Confirm my email** (a button rather than the link itself, so mail scanners that open every link can't use the token up first), then sees **Email confirmed** and a link to the dashboard. The link works for 3 days; the dashboard's notice can send a new one. A reviewer's access to `/admin` starts only once their address is confirmed. Code: [VerifyEmailForm.tsx](../src/components/auth/VerifyEmailForm.tsx), action `confirmEmail`.
 
 ### Shared behaviour
 
-- Validation runs on the server ([src/lib/validation.ts](../src/lib/validation.ts)); each error shows under its field and is linked to it for screen readers.
+- Validation runs on the website's server ([src/lib/validation.ts](../src/lib/validation.ts)) and again in the API, in the same words; each error shows under its field and is linked to it for screen readers.
 - Typed values survive a failed submit (never the password).
 - Inputs are 52px tall with 16px text, which stops iPhones zooming in on focus.
-- Google sign-in builds a real Google consent link once `GOOGLE_CLIENT_ID` and `NEXT_PUBLIC_SITE_URL` are set; the return step (`/api/auth/callback/google`) is not built yet.
+- **Google sign-in** (needs `GOOGLE_CLIENT_ID` on the website and the client id and secret on the API): the button stores a random `state` in a 10-minute cookie and sends the visitor to Google; Google returns them to `/api/auth/callback/google` ([route.ts](../src/app/api/auth/callback/google/route.ts)), which checks the `state`, and the API exchanges the code for the verified Google identity, creating the account or joining an existing one with the same address. Cancelled, expired or failed attempts return to `/login` with a message.
+- If the API can't be reached, the forms say so (*"We couldn't reach the server just now…"*) instead of failing.
 
 ## Founder dashboard: layout and navigation
 
-Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/app/dashboard/layout.tsx)) showing the application's status and completion. Signed-out visitors are sent to `/login`; the application is created automatically on the first visit.
+Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/app/dashboard/layout.tsx)) showing the application's status and completion. Signed-out visitors (or an expired session) are sent to `/login`; the application is created by the API on the first visit. Until the founder confirms their email, a notice at the top of every page says where the link went, with a **Resend link** button.
 
 **Desktop (1024px and up): left sidebar**
 
@@ -304,7 +324,7 @@ Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/
 - **Loading:** a skeleton shows while a page loads.
 - **Titles and search engines:** pages are titled "… — Fundup Club" and hidden from search engines.
 
-Server actions for all dashboard pages: [src/app/dashboard/actions.ts](../src/app/dashboard/actions.ts).
+Server actions for all dashboard pages: [src/app/dashboard/actions.ts](../src/app/dashboard/actions.ts). Each sends what was typed to the API (`/api/v1/me/application/…`), which checks every rule against the stored application and answers with the same field names and messages shown below.
 
 ## Overview page (`/dashboard`)
 
@@ -414,8 +434,8 @@ The applicant is added automatically as the first founder. Members appear as car
 | Commitment | `commitment` | choice: `full-time` / `part-time` | Optional |
 | This person is a co-founder | `isFounder` | checkbox | — |
 
-- **Equity limit:** total equity across the team can't exceed 100%. The check runs on the server inside the save, so two quick saves can't together push past 100%. An **Equity allocated** meter shows the running total.
-- **Removing:** asks for confirmation. The last remaining member can't be removed.
+- **Equity limit:** total equity across the team can't exceed 100%. The check runs in the API inside the save, so two quick saves can't together push past 100%; the total is rounded, so 33.3 + 33.3 + 33.4 counts as 100. An **Equity allocated** meter shows the running total (rounded the same way).
+- **Removing:** asks for confirmation. The last remaining member can't be removed (the API refuses too). A team lists up to 20 people.
 
 ### About the team
 
@@ -445,6 +465,8 @@ This page shows the founder exactly what the review team will see, and it is the
 - The summary and activity timeline stay visible, read-only.
 
 **The server checks everything again:** submitting is refused if any required answer is missing, even when the button is bypassed, and withdrawing is refused once review has started.
+
+**Emails:** submitting (or resubmitting) emails the founder a confirmation and each reviewer a link to the application.
 
 ## Application lifecycle
 
@@ -478,7 +500,7 @@ Reviewers can decide straight from Submitted; starting a review first is optiona
 | `accepted` | Accepted (green) | No | "You're in the cohort" — watch your inbox for onboarding |
 | `declined` | Not selected (grey) | No | "Not this cohort" — welcome to apply next cycle |
 
-**Completion:** progress is the share of the 21 required answers that are filled: 6 in the profile, 12 in the startup and 3 for the team. Free-text answers only count once they reach their minimum length (problem 80, solution 80, advantage 40, bio 60, why this team 60 characters). The same rules gate submission on the server. Rules: [src/lib/application/progress.ts](../src/lib/application/progress.ts).
+**Completion:** progress is the share of the 21 required answers that are filled: 6 in the profile, 12 in the startup and 3 for the team. Free-text answers only count once they reach their minimum length (problem 80, solution 80, advantage 40, bio 60, why this team 60 characters). The same rules gate submission in the API. Rules: [src/lib/application/progress.ts](../src/lib/application/progress.ts) (what the dashboard shows) and `REQUIRED` in [backend/apps/applications/rules.py](../backend/apps/applications/rules.py) (what's enforced); change both together.
 
 ## Admin: review queue (`/admin`)
 
@@ -496,8 +518,9 @@ The queue is the support team's work list, opening on **Needs review** with the 
 | Industry | `industry` | All industries, or one of the 12 |
 | Assigned to me | `mine=1` | Only applications assigned to the signed-in reviewer |
 | Sort | `sort` | `waiting` Longest wait (default on Needs review), `recent` Most recent (default elsewhere), `score` Top score, `name` Name A–Z |
+| Page | `page` | 50 applications per page; **Previous** / **Next** links under the list when there's more than one page |
 
-Dropdown and checkbox filters apply as soon as they change; search applies on Enter or **Search**; **Clear** resets. Filters live in the web address, so a view can be bookmarked or shared. Logic: [src/lib/application/queue.ts](../src/lib/application/queue.ts).
+Dropdown and checkbox filters apply as soon as they change; search applies on Enter or **Search**; **Clear** resets. Filters live in the web address, so a view can be bookmarked or shared. The options are defined in [src/lib/application/queue.ts](../src/lib/application/queue.ts); the API does the filtering, counting, sorting and paging in SQL ([backend/apps/applications/queue.py](../backend/apps/applications/queue.py)).
 
 | Column (desktop table) | Content |
 | --- | --- |
@@ -531,7 +554,7 @@ Only the decisions that are valid for the current status are shown. Each asks fo
 | `decline` | Decline | Submitted, In review | Declined | Optional |
 | `reopen` | Reopen review | Accepted, Declined | In review | Optional |
 
-- **Where decisions go:** each one is added to the founder's activity timeline as a *Review team* entry, with the message.
+- **Where decisions go:** each one is added to the founder's activity timeline as a *Review team* entry, with the message, and **emailed to the founder** with a link to their dashboard.
 - **Two reviewers at once:** the second is refused with "Someone got there first — this application is now …".
 - **Nothing to decide:** Drafts and Changes requested show why instead of buttons.
 
@@ -556,7 +579,7 @@ Only the decisions that are valid for the current status are shown. Each asks fo
 
 ## CSV export (`/admin/export`)
 
-The export downloads every application (all statuses, most recently active first) as `fundup-club-applications-YYYY-MM-DD.csv`, with 33 columns. It is available from the admin header and the queue page, to reviewers only; anyone else gets a 404. Code: [src/app/admin/export/route.ts](../src/app/admin/export/route.ts).
+The export downloads every application (all statuses, most recently active first) as `fundup-club-applications-YYYY-MM-DD.csv`, with 33 columns. It is available from the admin header and the queue page, to reviewers only; anyone else gets a 404. The API builds the file (`GET /api/v1/admin/export.csv`, [backend/apps/applications/export.py](../backend/apps/applications/export.py)), streaming it row by row; [src/app/admin/export/route.ts](../src/app/admin/export/route.ts) passes it through.
 
 | Group | Columns |
 | --- | --- |
@@ -577,12 +600,12 @@ The export downloads every application (all statuses, most recently active first
 
 ## Data model and storage
 
-Each founder has one application record, keyed by their user id. Until a database is connected, all records are saved to `.data/applications.json`, which git ignores. That is fine for development on one machine, but it won't survive most cloud hosting. The proposed database schema is in [backend-integration.md](backend-integration.md#database-schema).
+Each founder has one application, keyed by their user id, stored by the API in PostgreSQL. The full schema and the API reference are in [backend-integration.md](backend-integration.md#data-model).
 
 | Part of the record | Holds | Who sees it |
 | --- | --- | --- |
 | `status`, `submittedAt`, `createdAt`, `updatedAt` | Lifecycle state and timestamps | Founder and reviewers |
-| `profile` | The 11 profile fields | Founder and reviewers |
+| `profile` | The 11 profile fields (the email always comes from the account) | Founder and reviewers |
 | `startup` | The 26 startup fields | Founder and reviewers |
 | `team` | Members (name, role, email, LinkedIn, equity, commitment, co-founder flag) plus the 3 team answers | Founder and reviewers |
 | `events` | Activity timeline: who (founder or review team), what, when, optional message | Founder and reviewers |
@@ -590,76 +613,65 @@ Each founder has one application record, keyed by their user id. Until a databas
 | `review.scorecards` | One per reviewer: 5 scores, recommendation, summary, date | Reviewers only |
 | `review.notes` | Internal notes: author, date, text | Reviewers only |
 
-**Where to plug in real systems:**
-
-| File | Replace with | Notes |
-| --- | --- | --- |
-| [src/lib/application/store.ts](../src/lib/application/store.ts) | Your database | Three functions: find one, list all, update one atomically (in SQL, `SELECT … FOR UPDATE` in a transaction) |
-| [src/lib/auth.ts](../src/lib/auth.ts) | Your auth provider | Sign in, create account, password reset, Google sign-in, current user, sign out, reviewer check |
-
-**Other key files:**
+**How the website gets data:** everything goes through [src/lib/api.ts](../src/lib/api.ts), from the server. Signed-in calls carry the visitor's session; public reads are cached and refreshed on change.
 
 | File | Role |
 | --- | --- |
+| [src/lib/api.ts](../src/lib/api.ts) | The API client: session forwarding, caching, one error shape |
+| [src/lib/auth.ts](../src/lib/auth.ts) | Sign in, create account, sessions, password reset, email verification, Google sign-in, reviewer check |
 | [src/lib/application/types.ts](../src/lib/application/types.ts) | Record shape and every option list (stages, industries, models, statuses) |
-| [src/lib/application/progress.ts](../src/lib/application/progress.ts) | Required-answer rules and completion |
-| [src/lib/application/decisions.ts](../src/lib/application/decisions.ts) | Which decisions are allowed from which status; the 5-day target |
-| [src/lib/application/dal.ts](../src/lib/application/dal.ts) | Founder data access |
-| [src/lib/application/review.ts](../src/lib/application/review.ts) | Reviewer data access |
-| [src/lib/application/queue.ts](../src/lib/application/queue.ts) | Queue filtering and sorting |
-| [src/lib/validation.ts](../src/lib/validation.ts) | Field format checks |
+| [src/lib/application/progress.ts](../src/lib/application/progress.ts) | Required-answer rules and completion, for the dashboard (enforced again by the API) |
+| [src/lib/application/decisions.ts](../src/lib/application/decisions.ts) | Which decisions are allowed from which status (enforced again by the API); the 5-day target |
+| [src/lib/application/dal.ts](../src/lib/application/dal.ts) | Founder reads |
+| [src/lib/application/review.ts](../src/lib/application/review.ts) | Reviewer reads: the queue page, one application |
+| [src/lib/application/public.ts](../src/lib/application/public.ts) | The public directory |
+| [src/lib/application/queue.ts](../src/lib/application/queue.ts) | Queue options and links |
+| [src/lib/validation.ts](../src/lib/validation.ts) | Field format checks for the sign-in and public forms (the API repeats them) |
+| [src/lib/events.ts](../src/lib/events.ts), [newsletter.ts](../src/lib/newsletter.ts), [contact.ts](../src/lib/contact.ts) | Events, the newsletter, the contact form |
 
 ## Security and access control
 
-Every rule is enforced on the server, inside each page and action, not just by hiding buttons. Each rule below was tested in the browser by bypassing the UI.
+Every rule is enforced by the API, inside each request, not just by hiding buttons, and each has an automated test (`backend/tests/`; the list is in [backend-integration.md](backend-integration.md#rules-the-backend-enforces)).
 
-| Rule | How it's enforced | Verified by |
-| --- | --- | --- |
-| Founders only see their own application | The founder's identity always comes from the session, never from a form | Design (no user id is ever sent from the browser) |
-| Founders never see reviewer data | Scores, notes and assignment are removed before any founder page loads | Planted marked note and scorecard; searched all 5 founder pages and the navigation data — not found |
-| Founder edits keep reviewer data | Reviewer data is carried over untouched on every founder save | Withdrew an application; note and scorecard survived |
-| No edits while under review | Saves refused unless status is Draft or Changes requested | Re-enabled a locked form and forced a save — refused, file unchanged |
-| No submitting incomplete applications | Completeness re-checked inside the save | Force-enabled the disabled button — refused |
-| Team equity ≤ 100% | Checked inside the atomic save | Adding 50% on top of 60% — refused with the 110% message |
-| Only reviewers reach `/admin` | Reviewer check in every admin page, action and the export | Temporarily revoked the role: all 3 admin URLs returned 404, with no titles or data |
-| Two reviewers can't both decide | Status re-checked inside the save | Design (second decision gets "Someone got there first") |
-| Safe spreadsheet export | Formula cells neutralised, cells escaped | Planted `=HYPERLINK(…)` came out as text |
+| Rule | How it's enforced |
+| --- | --- |
+| Founders only see their own application | The founder's identity always comes from the session, never from a form or URL |
+| Founders never see reviewer data | Founder responses are built without scores, notes, assignment or actor ids |
+| Founder edits keep reviewer data | Reviewer data lives in separate tables and columns |
+| No edits while under review | Saves refused unless status is Draft or Changes requested, checked on the locked record |
+| No submitting incomplete applications | Completeness re-checked on the locked record |
+| Team equity ≤ 100% | Checked on the locked record |
+| Only reviewers reach `/admin` | Every review endpoint answers 404 to everyone else; the pages and the export check too, and page titles are generated only after the check |
+| Two reviewers can't both decide | Status re-checked on the locked record; the second gets "Someone got there first" |
+| Safe spreadsheet export | Formula cells neutralised, cells escaped |
+| Other sites can't act with a visitor's cookie | Cookie-authenticated changes must come from the site's own origin |
+| Brute force | Rate limits on sign-in, sign-up, password reset and the public forms |
 
-**Who counts as a reviewer:** emails listed in `REVIEWER_EMAILS`. That is only as trustworthy as sign-in, so move it to a role on the user record once real accounts exist.
+**Who counts as a reviewer:** a user with the *reviewer* role **and** a confirmed email address. Set the role in the back office (Users → *Make reviewer*); back-office superusers are reviewers too.
 
-**Development stand-in user:** in development only, everyone is signed in as "Alex Rivera" (`founder@example.com`, id `dev-founder`), who is both a founder and a reviewer. A production build never uses it; signed-out visitors go to `/login`. Everyone sharing one dev server edits the same stand-in application.
+**Passwords and sessions:** passwords are hashed with Argon2; sessions are random tokens stored only as hashes, revoked on sign-out and on a password reset, and can be ended from the back office (*Sign out of every device*).
 
 ## Setup and what's still to be built
 
-Run `npm run dev`. In development you can open `/dashboard` and `/admin` right away as the stand-in user.
+Local development, test accounts and sample data: [deployment.md → Local development](deployment.md#local-development). Production: [deployment.md](deployment.md).
 
-| Setting | Purpose | Needed |
-| --- | --- | --- |
-| `REVIEWER_EMAILS` | Comma-separated emails allowed into `/admin` | Production |
-| `NEXT_PUBLIC_SITE_URL` | Site address, used for Google sign-in, link previews, robots.txt and the sitemap | Production |
-| `GOOGLE_CLIENT_ID` | Starts the Google consent screen | For Google sign-in |
-| `GOOGLE_CLIENT_SECRET` | Exchanges Google's code for a session (callback not built yet) | For Google sign-in |
+| Setting (website) | Purpose |
+| --- | --- |
+| `BACKEND_URL` | Where the website reaches the API (`http://backend:8000` in Docker) |
+| `NEXT_PUBLIC_SITE_URL` | Site address, used for Google sign-in, link previews, robots.txt and the sitemap (set at build time from `SITE_URL`) |
+| `GOOGLE_CLIENT_ID` | Starts the Google consent screen |
+| `REVALIDATE_SECRET` | Lets the API refresh the website's cached pages |
+| `COOKIE_SECURE` | `false` only for plain-http local runs |
 
-**Sample data (development only):**
+The API's settings are listed in [.env.example](../.env.example) and [backend-integration.md](backend-integration.md#environment-variables).
 
-- `npm run seed:demo` adds 23 invented applications (22 submitted, 1 draft) covering every status, with overdue items, assignments, scorecards and notes. Records use ids starting `demo-`; nothing else is touched. Script: [scripts/seed-demo.mts](../scripts/seed-demo.mts).
-- `npm run seed:demo -- --reset` removes them.
-- Deleting `.data/` starts completely fresh.
+**Sample data (development only):** `python manage.py seed_demo` adds 23 invented applications covering every status, with overdue items, assignments, scorecards and notes (demo accounts use `@demo.fundup.example` addresses); `seed_demo --reset` removes them. `seed_dev_accounts` creates a test founder and a test reviewer.
 
-### Still to be built
+### Still to be decided or done
 
-The full plan, in order, is in [backend-integration.md](backend-integration.md#build-order).
-
-- [ ] Connect a real auth provider in `src/lib/auth.ts`: sign in, create account, sessions, sign out.
-- [ ] Google sign-in callback at `/api/auth/callback/google`, with a random `state` value checked against a cookie.
-- [ ] Password reset: email the link, and build the `/reset-password?token=…` page to set a new password.
-- [ ] Move storage from `.data/applications.json` to a database via `src/lib/application/store.ts`.
-- [ ] Store contact messages in the database and email them to the team (`src/lib/contact.ts`).
-- [ ] Send newsletter sign-ups to an email provider (`src/lib/newsletter.ts`), and replace the placeholder articles.
-- [ ] Store event registrations in the database, email confirmations with joining details (`src/lib/events.ts`), and replace the placeholder events.
+- [ ] Replace the launch events and newsletter issues (loaded by `seed_content`) with real ones, in the back office.
 - [ ] Confirm the Demo Day format copy (run-up, pitch timings, what happens after) on `/demo-day`.
 - [ ] Startup directory: add a "list my startup publicly" consent to the application, and decide whether declined applications are listed.
-- [ ] Email founders when a reviewer decides (marked TODO in `src/app/admin/actions.ts`).
-- [ ] Make "reviewer" a role on the user record instead of an email list.
+- [ ] Choose an email provider and verify the sending domain (SPF, DKIM, DMARC).
 - [ ] Have counsel review the draft privacy policy, terms of use and code of conduct, and add the legal entity, address and governing law.
 - [ ] Fill in the social profile URLs in `Footer.tsx` (icons stay hidden until then).

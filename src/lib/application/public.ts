@@ -1,8 +1,7 @@
 import "server-only";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import { cache } from "react";
-import { api } from "@/lib/api";
+import { api, BUILDING } from "@/lib/api";
 import type { PublicStartup, StartupCardData } from "./directory";
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -19,7 +18,7 @@ import type { PublicStartup, StartupCardData } from "./directory";
 
 /** Every application that has been submitted, newest first, as directory cards. */
 export const listPublicStartups = cache(async (): Promise<StartupCardData[]> => {
-  await connection(); // read at request time, never baked in at build
+  if (BUILDING) return [];
   const result = await api<{ startups: StartupCardData[] }>("/startups", { tags: ["startups"] });
   if (!result.ok) throw new Error(`Couldn't load the startup directory (${result.status}).`);
   return result.data.startups;
@@ -27,7 +26,7 @@ export const listPublicStartups = cache(async (): Promise<StartupCardData[]> => 
 
 /** One startup's public page, or a 404. */
 export const findPublicStartup = cache(async (slug: string): Promise<PublicStartup> => {
-  await connection();
+  if (BUILDING) notFound();
   const result = await api<{ startup: PublicStartup }>(`/startups/${encodeURIComponent(slug)}`, {
     tags: ["startups"],
   });

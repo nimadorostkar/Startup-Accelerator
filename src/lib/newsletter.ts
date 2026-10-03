@@ -1,8 +1,7 @@
 import "server-only";
-import { connection } from "next/server";
 import { cache } from "react";
 import type { Post, PostSummary } from "@/components/newsletter/posts";
-import { api } from "./api";
+import { api, BUILDING } from "./api";
 
 /* ══════════════════════════════════════════════════════════════════════
    THE FOUNDER BRIEF — issues and subscribers, via the API
@@ -15,14 +14,14 @@ import { api } from "./api";
 
 /** Published issues, newest first, without their text. */
 export const listPosts = cache(async (): Promise<PostSummary[]> => {
-  await connection(); // read at request time, never baked in at build
+  if (BUILDING) return [];
   const result = await api<{ posts: PostSummary[] }>("/newsletter/posts", { tags: ["newsletter"] });
   if (!result.ok) throw new Error(`Couldn't load the newsletter (${result.status}).`);
   return result.data.posts;
 });
 
 export const findPost = cache(async (slug: string): Promise<Post | null> => {
-  await connection();
+  if (BUILDING) return null;
   const result = await api<{ post: Post }>(`/newsletter/posts/${encodeURIComponent(slug)}`, {
     tags: ["newsletter"],
   });

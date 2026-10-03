@@ -17,7 +17,8 @@ export default function TeamManager({
 }) {
   // Which card is open for editing: a member id, "new", or nothing.
   const [open, setOpen] = useState<string | null>(null);
-  const equity = members.reduce((n, m) => n + (m.equity ?? 0), 0);
+  // Rounded, so 33.3 + 33.3 + 33.4 shows as 100% rather than 100.00000000000001% (over the cap, in red).
+  const equity = Math.round(members.reduce((n, m) => n + (m.equity ?? 0), 0) * 100) / 100;
 
   return (
     <section className="card p-5 sm:p-7" aria-labelledby="members-title">

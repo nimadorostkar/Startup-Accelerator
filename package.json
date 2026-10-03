@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/expire-prerendered.mjs",
     "start": "next start",
     "lint": "eslint"
   },

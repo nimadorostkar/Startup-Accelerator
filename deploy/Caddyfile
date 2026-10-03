@@ -2,13 +2,16 @@
 #
 # SITE_ADDRESS is your domain (e.g. fundup.club): Caddy fetches and renews the
 # certificate itself. Use "http://localhost" to run the stack locally without TLS.
-{
-	servers {
-		# Believe X-Forwarded-For only from a load balancer on a private network;
-		# anything a visitor sends is replaced with their real address.
-		trusted_proxies static private_ranges
-	}
-}
+#
+# Caddy replaces any X-Forwarded-For a visitor sends with the address it sees,
+# which is what the API's rate limits count. If you put a load balancer in
+# front of Caddy, trust only its addresses, e.g.:
+#
+#   {
+#   	servers {
+#   		trusted_proxies static 10.0.0.0/8
+#   	}
+#   }
 
 {$SITE_ADDRESS} {
 	encode zstd gzip

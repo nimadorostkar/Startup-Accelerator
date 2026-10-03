@@ -15,8 +15,8 @@ export const metadata: Metadata = {
     "Every startup that has applied to the Fundup Club program, from first idea to funded, with where each one is in the process.",
 };
 
-// Rendered per request from the API's directory (cached for a minute and
-// refreshed the moment an application is submitted or decided).
+// Rendered per request (the filters come from the URL); the directory data
+// itself is cached for a minute and refreshed as soon as it changes.
 
 export default async function StartupsPage({
   searchParams,

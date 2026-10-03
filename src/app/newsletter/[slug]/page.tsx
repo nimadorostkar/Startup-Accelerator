@@ -11,8 +11,13 @@ import { formatDate, type Block } from "@/components/newsletter/posts";
 import SubscribeForm from "@/components/newsletter/SubscribeForm";
 import { findPost, listPosts } from "@/lib/newsletter";
 
-/* Articles come from the API at request time (cached for a minute); unknown
-   or unpublished slugs are a 404. */
+// Rendered on first visit, then static: refreshed every minute and as soon
+// as the API reports a change (cache tags). Unknown slugs are a 404.
+export const revalidate = 60;
+
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({
   params,

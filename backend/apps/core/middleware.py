@@ -21,11 +21,11 @@ class RequestIdMiddleware:
         incoming = request.headers.get("X-Request-ID", "")
         request_id = incoming if _VALID.match(incoming) else uuid.uuid4().hex
         request.request_id = request_id
-        token = _request_id.set(request_id)
-        try:
-            response = self.get_response(request)
-        finally:
-            _request_id.reset(token)
+        # Not reset afterwards: Django logs the response ("Not Found: …") after the
+        # middleware chain returns, and that line should carry the id too. The next
+        # request on this thread sets its own.
+        _request_id.set(request_id)
+        response = self.get_response(request)
         response["X-Request-ID"] = request_id
         return response
 

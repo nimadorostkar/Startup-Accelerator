@@ -1,9 +1,7 @@
 import "server-only";
-import { unstable_rethrow } from "next/navigation";
-import { connection } from "next/server";
 import { cache } from "react";
 import { isPast, type SummitEvent } from "@/components/events/events";
-import { api } from "./api";
+import { api, BUILDING } from "./api";
 
 /* ══════════════════════════════════════════════════════════════════════
    EVENTS — read from the API (backend/apps/content), managed in the back
@@ -17,7 +15,7 @@ import { api } from "./api";
 
 /** Every published event: upcoming soonest first, then past ones, most recent first. */
 export const listEvents = cache(async (): Promise<SummitEvent[]> => {
-  await connection(); // read at request time, never baked in at build
+  if (BUILDING) return [];
   const result = await api<{ events: SummitEvent[] }>("/events", { tags: ["events"] });
   if (!result.ok) throw new Error(`Couldn't load events (${result.status}).`);
   return result.data.events;
@@ -36,24 +34,16 @@ export async function pastEvents(now = Date.now()) {
 }
 
 export const findEvent = cache(async (slug: string): Promise<SummitEvent | null> => {
-  await connection();
+  if (BUILDING) return null;
   const result = await api<{ event: SummitEvent }>(`/events/${encodeURIComponent(slug)}`, { tags: ["events"] });
   if (result.status === 404) return null;
   if (!result.ok) throw new Error(`Couldn't load the event (${result.status}).`);
   return result.data.event;
 });
 
-/** The next Demo Day, for the hero and /demo-day. If events can't be loaded,
-    those pages still render and say a date is coming. */
+/** The next Demo Day, for the hero and /demo-day; undefined when none is scheduled. */
 export async function nextDemoDay(): Promise<SummitEvent | undefined> {
-  await connection(); // outside the try: Next signals "render at request time" by throwing
-  try {
-    return (await upcomingEvents()).find((e) => e.type === "Demo Day");
-  } catch (err) {
-    unstable_rethrow(err);
-    console.error(err);
-    return undefined;
-  }
+  return (await upcomingEvents()).find((e) => e.type === "Demo Day");
 }
 
 export type RegistrationResult =

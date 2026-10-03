@@ -1,364 +1,220 @@
-# Fundup Club — Backend Integration Guide
+# Fundup Club — Backend
 
-As of 2026-09-24. How to replace the two stand-ins (sign-in and file storage) with a real backend, without changing any page.
+As of 2026-10-03. The backend is built: a Django API in [`backend/`](../backend/) that owns every account, application, event, article, subscriber and message, and enforces every rule. This doc is the reference for how it fits together. Running it in production is covered in [deployment.md](deployment.md); what each page does is in [pages-and-features.md](pages-and-features.md); working on the backend itself is in [backend/README.md](../backend/README.md).
 
-The frontend is finished and talks to the backend through **two files only**: [src/lib/auth.ts](../src/lib/auth.ts) (accounts and sessions) and [src/lib/application/store.ts](../src/lib/application/store.ts) (data). Three small lists have their own swap points: contact messages in [src/lib/contact.ts](../src/lib/contact.ts), newsletter subscribers in [src/lib/newsletter.ts](../src/lib/newsletter.ts) and event registrations in [src/lib/events.ts](../src/lib/events.ts) (see *Notifications*). Both save through [src/lib/json-file.ts](../src/lib/json-file.ts) for now. Implement their contracts below and every page, form, validation rule and permission check keeps working. What each page does is in [pages-and-features.md](pages-and-features.md).
-
-## Architecture today
+## Architecture
 
 ```mermaid
 flowchart LR
-  UI[Pages and forms] --> SA[Server actions<br/>dashboard, admin, auth]
-  SA --> DAL[Data access<br/>dal.ts, review.ts]
-  DAL --> ST[store.ts<br/>SWAP: database]
-  DAL --> AU[auth.ts<br/>SWAP: auth provider]
-  SA --> AU
+  B[Browser] --> C[Caddy<br/>HTTPS, compression]
+  C -->|everything else| N[Next.js website<br/>pages + Server Actions]
+  C -->|/api/v1/*, /backoffice/*| D[Django API<br/>Gunicorn]
+  N -->|server to server,<br/>visitor's session as Bearer| D
+  D --> P[(PostgreSQL)]
+  D --> R[(Redis<br/>cache, rate limits, job queue)]
+  W[Celery worker<br/>emails, page refresh] --> R
+  S[Celery beat<br/>daily digest, reminders, clean-up] --> R
+  W -->|POST /api/revalidate| N
 ```
 
-- **Pages** are React Server Components; **forms** call **Server Actions** (no REST API exists yet).
-- **Data access** (`dal.ts` for founders, `review.ts` for reviewers) resolves the user from the session, checks permissions, and is the only code that touches `store.ts`.
-- **Business rules** (what's required, which status changes are allowed, validation) live in pure modules shared by the UI and the server: `progress.ts`, `decisions.ts`, `validation.ts`, `types.ts`.
+- **The website never touches the database.** Pages and Server Actions call the API through one client, [src/lib/api.ts](../src/lib/api.ts), over the private Docker network (`BACKEND_URL`). The browser only ever talks to the website (and, for Google sign-in, to Google).
+- **Identity comes from the session.** Signing in returns a random token in the `vcs_session` cookie (httpOnly, `SameSite=Lax`, `Secure` in production). The website copies it onto its own response and forwards it as `Authorization: Bearer …` on every signed-in call. The API stores only the token's SHA-256 hash, so signing out, a password reset or a back-office "sign out everywhere" ends it for good.
+- **Every rule is enforced by the API**, inside one transaction holding the application's row lock (`SELECT … FOR UPDATE`): the edit lock, "complete before submit", the 100% equity cap and "two reviewers can't both decide". The website keeps its copies of the rules in `progress.ts`, `decisions.ts`, `types.ts` and `validation.ts` only to show progress, hide invalid buttons and validate sign-in forms early. **If you change a rule, change it in both places**; the API's copy (`backend/apps/applications/rules.py`, `backend/apps/core/validation.py`) is the one that counts.
+- **Public pages are static (ISR).** The landing page, `/events`, `/newsletter` and `/demo-day` are served from Next's cache, refreshed every minute, and the moment the API reports a change (see *Caching and refresh*). Event, article and startup pages are rendered on first visit and cached the same way.
+- **Emails are sent in the background** by the Celery worker, after the database transaction commits, with retries. Without an SMTP server configured they're printed to the worker's log.
 
-## Build order
+### Code map
 
-Each phase leaves the app working. Tick them off here as they land.
-
-- [ ] **1. Database.** Implement `store.ts` against Postgres (schema below). Nothing else changes.
-- [ ] **2. Accounts and sessions.** Implement `createAccount`, `signInWithPassword`, `getCurrentUser`, `endSession` in `auth.ts`. Then delete the development stand-in user (`DEV_USER`).
-- [ ] **3. Roles.** Make `isReviewer` read `users.role` instead of `REVIEWER_EMAILS`.
-- [ ] **4. Email verification.** Send a verification link on sign-up; don't grant reviewer access to unverified emails.
-- [ ] **5. Password reset.** Implement `requestPasswordReset`, then add the `/reset-password?token=…` page (reuse `checkNewPassword` from `validation.ts`).
-- [ ] **6. Google sign-in.** Add `/api/auth/callback/google`: verify `state`, exchange the code, find or create the user, start a session.
-- [ ] **7. Notifications.** Email founders on decisions; email reviewers on new submissions (see *Notifications*).
-- [ ] **8. Optional: separate backend service.** Only if you need a mobile app or other clients — see *REST API*.
-
-## Contract 1: storage (`src/lib/application/store.ts`)
-
-Three functions. The types are in [src/lib/application/types.ts](../src/lib/application/types.ts); `StoredApplication` is the full record including reviewer-only data.
-
-```ts
-findApplication(userId: string): Promise<StoredApplication | null>
-
-listApplications(): Promise<StoredApplication[]>
-
-updateApplication(
-  userId: string,
-  seed: () => StoredApplication,
-  fn: (current: StoredApplication) => StoredApplication,
-): Promise<StoredApplication>
-```
-
-**`updateApplication` must be atomic per application.** In SQL, one transaction:
-
-1. `SELECT … FOR UPDATE` the application row.
-2. If there is no row, call `seed()` (the founder's first visit creates a blank draft; the reviewer path passes a `seed` that throws, so reviewers can never create applications).
-3. Call `fn(current)`. It is synchronous and pure, and it **may throw** (`LockedError`, `Rejected`, `ReviewRejected`): roll back and rethrow the same error untouched. The callers turn these into user-facing messages.
-4. Write the returned record, commit, return it.
-
-The rules that depend on this atomicity: the edit lock, the 100% equity cap, "complete before submit", and "two reviewers can't both decide". They are all checked *inside* `fn`, against the row as stored.
-
-**`listApplications` loads every record today**, and the queue filters them in memory (`queue.ts`). That is fine for hundreds of applications. Past a few thousand, move the filtering and sorting into SQL and add paging to `listForReview` in `review.ts`.
-
-
-> **Renamed option.** Before the rebrand to Fundup Club, `profile.heardFrom` could be `"VC Summit event"`. The file store upgrades it to `"Fundup Club event"` on read (`upgradeStored` in `src/lib/application/types.ts`); when you move to a database, migrate existing rows once (`UPDATE … SET heard_from = 'Fundup Club event' WHERE heard_from = 'VC Summit event'`) and the read-time upgrade can go.
-
-## Contract 2: accounts and sessions (`src/lib/auth.ts`)
-
-| Export | Signature | Must do |
-| --- | --- | --- |
-| `getCurrentUser` | `() => Promise<SessionUser \| null>`, wrapped in React `cache()` | Read the `vcs_session` cookie, look up the session by the token's hash, check expiry and revocation, return `{ id, email, name }` |
-| `signInWithPassword` | `({ email, password, remember }) => Promise<AuthResult>` | Verify the password hash; create a session; set the cookie (longer `maxAge` when `remember`); return `{ ok: true, redirectTo: AFTER_SIGN_IN }`. Wrong email or password → the same generic message for both |
-| `createAccount` | `({ name, email, password }) => Promise<AuthResult>` | Reject a taken email with `fieldErrors.email`; hash the password; create the user; start a session |
-| `requestPasswordReset` | `({ email }) => Promise<ResetRequestResult>` | Always return `{ ok: true }`, even for unknown emails. Store a hashed, single-use token (e.g. 30-minute expiry) and email the link |
-| `startGoogleOAuth` | `() => Promise<AuthResult>` | Already builds the consent URL. Add: a random `state` stored in a short-lived cookie |
-| `endSession` | `() => Promise<void>` | Revoke the session server-side and delete the cookie |
-| `isReviewer` | `(user: SessionUser) => boolean` | Phase 3: return `role === 'reviewer'` from the users table |
-
-**Return shapes** (the forms already render all of them):
-
-```ts
-type AuthResult =
-  | { ok: true; redirectTo: string }                                        // signed in
-  | { ok: false; message?: string; fieldErrors?: Record<string, string> };  // banner / field error
-
-type ResetRequestResult =
-  | { ok: true }
-  | { ok: false; message?: string; fieldErrors?: Record<string, string> };
-```
-
-**Session requirements:**
-
-- **Cookie:** `vcs_session`, `httpOnly`, `secure`, `sameSite: "lax"`, `path: "/"`.
-- **Token:** at least 32 random bytes. Store only its SHA-256 hash; never store the raw value.
-- **Passwords:** hash with Argon2id (or bcrypt, cost ≥ 12). Validation rules for new passwords are already enforced in `checkNewPassword`.
-- **Rate limits:** limit sign-in, sign-up and reset requests per IP and per email.
-- **Stand-in user:** remove `DEV_USER` and its fallback in `getCurrentUser` in phase 2. It already can't activate in production builds, but it should not outlive real sessions.
-
-## Database schema
-
-Proposed PostgreSQL schema. It hasn't been run against a database yet — do that first. The profile, startup and team answers are stored as JSONB. They are always read and written as whole sections, the questions will change over time, and the queue only filters on a few fields, which are exposed as generated columns.
-
-```sql
-create extension if not exists citext;
-
-create type user_role as enum ('founder', 'reviewer');
-create type application_status as enum
-  ('draft', 'submitted', 'in_review', 'changes_requested', 'accepted', 'declined');
-
-create table users (
-  id                uuid primary key default gen_random_uuid(),
-  email             citext not null unique,
-  name              text not null,
-  password_hash     text,                        -- null for Google-only accounts
-  google_sub        text unique,                 -- Google account id
-  role              user_role not null default 'founder',
-  email_verified_at timestamptz,
-  created_at        timestamptz not null default now()
-);
-
-create table sessions (
-  id          uuid primary key default gen_random_uuid(),
-  user_id     uuid not null references users(id) on delete cascade,
-  token_hash  bytea not null unique,             -- sha256(cookie value)
-  expires_at  timestamptz not null,
-  revoked_at  timestamptz,
-  created_at  timestamptz not null default now()
-);
-
-create table password_reset_tokens (
-  token_hash  bytea primary key,                 -- sha256(token in the emailed link)
-  user_id     uuid not null references users(id) on delete cascade,
-  expires_at  timestamptz not null,
-  used_at     timestamptz,
-  created_at  timestamptz not null default now()
-);
-
-create table applications (
-  user_id       uuid primary key references users(id) on delete cascade,
-  status        application_status not null default 'draft',
-  profile       jsonb not null,                  -- Profile
-  startup       jsonb not null,                  -- Startup
-  team          jsonb not null,                  -- Team (members + 3 answers)
-  assignee_id   uuid references users(id) on delete set null,
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now(),
-  submitted_at  timestamptz,
-  -- exposed for the review queue's filters and sorting
-  startup_name  text generated always as (startup->>'name') stored,
-  stage         text generated always as (startup->>'stage') stored,
-  industry      text generated always as (startup->>'industry') stored
-);
-create index applications_queue on applications (status, submitted_at);
-create index applications_assignee on applications (assignee_id);
-
-create table application_events (               -- the activity timeline founders see
-  id              uuid primary key default gen_random_uuid(),
-  application_id  uuid not null references applications(user_id) on delete cascade,
-  at              timestamptz not null default now(),
-  by_role         text not null check (by_role in ('founder', 'support')),  -- the record's `by`
-  kind            text not null check (kind in ('created', 'submitted', 'withdrawn', 'status', 'note')),
-  title           text not null,
-  body            text,
-  actor_id        uuid references users(id)      -- audit only; never shown to founders
-);
-create index application_events_by_app on application_events (application_id, at);
-
-create table scorecards (                        -- reviewers only
-  application_id  uuid not null references applications(user_id) on delete cascade,
-  reviewer_id     uuid not null references users(id),
-  problem         smallint check (problem  between 1 and 5),
-  solution        smallint check (solution between 1 and 5),
-  market          smallint check (market   between 1 and 5),
-  team            smallint check (team     between 1 and 5),
-  traction        smallint check (traction between 1 and 5),
-  recommendation  text check (recommendation in ('accept', 'interview', 'decline')),
-  summary         text not null default '' check (length(summary) <= 2000),
-  updated_at      timestamptz not null default now(),
-  primary key (application_id, reviewer_id)      -- one scorecard per reviewer
-);
-
-create table internal_notes (                    -- reviewers only
-  id              uuid primary key default gen_random_uuid(),
-  application_id  uuid not null references applications(user_id) on delete cascade,
-  author_id       uuid not null references users(id),
-  body            text not null check (length(body) between 1 and 2000),
-  at              timestamptz not null default now()
-);
-```
-
-**How the record maps to tables** (what `store.ts` assembles and splits):
-
-| `StoredApplication` field | Stored in |
+| Where | What |
 | --- | --- |
-| `userId`, `status`, `createdAt`, `updatedAt`, `submittedAt` | `applications` columns |
-| `profile`, `startup`, `team` | `applications.profile` / `startup` / `team` (JSONB) |
-| `events[]` | `application_events` rows, ordered by `at` (`by` ↔ `by_role`) |
-| `review.assigneeId`, `review.assigneeName` | `applications.assignee_id` joined to `users.name` |
-| `review.scorecards[]` | `scorecards` rows; `reviewerName` joined from `users.name` |
-| `review.notes[]` | `internal_notes` rows; `authorName` joined from `users.name` |
+| [backend/config/settings.py](../backend/config/settings.py) | Every setting, all from environment variables (`.env.example` lists them) |
+| [backend/apps/accounts/](../backend/apps/accounts/) | Users, sessions, password reset, email verification, Google sign-in, back-office user admin |
+| [backend/apps/applications/](../backend/apps/applications/) | The application: `rules.py` (option lists, required answers, decisions, field parsing), `services.py` (every change, atomic), `payloads.py` (JSON shapes, the public allowlist), `queue.py` (review queue in SQL), `export.py` (CSV), `notifications.py`, `tasks.py` (daily digest) |
+| [backend/apps/content/](../backend/apps/content/) | Events and registrations, newsletter issues and subscribers, contact messages; `seed_content` loads the launch content |
+| [backend/apps/core/](../backend/apps/core/) | Error format, rate limits, client IP, request ids, JSON logs, health checks, email queue, page-refresh hook |
+| [src/lib/api.ts](../src/lib/api.ts) | The website's only door to the API |
+| [src/lib/auth.ts](../src/lib/auth.ts) | Sign-in, sign-up, sessions, password reset, email verification, Google sign-in |
+| [src/lib/application/dal.ts](../src/lib/application/dal.ts), [review.ts](../src/lib/application/review.ts), [public.ts](../src/lib/application/public.ts) | Founder, reviewer and public reads |
+| [src/lib/events.ts](../src/lib/events.ts), [newsletter.ts](../src/lib/newsletter.ts), [contact.ts](../src/lib/contact.ts) | Events, the newsletter and the contact form |
+| [src/app/dashboard/actions.ts](../src/app/dashboard/actions.ts), [src/app/admin/actions.ts](../src/app/admin/actions.ts) | The forms' Server Actions: send what was typed to the API, show what it answers |
 
-`profile.email` should always come from `users.email`, not from the JSONB. Founders can't change it through the form.
+## API reference
 
-**Example record** (trimmed):
+Base path `/api/v1`. JSON in and out. Interactive docs (OpenAPI) at `/api/v1/docs/` when `DJANGO_DEBUG=true` or `API_DOCS_PUBLIC=true`.
 
-```json
-{
-  "userId": "3f2a9c1e-…",
-  "status": "in_review",
-  "createdAt": "2026-09-12T09:14:00.000Z",
-  "updatedAt": "2026-09-22T16:02:11.000Z",
-  "submittedAt": "2026-09-16T10:30:00.000Z",
-  "profile": { "fullName": "Maya Rosen", "email": "maya@ledgerly.example", "title": "CEO & co-founder",
-               "country": "United Kingdom", "linkedin": "https://linkedin.com/in/maya-rosen",
-               "commitment": "full-time", "experienceYears": 6, "bio": "…", "phone": "", "city": "", "heardFrom": "" },
-  "startup": { "name": "Ledgerly", "tagline": "Month-end close for agencies, done in a day", "stage": "traction",
-               "industry": "Fintech", "businessModel": "Subscription (B2B)", "monthlyRevenue": 21000,
-               "seeking": 1200000, "deckUrl": "https://docsend.example/ledgerly", "problem": "…", "…": "…" },
-  "team": { "members": [ { "id": "…", "name": "Maya Rosen", "role": "CEO & co-founder", "equity": 55,
-                           "commitment": "full-time", "isFounder": true, "email": "…", "linkedin": "" } ],
-            "workedTogether": "1–3 years", "whyUs": "…", "hiringNeeds": "" },
-  "events": [ { "id": "…", "at": "2026-09-16T10:30:00.000Z", "by": "founder", "kind": "submitted",
-                "title": "Application submitted for review" } ],
-  "review": { "assigneeId": "…", "assigneeName": "Alex Rivera",
-              "scorecards": [ { "reviewerId": "…", "reviewerName": "Alex Rivera",
-                                "scores": { "problem": 5, "solution": 4, "market": 3, "team": 4, "traction": 4 },
-                                "recommendation": "interview", "summary": "…", "updatedAt": "…" } ],
-              "notes": [] }
-}
-```
+**Authentication:** the `vcs_session` cookie (browsers) or `Authorization: Bearer <token>` (the website's server, other clients). A cookie-authenticated request that changes data must come from the site itself (its `Origin` or `Referer` must be `SITE_URL` or in `CSRF_TRUSTED_ORIGINS`); Bearer requests can't be forged cross-site.
 
-Numbers are stored as numbers, or `null` when unanswered; empty text answers are `""`. Links are stored with `https://`.
+**Errors:**
 
-## Operations the backend serves
+| Status | Body | Meaning |
+| --- | --- | --- |
+| 401 | `{ message }` | Not signed in, or the session ended |
+| 404 | `{ message }` | Not found — and also *not allowed*: reviewer-only resources answer 404 to everyone else |
+| 409 | `{ message }` | Locked, or the status changed underneath you |
+| 422 | `{ message, errors?: { field: message } }` | Validation, keyed by the form field names, in the forms' own words |
+| 429 | `{ message, retryAfter }` | Rate limited (`Retry-After` header too) |
 
-Every operation the UI performs today, as Server Actions. The form field names are listed per page in [pages-and-features.md](pages-and-features.md).
+### Accounts
 
-| Action | File | Who | Checks inside the atomic update | Returns |
-| --- | --- | --- | --- | --- |
-| `login`, `register`, `requestReset`, `continueWithGoogle` | [src/app/(auth)/actions.ts](<../src/app/(auth)/actions.ts>) | Anyone | Field validation | `AuthFormState` |
-| `saveProfile`, `saveStartup`, `saveTeamDetails` | [src/app/dashboard/actions.ts](../src/app/dashboard/actions.ts) | Founder (own) | Editable status | `SaveState` |
-| `saveMember(memberId \| null)`, `removeMember(memberId)` | same | Founder (own) | Editable; equity total ≤ 100% | `SaveState` |
-| `submitApplication` | same | Founder (own) | Editable; `confirm` ticked; all 21 required answers present | `SaveState` |
-| `withdrawApplication` | same | Founder (own) | Status is `submitted` | `SaveState` |
-| `signOut` | same | Signed in | — | redirect to `/login` |
-| `decide(id, { decision, message })` | [src/app/admin/actions.ts](../src/app/admin/actions.ts) | Reviewer | Decision allowed from the *stored* status; message rules | `ReviewState` |
-| `assignToMe(id)`, `unassign(id)` | same | Reviewer | — | `ReviewState` |
-| `saveScorecard(id, …)` | same | Reviewer | Scores 1–5; replaces only the caller's card | `ReviewState` |
-| `addNote(id, { body })` | same | Reviewer | 1–2,000 characters | `ReviewState` |
-| `GET /admin/export` | [src/app/admin/export/route.ts](../src/app/admin/export/route.ts) | Reviewer | — | CSV file |
+| Method | Path | Body | Success |
+| --- | --- | --- | --- |
+| POST | `/auth/register` | `{ name, email, password, terms: true }` | 201 `{ user }` + session cookie; sends the verification email |
+| POST | `/auth/login` | `{ email, password, remember? }` | 200 `{ user }` + cookie (30 days with `remember`, else until the browser closes, server-side 24 h). Wrong email or password: one generic 401 |
+| POST | `/auth/logout` | — | 204; the session is revoked |
+| POST | `/auth/password-reset` | `{ email }` | 202, always the same, registered or not; the link is emailed in the background |
+| POST | `/auth/password-reset/confirm` | `{ token, password }` | 200 `{ user }` + cookie (signed in); ends every other session; 400 for an invalid, used or expired link (30 minutes, single use) |
+| POST | `/auth/verify-email` | `{ token }` | 200 `{ user }`; 400 if invalid or expired (3 days) |
+| POST | `/auth/verify-email/resend` | — (signed in) | 202 |
+| POST | `/auth/google` | `{ code }` | 200 `{ user }` + cookie. Exchanges the code Google sent to `SITE_URL/api/auth/callback/google`; joins an existing account with the same verified address |
+| GET | `/me` | — | `{ user: { id, email, name, role, isReviewer, emailVerified, hasPassword, createdAt } }` |
+| PATCH | `/me` | `{ name }` | 200 `{ user }` |
+| POST | `/me/password` | `{ currentPassword, newPassword }` | 204; ends every other session |
 
-`SaveState` and `ReviewState` share one shape:
+### The founder's application
 
-```ts
-{
-  ok?: boolean;                      // true = saved
-  message?: string;                  // banner text
-  errors?: Record<string, string>;   // field name → message
-  values?: Record<string, string>;   // echoed input, so a failed save keeps what was typed
-  savedAt?: string;                  // ISO time of a successful save
-}
-```
+Always the signed-in founder's own; no endpoint takes a user id. Responses carry the whole application (the `Application` type in `types.ts`, plus `progress`) and **never** reviewer data.
 
-## Rules the backend must enforce
+| Method | Path | Body | Notes |
+| --- | --- | --- | --- |
+| GET | `/me/application` | — | Created as a blank draft on first visit |
+| PATCH | `/me/application/profile` | Profile fields | Only the fields sent change. 409 while locked, 422 with `errors` |
+| PATCH | `/me/application/startup` | Startup fields | Numbers may be strings with commas (`"1,200"`); links get `https://` |
+| PATCH | `/me/application/team` | `{ workedTogether, whyUs, hiringNeeds }` | |
+| POST | `/me/application/team/members` | Member fields | 201 `{ application, memberId }`; 422 `errors.equity` past 100% |
+| PATCH | `/me/application/team/members/:id` | Member fields | Merged into the stored member, then checked |
+| DELETE | `/me/application/team/members/:id` | — | 409 for the last remaining member |
+| POST | `/me/application/submit` | `{ confirm: true }` | 422 `{ message, missing: [...] }` with every answer still missing |
+| POST | `/me/application/withdraw` | — | Only while Submitted; 409 once review has started |
 
-Keep these on the server whatever the backend becomes. The UI hides invalid options, but the server is the check that counts.
+### Review panel (reviewers only; everyone else gets 404)
 
-1. **Identity comes from the session.** Founder operations never accept a user id from the client; they act on the session user's own application.
-2. **Reviewer data never reaches founders.** Strip `review` (scores, notes, assignment, actor ids) from every founder-facing read. Today that happens in `founderView()` in `dal.ts`.
-3. **Founder saves preserve reviewer data.** A founder update must never overwrite the assignee, scorecards or notes.
-4. **Edit lock.** Founders can change answers only while the status is `draft` or `changes_requested` (`EDITABLE` in `types.ts`).
-5. **Submit only when complete.** Same rules as `progress.ts`: 21 required answers, with minimum lengths (problem 80, solution 80, advantage 40, bio 60, why-us 60 characters).
-6. **Status changes follow the table** in `decisions.ts`. Re-check against the stored status inside the transaction, so a second reviewer gets a conflict.
-7. **Equity total ≤ 100%**, checked against the stored team inside the transaction.
-8. **Reviewer access returns 404 to everyone else**, pages and export alike. Page titles are generated only after the check, so they can't reveal the panel either.
-9. **Password reset never reveals whether an email is registered.**
-10. **CSV export neutralises formulas.** Prefix cells starting with `=`, `+`, `-` or `@` with `'`.
+| Method | Path | Body | Notes |
+| --- | --- | --- | --- |
+| GET | `/admin/applications` | `?status&q&stage&industry&mine=1&sort&page&pageSize` | `{ rows, counts, summary, page, pages, pageSize, total, filters }`; filtered, counted, sorted and paged in SQL (50 per page) |
+| GET | `/admin/applications/:id` | — | The full record, with `review` (assignee, scorecards, notes) |
+| POST | `/admin/applications/:id/decisions` | `{ decision, message }` | Checked against the stored status: the second reviewer gets 409 "Someone got there first" |
+| PUT / DELETE | `/admin/applications/:id/assignee` | — | Assign to yourself / unassign |
+| PUT | `/admin/applications/:id/scorecard` | `{ scores: { problem: 4, … }, recommendation, summary }` (or the form's `score-problem` fields) | Replaces only your own card; recomputes the team score |
+| POST | `/admin/applications/:id/notes` | `{ body }` | 201 |
+| GET | `/admin/export.csv` | — | Every application, 33 columns, formula cells neutralised, UTF-8 BOM, `no-store` |
+
+### Public
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/startups` | Every submitted startup as directory cards, newest first. Drafts never appear |
+| GET | `/startups/:slug` | One startup's public page |
+| GET | `/events?when=upcoming\|past\|all` | Published events in the `SummitEvent` shape; venue and joining link never included |
+| GET | `/events/:slug` | |
+| POST | `/events/:slug/registrations` | `{ name, email, company }` → 201 new, 200 `existing: true`; 409 ended or full; emails a confirmation with the joining details and a calendar invite |
+| GET | `/newsletter/posts`, `/newsletter/posts/:slug` | Issues (the list without their text) |
+| POST | `/newsletter/subscribers` | `{ email, source }` → 201 `{ status: "new" }` or 200 `{ status: "existing" }`; welcome email with an unsubscribe link |
+| POST | `/newsletter/unsubscribe` | `{ token }` from that link (it names the subscriber by id, never by address) |
+| POST | `/contact` | `{ name, email, company, topic, message }` → 201; emailed to `SUPPORT_EMAILS` with the sender as reply-to |
+| GET | `/options` | Every option list the forms use |
+| GET | `/health`, `/health/ready` | Liveness; readiness checks the database and Redis |
+
+The public forms take the same hidden `website` field as the website's forms: if a bot fills it in, the API answers as if it worked and stores nothing.
+
+## Data model
+
+PostgreSQL, created by Django migrations (`backend/apps/*/migrations/`).
+
+| Table | Holds | Notes |
+| --- | --- | --- |
+| `accounts_user` | Email (unique, stored lower-case), name, Argon2 password hash (none for Google-only accounts), role (`founder`/`reviewer`), Google id, `email_verified_at`, `terms_accepted_at`, back-office flags | **Reviewer access needs the role *and* a verified address** |
+| `accounts_authsession` | SHA-256 of the session token, expiry, revoked-at, last used, IP, user agent | Purged 30 days after expiry |
+| `accounts_usertoken` | SHA-256 of emailed tokens (password reset, email verification), expiry, used-at | Single use; a new one cancels the old |
+| `applications_application` | Status, `profile` / `startup` / `team` (JSON, read and written as whole sections), assignee, public `slug`, timestamps | Copies of `startup_name`, `stage`, `industry`, `founder_name`, `tagline` and `team_score` are kept in columns for the queue's filters and sorting |
+| `applications_applicationevent` | The founder-visible timeline: who (`founder`/`support`), kind, title, message | `actor` is audit-only and never sent to founders |
+| `applications_scorecard` | One per reviewer per application: five 1–5 scores, recommendation, summary | Database constraints enforce both |
+| `applications_internalnote` | Reviewer-only notes | |
+| `content_event`, `content_agendaitem`, `content_eventregistration` | Events (edited in the back office), their agenda, registrations | One registration per email per event; capacity enforced |
+| `content_post` | Newsletter issues; the text is written in a simple format (blank lines between paragraphs, `## ` headings, `- ` lists, `> ` quotes) | |
+| `content_subscriber`, `content_contactmessage` | Subscribers (with unsubscribe date), contact messages (with a "handled" date) | |
+
+`profile.email` is never stored in the application: it always comes from the account. The old option value `"VC Summit event"` is shown as `"Fundup Club event"`.
+
+**Public addresses:** a startup's slug is fixed the first time it's submitted (`ledgerly`; a second startup of the same name gets `ledgerly-2`), and only re-made if the startup is renamed and resubmitted, so shared links keep working.
+
+## Rules the backend enforces
+
+Each has an automated test (`backend/tests/`).
+
+1. **Identity comes from the session.** Founder endpoints never take a user id. *(test_founders_only_ever_see_their_own_application)*
+2. **Reviewer data never reaches founders.** Founder responses are built without `review`, actor ids or reviewer names. *(test_founder_payloads_never_contain_reviewer_data)*
+3. **Founder saves preserve reviewer data.** Reviewer data lives in other tables and columns. *(test_founder_saves_leave_reviewer_data_untouched)*
+4. **Edit lock:** founders change answers only in Draft or Changes requested; nothing is written otherwise. *(test_saves_are_refused_while_with_the_review_team)*
+5. **Submit only when complete:** the 21 required answers with their minimum lengths. *(test_submitting_with_missing_answers_is_refused, test_short_answers_do_not_count)*
+6. **Status changes follow the decision table**, re-checked on the locked row. *(test_two_reviewers_deciding_at_once_exactly_one_wins)*
+7. **Equity ≤ 100%**, on the locked row, with 33.3 + 33.3 + 33.4 counting as 100. *(test_two_member_saves_can_not_push_equity_past_100)*
+8. **Reviewer endpoints answer 404 to everyone else**, the export too. *(test_non_reviewers_get_404_everywhere_in_the_panel)*
+9. **Password reset never reveals who is registered.** *(test_password_reset_answers_the_same_for_known_and_unknown_emails)*
+10. **CSV export neutralises formulas.** *(test_csv_export_escapes_and_neutralises_formulas)*
+11. **Cross-site requests can't use a visitor's cookie** to change data. *(test_cookie_session_writes_must_come_from_the_site)*
+12. **The public directory is an allowlist:** no emails, phones, equity, money, deck, review messages. *(test_submitted_startups_are_listed_without_private_fields)*
 
 ## Notifications
 
-None are sent yet. The decision hook is marked `TODO` in `src/app/admin/actions.ts`.
+All sent by the Celery worker after the change commits; failed sends are retried with back-off for about 30 minutes. Templates: [backend/templates/emails/](../backend/templates/emails/) (plain text, wrapped in one HTML layout).
 
-| Trigger | To | Content |
+| Trigger | To | Email |
 | --- | --- | --- |
-| Account created | Founder | Email verification link |
-| Password reset requested | Founder | Single-use reset link (only if the account exists; the UI response is identical either way) |
+| Account created | Founder | Confirm your email (link to `/verify-email`) |
+| Password reset requested | Account holder, if the account exists | Single-use link to `/reset-password` (30 minutes) |
+| Password reset or changed | Account holder | "Your password was changed" |
 | Application submitted or resubmitted | Founder | Confirmation; review starts within 5 working days |
-| Application submitted or resubmitted | Reviewers | New item in the queue |
-| Start review | Founder | Who's reviewing (the optional message) |
-| Request changes | Founder | The reviewer's message, and a link to `/dashboard` |
-| Accept / Decline | Founder | The decision and message |
-| Waiting 5+ days | Reviewers | Daily digest of overdue applications |
-| Contact form sent (`/contact`) | Support team | The message, topic and sender's email to reply to. Until then messages only land in `.data/messages.json`; replace `saveContactMessage` in [src/lib/contact.ts](../src/lib/contact.ts) with a database insert plus this email |
-| Newsletter sign-up (`/newsletter`, article pages) | Subscriber | Welcome email / double opt-in. Until then addresses only land in `.data/subscribers.json`; replace `addSubscriber` in [src/lib/newsletter.ts](../src/lib/newsletter.ts) with your email provider's add-contact call. It must keep returning `false` for an address already on the list |
-| Event registration (`/events/[slug]`) | Guest | Confirmation with joining details (venue address or online link) and a calendar invite; a reminder the day before. Until then registrations only land in `.data/registrations.json`; replace `addRegistration` in [src/lib/events.ts](../src/lib/events.ts). It must keep returning `false` when that email is already registered for the event |
+| Application submitted or resubmitted | Each reviewer (one email each) | New item, with a link to it in the panel |
+| Any decision | Founder | What happened, the reviewer's message, a link to the dashboard |
+| Daily at 08:00 UTC | Each reviewer | Applications waiting 5+ days |
+| Contact form | `SUPPORT_EMAILS` (or every reviewer) | The message, reply-to the sender |
+| Newsletter sign-up | Subscriber | Welcome, with an unsubscribe link |
+| Event registration | Guest | Confirmation with the venue or joining link and a calendar invite (`invite.ics`) |
+| The day before an event | Guests who registered more than a day ahead | Reminder (checked hourly) |
 
-## REST API (only if you build a separate backend service)
+## Caching and refresh
 
-Stay with Server Actions unless another client needs the data, such as a mobile app. If you do build a service (Node, Go, Python…), expose the operations above as the endpoints below. Then turn `store.ts` and `auth.ts` into server-side HTTP clients that forward the session cookie, and leave the rest of the frontend unchanged.
+- **The API** caches the startup directory, events and articles in Redis for 5 minutes, and drops them the moment one changes.
+- **The website** caches its reads of that public data for a minute (`fetch` tags `startups`, `events`, `newsletter`), and its public pages are static (ISR, `revalidate = 60`).
+- **On change**, the API's worker calls the website's [`/api/revalidate`](../src/app/api/revalidate/route.ts) with the tag (authorised by `REVALIDATE_SECRET`), so an event edited in the back office or a decided application shows within seconds. Founder and reviewer actions refresh the `startups` tag themselves.
+- **At build time** the API isn't reachable, so public pages are prerendered without data (`BUILDING` in `lib/api.ts`) and [scripts/expire-prerendered.mjs](../scripts/expire-prerendered.mjs) backdates them; the first visit after a deploy renders them with live data. If the API is down later, the last good copy keeps being served.
+- Signed-in pages (`/dashboard`, `/admin`) are always rendered per request and never cached.
 
-| Method | Path | Body | Success | Errors |
-| --- | --- | --- | --- | --- |
-| POST | `/auth/register` | `{ name, email, password }` | 201 `{ user }` + session cookie | 422 `{ errors }` |
-| POST | `/auth/login` | `{ email, password, remember }` | 200 `{ user }` + session cookie | 401 generic message |
-| POST | `/auth/logout` | — | 204 | — |
-| POST | `/auth/password-reset` | `{ email }` | 202 always | 429 |
-| POST | `/auth/password-reset/confirm` | `{ token, password }` | 204 | 400 invalid/expired token, 422 |
-| GET | `/auth/google/start` | — | 302 to Google | — |
-| GET | `/auth/google/callback` | `?code&state` | 302 to `/dashboard` | 400 bad state |
-| GET | `/me` | — | 200 `{ id, email, name, role }` | 401 |
-| GET | `/me/application` | — | 200 `Application` (no `review`) | 401 |
-| PATCH | `/me/application/profile` | `Profile` fields | 200 `Application` | 409 locked, 422 `{ errors }` |
-| PATCH | `/me/application/startup` | `Startup` fields | 200 | 409, 422 |
-| PATCH | `/me/application/team` | `{ workedTogether, whyUs, hiringNeeds }` | 200 | 409, 422 |
-| POST | `/me/application/team/members` | member fields | 201 | 409, 422 (incl. equity) |
-| PATCH | `/me/application/team/members/:memberId` | member fields | 200 | 404, 409, 422 |
-| DELETE | `/me/application/team/members/:memberId` | — | 204 | 404, 409 |
-| POST | `/me/application/submit` | `{ confirm: true }` | 200 | 409, 422 `{ missing: [...] }` |
-| POST | `/me/application/withdraw` | — | 200 | 409 review started |
-| GET | `/admin/applications` | `?status&q&stage&industry&mine&sort&cursor` | 200 `{ rows: QueueRow[], counts, nextCursor }` | 404 non-reviewer |
-| GET | `/admin/applications/:id` | — | 200 `StoredApplication` | 404 |
-| POST | `/admin/applications/:id/decisions` | `{ decision, message }` | 200 | 409 status changed, 422 |
-| PUT | `/admin/applications/:id/assignee` | `{ me: true }` | 200 | 404 |
-| DELETE | `/admin/applications/:id/assignee` | — | 204 | 404 |
-| PUT | `/admin/applications/:id/scorecard` | `{ scores, recommendation, summary }` | 200 (caller's card) | 404, 422 |
-| POST | `/admin/applications/:id/notes` | `{ body }` | 201 | 404, 422 |
-| GET | `/admin/export.csv` | — | 200 `text/csv` | 404 |
+## Rate limits
 
-**Error conventions:**
+Counted per client address in Redis, so every API worker shares one count. The address is the visitor's, passed on by Caddy and the website (`X-Forwarded-For` is only believed from the private network).
 
-- **401:** not signed in.
-- **404:** not found, and also *not allowed*, so reviewer-only resources don't reveal they exist.
-- **409:** locked, or the status changed underneath the request.
-- **422:** validation failed, with `{ errors: { field: message } }` using the form field names.
-
-`QueueRow` is defined in [src/lib/application/review.ts](../src/lib/application/review.ts).
-
-## Migrating the development data
-
-`.data/applications.json` holds test data only. `dev-founder` is the shared stand-in, and `demo-*` records are generated by `npm run seed:demo`. **Don't migrate them.** Start production with an empty database. If real applications ever land in the file before the database exists, import each record by creating (or matching) its user from `profile.email`, then inserting the application, events, scorecards and notes per the mapping table above.
+| Scope | Limit |
+| --- | --- |
+| Sign-in | 10 per minute per address, 20 per hour per email |
+| Sign-up | 10 per hour per address |
+| Password reset | 5 per hour per address, 3 per hour per email |
+| Contact form / newsletter / event registration | 10 / 20 / 30 per hour per address |
+| Everything else | 300 per minute anonymous, 600 per minute signed in |
 
 ## Environment variables
 
-| Variable | Status | Purpose |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | In use | Site address; Google redirect URL; link previews |
-| `GOOGLE_CLIENT_ID` | In use | Google consent screen |
-| `GOOGLE_CLIENT_SECRET` | Needed in phase 6 | Code exchange in the callback |
-| `REVIEWER_EMAILS` | In use until phase 3 | Temporary reviewer allowlist |
-| `DATABASE_URL` | Proposed, phase 1 | Postgres connection |
-| Email provider key (e.g. `RESEND_API_KEY`) | Proposed, phases 4–7 | Verification, reset and notification emails |
+All in [.env.example](../.env.example), with what each one does. The ones you must set for production: `SITE_URL`, `SITE_ADDRESS`, `DJANGO_SECRET_KEY`, `POSTGRES_PASSWORD`, `REVALIDATE_SECRET`, and the `EMAIL_*` settings. Google sign-in needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, with `<SITE_URL>/api/auth/callback/google` as an authorised redirect URI.
 
-## Tests to automate
+The website reads `BACKEND_URL` (where the API is; `http://backend:8000` in Docker), `GOOGLE_CLIENT_ID`, `REVALIDATE_SECRET`, `COOKIE_SECURE`, and `NEXT_PUBLIC_SITE_URL` (set at build time from `SITE_URL`).
 
-Each of these was verified by hand in the browser. Turn them into integration tests when the backend lands:
+## Tests
 
-- [ ] A founder can't read or change another founder's application.
-- [ ] No founder page or payload contains scorecards, notes, assignee or `review`.
-- [ ] A founder save leaves the assignee, scorecards and notes untouched.
-- [ ] Saves are refused (and nothing is written) while the status is `submitted`, `in_review`, `accepted` or `declined`.
-- [ ] Submitting with any required answer missing is refused.
-- [ ] Two concurrent member saves can't push total equity past 100%.
-- [ ] Two concurrent decisions: exactly one succeeds, the other gets a conflict.
-- [ ] Non-reviewers get 404 from `/admin`, `/admin/applications/:id` and `/admin/export`, with no data or revealing title.
-- [ ] Password reset returns the same response for registered and unknown emails.
-- [ ] CSV cells starting with `=`, `+`, `-` or `@` come out prefixed with `'`.
+`cd backend && pytest` runs 121 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections. The list that was checked by hand before the backend existed is now automated:
+
+- [x] A founder can't read or change another founder's application.
+- [x] No founder payload contains scorecards, notes, assignee or `review`.
+- [x] A founder save leaves the assignee, scorecards and notes untouched.
+- [x] Saves are refused (and nothing is written) while the status is `submitted`, `in_review`, `accepted` or `declined`.
+- [x] Submitting with any required answer missing is refused.
+- [x] Two concurrent member saves can't push total equity past 100%.
+- [x] Two concurrent decisions: exactly one succeeds, the other gets a conflict.
+- [x] Non-reviewers get 404 from every review endpoint and the export.
+- [x] Password reset returns the same response for registered and unknown emails.
+- [x] CSV cells starting with `=`, `+`, `-` or `@` come out prefixed with `'`.
+
+## Still to decide before launch
+
+- Whether applicants must opt in to the public directory (the form has no such consent today), and whether declined applications should be listed at all.
+- The real launch content: the events and newsletter issues loaded by `seed_content` are the site's original placeholders, now editable in the back office.
+- An email provider (any SMTP service) and a verified sending domain (SPF, DKIM, DMARC), so emails don't land in spam.
