@@ -20,6 +20,6 @@ export async function POST(request: NextRequest) {
   if (!authorised(request)) return new Response("Not found", { status: 404 });
   const body = (await request.json().catch(() => ({}))) as { tags?: unknown };
   const tags = Array.isArray(body.tags) ? body.tags.filter((t): t is string => KNOWN_TAGS.has(t as string)) : [];
-  for (const tag of tags) revalidateTag(tag, { expire: 0 });
+  for (const tag of tags) revalidateTag(tag, "max");
   return Response.json({ revalidated: tags });
 }
