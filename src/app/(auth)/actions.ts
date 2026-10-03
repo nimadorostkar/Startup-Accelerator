@@ -33,20 +33,23 @@ export async function login(
   const email = readString(form, "email");
   const password = readString(form, "password");
   const remember = form.get("remember") === "on";
+  // Checkboxes too: React resets the form after an action, so they'd come back unticked.
+  const values = { email, remember: remember ? "on" : "" };
 
   const errors = collect([
     ["email", checkEmail(email)],
     ["password", password ? null : "Enter your password."],
   ]);
-  if (errors) return { errors, values: { email } };
+  if (errors) return { errors, values };
 
-  const result = await signInWithPassword({ email, password, remember });
+  // `next`: the page they were on (e.g. a link in an email); checked in lib/auth.ts.
+  const result = await signInWithPassword({ email, password, remember }, readString(form, "next"));
   if (result.ok) redirect(result.redirectTo);
 
   return {
     message: result.message,
     errors: result.fieldErrors,
-    values: { email },
+    values,
   };
 }
 
@@ -57,6 +60,8 @@ export async function register(
   const name = readString(form, "name");
   const email = readString(form, "email");
   const password = readString(form, "password");
+  const terms = form.get("terms") === "on";
+  const values = { name, email, terms: terms ? "on" : "" };
 
   const errors = collect([
     ["name", checkName(name)],
@@ -64,10 +69,10 @@ export async function register(
     ["password", checkNewPassword(password)],
     [
       "terms",
-      form.get("terms") === "on" ? null : "Please accept the terms to continue.",
+      terms ? null : "Please accept the terms to continue.",
     ],
   ]);
-  if (errors) return { errors, values: { name, email } };
+  if (errors) return { errors, values };
 
   const result = await createAccount({ name, email, password });
   if (result.ok) redirect(result.redirectTo);
@@ -75,7 +80,7 @@ export async function register(
   return {
     message: result.message,
     errors: result.fieldErrors,
-    values: { name, email },
+    values,
   };
 }
 
@@ -105,8 +110,8 @@ export async function requestReset(
   };
 }
 
-export async function continueWithGoogle(): Promise<AuthFormState> {
-  const result = await startGoogleOAuth();
+export async function continueWithGoogle(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
+  const result = await startGoogleOAuth(readString(form, "next"));
   if (result.ok) redirect(result.redirectTo);
 
   return { message: result.message };

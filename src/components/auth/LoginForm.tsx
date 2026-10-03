@@ -7,8 +7,9 @@ import Field from "./Field";
 import FormBanner from "./FormBanner";
 import SubmitButton from "./SubmitButton";
 
-/** `notice` is shown in the banner before the first submit (e.g. a failed Google sign-in). */
-export default function LoginForm({ notice }: { notice?: string }) {
+/** `notice` is shown in the banner before the first submit (e.g. a failed Google sign-in);
+    `next` is where to go once signed in (checked on the server). */
+export default function LoginForm({ notice, next }: { notice?: string; next?: string }) {
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     login,
     notice ? { message: notice } : {},
@@ -22,6 +23,7 @@ export default function LoginForm({ notice }: { notice?: string }) {
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5">
       {state.message && <FormBanner>{state.message}</FormBanner>}
+      {next && <input type="hidden" name="next" value={next} />}
 
       <Field
         label="Email"
@@ -53,7 +55,12 @@ export default function LoginForm({ notice }: { notice?: string }) {
       />
 
       <label className="flex w-fit items-center gap-3 py-1 text-[14px] text-ink-soft select-none">
-        <input type="checkbox" name="remember" className="field-check" />
+        <input
+          type="checkbox"
+          name="remember"
+          defaultChecked={state.values?.remember === "on"}
+          className="field-check"
+        />
         Keep me signed in
       </label>
 

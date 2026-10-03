@@ -57,6 +57,7 @@ export default function RegisterForm() {
           <input
             type="checkbox"
             name="terms"
+            defaultChecked={state.values?.terms === "on"}
             aria-invalid={state.errors?.terms ? true : undefined}
             aria-describedby={state.errors?.terms ? termsError : undefined}
             className="field-check mt-0.5 shrink-0"

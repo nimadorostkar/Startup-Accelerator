@@ -20,6 +20,7 @@ export default function VerifyEmailForm({ token }: { token: string }) {
           Email confirmed
         </h2>
         <p className="lead mt-3">Thanks — we&rsquo;ll use this address for everything about your application.</p>
+        {/* Reviewers are sent on to the review panel from here. */}
         <Link
           href="/dashboard"
           className="mt-8 flex h-12 w-full items-center justify-center rounded-full bg-ink font-display text-[13px] font-semibold tracking-[0.04em] text-white transition-colors duration-200 hover:bg-ink-soft"

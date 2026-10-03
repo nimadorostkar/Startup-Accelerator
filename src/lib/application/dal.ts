@@ -1,4 +1,5 @@
 import "server-only";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 import { api } from "@/lib/api";
 import { getCurrentUser, redirectToSignIn, type SessionUser } from "@/lib/auth";
@@ -18,7 +19,11 @@ export const requireUser = cache(async (): Promise<SessionUser> => {
 
 /** The signed-in founder's application, created as a blank draft on first visit. */
 export const getMyApplication = cache(async (): Promise<Application> => {
-  await requireUser();
+  const user = await requireUser();
+  // Staff don't apply: reading it would start a founder application in their name
+  // (and put it in the review queue). Reviewers who haven't confirmed their
+  // address yet can't open the panel, so they're asked to do that first.
+  if (user.role === "reviewer") redirect(user.isReviewer ? "/admin" : "/verify-email");
   const result = await api<{ application: Application }>("/me/application", { auth: true });
   if (result.status === 401) return redirectToSignIn();
   if (!result.ok) throw new Error(`Couldn't load the application (${result.status}).`);

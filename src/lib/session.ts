@@ -8,6 +8,9 @@ export const SESSION_COOKIE = "vcs_session";
     session can send the visitor back to it after signing in again. */
 export const RETURN_TO_HEADER = "x-fundup-return-to";
 
+/** Shown when the session ended between loading a form and saving it. */
+export const SIGNED_OUT = "You've been signed out, so this wasn't saved. Sign in again, then save.";
+
 /** The areas behind sign-in. Only these can be returned to after signing in. */
 const SIGNED_IN_AREAS = ["/dashboard", "/admin"] as const;
 

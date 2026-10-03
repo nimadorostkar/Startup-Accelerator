@@ -3,6 +3,7 @@ import Link from "next/link";
 import GoogleButton from "@/components/auth/GoogleButton";
 import LoginForm from "@/components/auth/LoginForm";
 import Eyebrow from "@/components/ui/Eyebrow";
+import { safeReturnTo } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Sign in — Fundup Club",
@@ -15,11 +16,17 @@ const GOOGLE_ERRORS: Record<string, string> = {
   google_cancelled: "Google sign-in was cancelled. Try again, or sign in with your email.",
   google_state: "That Google sign-in took too long or didn't start here. Please try again.",
   google: "Google sign-in didn't work this time. Please try again, or sign in with your email.",
+  google_unverified: "Your Google account needs a verified email address. Verify it with Google, or sign in with your email.",
+  google_disabled: "This account has been deactivated. Contact us if you think that's a mistake.",
+  google_busy: "Too many sign-in attempts. Please wait a few minutes and try again.",
+  google_unavailable: "Google sign-in isn't available right now. Please sign in with your email, or try again later.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const { error } = await searchParams;
+  const { error, next: nextParam } = await searchParams;
   const notice = typeof error === "string" ? GOOGLE_ERRORS[error] : undefined;
+  // Where to go once signed in (e.g. the page an email linked to); only paths inside the site.
+  const next = safeReturnTo(nextParam) ?? undefined;
 
   return (
     <>
@@ -34,7 +41,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       </p>
 
       <div className="mt-8">
-        <GoogleButton label="Continue with Google" />
+        <GoogleButton label="Continue with Google" next={next} />
       </div>
 
       <div className="my-7 flex items-center gap-4">
@@ -45,7 +52,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <span className="h-px flex-1 bg-line" />
       </div>
 
-      <LoginForm notice={notice} />
+      <LoginForm notice={notice} next={next} />
 
       <p className="mt-8 text-center text-[14px] text-muted">
         New to Fundup Club?{" "}

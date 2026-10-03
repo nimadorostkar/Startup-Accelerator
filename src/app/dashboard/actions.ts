@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { api, BackendUnavailable, UNAVAILABLE } from "@/lib/api";
 import { changePassword, endSession, renameAccount, resendVerification } from "@/lib/auth";
-import { RETURN_TO_HEADER, signInHref } from "@/lib/session";
+import { RETURN_TO_HEADER, SIGNED_OUT, signInHref } from "@/lib/session";
 import { checkName, checkNewPassword, collect, readString, type FieldErrors } from "@/lib/validation";
 
 /* The dashboard's forms. Each sends what was typed to the API, which checks
@@ -25,9 +25,6 @@ export type SaveState = {
   /** The session ended: nothing was saved, and this signs in again (in a new tab, keeping the form). */
   signInHref?: string;
 };
-
-/** Shown when the session ended between loading a form and saving it. */
-export const SIGNED_OUT = "You've been signed out, so this wasn't saved. Sign in again, then save.";
 
 function echo(form: FormData) {
   const values: Record<string, string> = {};
@@ -181,7 +178,7 @@ export async function submitApplication(_prev: SaveState, form: FormData): Promi
     { confirm: true },
     "Submitted — the review team has your application.",
   );
-  if (state.ok) revalidateTag("startups", { expire: 0 });
+  if (state.ok) revalidateTag("startups", "max");
   return state;
 }
 
@@ -194,7 +191,7 @@ export async function withdrawApplication(): Promise<SaveState> {
     undefined,
     "Withdrawn — your application is back in draft.",
   );
-  if (state.ok) revalidateTag("startups", { expire: 0 });
+  if (state.ok) revalidateTag("startups", "max");
   return state;
 }
 

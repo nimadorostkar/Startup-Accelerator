@@ -4,8 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { api, BackendUnavailable, UNAVAILABLE } from "@/lib/api";
-import { SIGNED_OUT } from "@/app/dashboard/actions";
-import { RETURN_TO_HEADER, signInHref } from "@/lib/session";
+import { RETURN_TO_HEADER, SIGNED_OUT, signInHref } from "@/lib/session";
 import { DECISIONS, type Decision } from "@/lib/application/decisions";
 import { SCORE_AREAS } from "@/lib/application/types";
 import { readString, type FieldErrors } from "@/lib/validation";
@@ -74,7 +73,7 @@ async function send(
   }
   revalidatePath("/admin", "layout");
   revalidatePath("/dashboard", "layout");
-  revalidateTag("startups", { expire: 0 });
+  revalidateTag("startups", "max");
   return { ok: true, message, savedAt: new Date().toISOString() };
 }
 

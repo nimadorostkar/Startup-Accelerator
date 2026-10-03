@@ -7,7 +7,7 @@ import FormBanner from "./FormBanner";
 
 /* Its own form, so a Google failure doesn't wipe what's typed in the
    email form next to it. */
-export default function GoogleButton({ label }: { label: string }) {
+export default function GoogleButton({ label, next }: { label: string; next?: string }) {
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     continueWithGoogle,
     {},
@@ -16,6 +16,7 @@ export default function GoogleButton({ label }: { label: string }) {
   return (
     <div>
       <form action={formAction}>
+        {next && <input type="hidden" name="next" value={next} />}
         <button
           type="submit"
           disabled={pending}

@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SidebarNav, TabNav, type NavItem } from "@/components/dashboard/DashboardNav";
 import FocusFromHash from "@/components/dashboard/FocusFromHash";
-import { ChatIcon, LogOutIcon } from "@/components/dashboard/icons";
+import { ChatIcon, UserIcon } from "@/components/dashboard/icons";
+import SignOutButton from "@/components/dashboard/SignOutButton";
 import { initials } from "@/components/dashboard/initials";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import VerifyEmailNotice from "@/components/dashboard/VerifyEmailNotice";
 import { BrandLogo } from "@/components/Logo";
 import { getMyApplication, requireUser } from "@/lib/application/dal";
-import { isReviewer } from "@/lib/auth";
 import { progress } from "@/lib/application/progress";
 import { signOut } from "./actions";
 
@@ -59,17 +59,6 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         </div>
 
         <div className="mt-auto flex flex-col gap-4">
-          {isReviewer(user) && (
-            <Link
-              href="/admin"
-              className="flex h-11 items-center justify-between rounded-xl px-3 text-[13px] font-semibold text-ink-soft ring-1 ring-line-soft hover:text-ink hover:ring-brand"
-            >
-              Review panel
-              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-brand-strong uppercase">
-                Team
-              </span>
-            </Link>
-          )}
           <Link
             href="/#faq"
             className="group flex items-start gap-3 rounded-2xl bg-night p-4 text-white transition-[filter] hover:brightness-110"
@@ -90,19 +79,16 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
             >
               {initials(name)}
             </span>
-            <span className="min-w-0 flex-1 leading-tight">
-              <span className="block truncate text-[14px] font-semibold text-ink">{name}</span>
+            <Link
+              href="/dashboard/account"
+              title="Account settings"
+              className="min-w-0 flex-1 rounded-lg leading-tight hover:[&>span:first-child]:text-brand-strong"
+            >
+              <span className="block truncate text-[14px] font-semibold text-ink transition-colors">{name}</span>
               <span className="block truncate text-[12px] text-muted">{user.email}</span>
-            </span>
+            </Link>
             <form action={signOut}>
-              <button
-                type="submit"
-                aria-label="Sign out"
-                title="Sign out"
-                className="flex h-10 w-10 items-center justify-center rounded-full text-muted transition-colors hover:bg-cream hover:text-ink"
-              >
-                <LogOutIcon className="h-[18px] w-[18px]" />
-              </button>
+              <SignOutButton className="flex h-10 w-10 items-center justify-center rounded-full text-muted transition-colors hover:bg-cream hover:text-ink" />
             </form>
           </div>
         </div>
@@ -129,14 +115,18 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
                     <span className="block truncate text-[14px] font-semibold text-ink">{name}</span>
                     <span className="block truncate text-[12px] text-muted">{user.email}</span>
                   </p>
-                  <form action={signOut} className="border-t border-line-soft pt-1">
-                    <button
-                      type="submit"
+                  <Link
+                    href="/dashboard/account"
+                    className="flex h-11 w-full items-center gap-2.5 rounded-xl border-t border-line-soft px-3 text-[14px] font-semibold text-ink-soft hover:bg-cream"
+                  >
+                    <UserIcon className="h-[18px] w-[18px]" />
+                    Account settings
+                  </Link>
+                  <form action={signOut} className="pt-1">
+                    <SignOutButton
+                      withLabel
                       className="flex h-11 w-full items-center gap-2.5 rounded-xl px-3 text-[14px] font-semibold text-ink-soft hover:bg-cream"
-                    >
-                      <LogOutIcon className="h-[18px] w-[18px]" />
-                      Sign out
-                    </button>
+                    />
                   </form>
                 </div>
               </details>

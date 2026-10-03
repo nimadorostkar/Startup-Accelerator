@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { signOut } from "@/app/dashboard/actions";
-import { LogOutIcon } from "@/components/dashboard/icons";
+import SignOutButton from "@/components/dashboard/SignOutButton";
 import { initials } from "@/components/dashboard/initials";
 import { BrandLogo } from "@/components/Logo";
 import { requireReviewer } from "@/lib/application/review";
@@ -61,14 +61,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
               {initials(reviewer.name)}
             </span>
             <form action={signOut}>
-              <button
-                type="submit"
-                aria-label="Sign out"
-                title="Sign out"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
-              >
-                <LogOutIcon className="h-[18px] w-[18px]" />
-              </button>
+              <SignOutButton className="flex h-9 w-9 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white" />
             </form>
           </div>
         </div>
