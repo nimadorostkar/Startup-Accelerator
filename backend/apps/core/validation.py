@@ -19,6 +19,9 @@ EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
 NUMBER = re.compile(r"^(\d+\.?\d*|\.\d+)$")
 HOST_LABEL = re.compile(r"^[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?$", re.IGNORECASE)
 MAX_URL_LENGTH = 2000
+# Bigger than any honest count or amount, and small enough to come back unchanged
+# through JavaScript (which would print 1e21 as "1e+21", failing every later save).
+MAX_NUMBER = 1_000_000_000_000
 
 
 def text_length(value: str) -> int:
@@ -50,14 +53,16 @@ class Fields:
         if value is None:
             return ""
         if isinstance(value, str):
-            return value.strip()
+            # Browsers send a form's line breaks as \r\n; the website's counters see one
+            # character, so store (and count) them as one.
+            return value.replace("\r\n", "\n").replace("\r", "\n").strip()
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             return str(value)
         self.error(key, "Enter text.")
         return ""
 
-    def number(self, key: str) -> int | float | None:
-        """A whole or decimal, non-negative number; empty stays None."""
+    def number(self, key: str, *, whole: bool = False) -> int | float | None:
+        """A non-negative number (a whole one with `whole`) up to MAX_NUMBER; empty stays None."""
         value = self.data.get(key)
         if value is None:
             return None
@@ -80,17 +85,16 @@ class Fields:
         if not math.isfinite(n) or n < 0:
             self.error(key, "Enter a positive number.")
             return None
+        if n > MAX_NUMBER:
+            self.error(key, "That number is too large.")
+            return None
+        if whole and not float(n).is_integer():
+            self.error(key, "Enter a whole number.")
+            return None
         return int(n) if float(n).is_integer() else n
 
     def flag(self, key: str) -> bool:
         return self.data.get(key) in (True, 1, "on", "true", "1", "yes")
-
-
-def format_number(n: float) -> str:
-    """110 → "110", 110.5 → "110.5" (as JavaScript would print it)."""
-    if float(n).is_integer():
-        return str(int(n))
-    return f"{n:.2f}".rstrip("0").rstrip(".")
 
 
 def check_name(value: str) -> str | None:
@@ -172,7 +176,11 @@ def optional_linkedin(value: str) -> str | None:
     bad = optional_url(value)
     if bad:
         return bad
-    if value and not re.search(r"linkedin\.com/", value, re.IGNORECASE):
+    if not value:
+        return None
+    # The link is shown publicly, so it must really go to LinkedIn, not merely mention it.
+    host = (urlsplit(normalize_url(value)).hostname or "").rstrip(".").lower()
+    if host != "linkedin.com" and not host.endswith(".linkedin.com"):
         return "Use your LinkedIn profile link (linkedin.com/in/…)."
     return None
 

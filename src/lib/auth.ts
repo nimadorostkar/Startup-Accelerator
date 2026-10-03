@@ -16,16 +16,18 @@
 
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 import { api, BackendUnavailable, SESSION_COOKIE, UNAVAILABLE, type ApiResult } from "./api";
+import { areaOf, RETURN_TO_HEADER, safeReturnTo, signInHref } from "./session";
 import { SITE_URL } from "./site";
 
 export { SESSION_COOKIE };
 
 export type AuthResult =
   | { ok: true; redirectTo: string }
-  | { ok: false; message?: string; fieldErrors?: Record<string, string> };
+  | { ok: false; message?: string; fieldErrors?: Record<string, string>; status?: number };
 
 /** Password reset has no redirect on success — the answer is "check your inbox". */
 export type ResetRequestResult =
@@ -47,15 +49,20 @@ export type SessionUser = {
   /** Reviewer role on a verified address: may open the review panel. */
   isReviewer: boolean;
   emailVerified: boolean;
+  /** False for accounts that only ever signed in with Google. */
+  hasPassword: boolean;
 };
 
-/** Send the cookie over HTTPS only (COOKIE_SECURE=false for plain-http local runs). */
-const COOKIE_SECURE = process.env.COOKIE_SECURE
-  ? process.env.COOKIE_SECURE !== "false"
+/** Send the cookie over HTTPS only (COOKIE_SECURE=false for plain-http local runs).
+    Read exactly as the API reads it (backend/config/settings.py env_bool). */
+const COOKIE_SECURE = process.env.COOKIE_SECURE?.trim()
+  ? ["1", "true", "yes", "on"].includes(process.env.COOKIE_SECURE.trim().toLowerCase())
   : process.env.NODE_ENV === "production";
 
 /** Short-lived cookie holding the Google sign-in `state`, checked on the way back. */
 export const OAUTH_STATE_COOKIE = "vcs_oauth_state";
+/** Where to go after Google sign-in (the `next` the sign-in page was opened with). */
+export const OAUTH_RETURN_COOKIE = "vcs_oauth_next";
 export const GOOGLE_CALLBACK_PATH = "/api/auth/callback/google";
 
 /**
@@ -65,8 +72,23 @@ export const GOOGLE_CALLBACK_PATH = "/api/auth/callback/google";
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   if (!(await cookies()).get(SESSION_COOKIE)?.value) return null;
   const result = await api<{ user: SessionUser }>("/me", { auth: true });
-  return result.ok ? result.data.user : null; // 401: expired or revoked
+  if (result.ok) return result.data.user;
+  if (result.status === 401) return null; // expired or revoked
+  // Anything else (rate limited, say) isn't "signed out": show the error page, not the sign-in form.
+  throw new Error(`Couldn't check who is signed in (${result.status}).`);
 });
+
+/** Off to sign in, coming back to the page being visited afterwards (see proxy.ts). */
+export async function redirectToSignIn(): Promise<never> {
+  redirect(signInHref((await headers()).get(RETURN_TO_HEADER)));
+}
+
+/** Where someone lands after signing in: `returnTo` if it's in their own area, else their home. */
+function destination(user: SessionUser, returnTo?: string | null) {
+  const home = user.isReviewer ? AFTER_REVIEWER_SIGN_IN : AFTER_SIGN_IN;
+  const next = safeReturnTo(returnTo);
+  return next && areaOf(next) === home ? next : home;
+}
 
 /** Who can open the review panel: the API's reviewer role, on a verified address. */
 export function isReviewer(user: SessionUser) {
@@ -100,6 +122,7 @@ function refusal(result: Extract<ApiResult<unknown>, { ok: false }>) {
     ok: false as const,
     message: result.error.errors ? undefined : (result.error.message ?? "That didn't work. Please try again."),
     fieldErrors: result.error.errors,
+    status: result.status,
   };
 }
 
@@ -118,21 +141,20 @@ async function guarded<T>(run: () => Promise<T>, fallback: T): Promise<T> {
 
 const unavailable = { ok: false as const, message: UNAVAILABLE };
 
-async function signIn(path: string, body: unknown): Promise<AuthResult> {
+async function signIn(path: string, body: unknown, returnTo?: string | null): Promise<AuthResult> {
   return guarded<AuthResult>(async () => {
     const result = await api<{ user: SessionUser }>(path, { method: "POST", body });
     if (!result.ok) return refusal(result);
     await keepSession(result.response);
-    return { ok: true, redirectTo: result.data.user.isReviewer ? AFTER_REVIEWER_SIGN_IN : AFTER_SIGN_IN };
+    return { ok: true, redirectTo: destination(result.data.user, returnTo) };
   }, unavailable);
 }
 
-export async function signInWithPassword(input: {
-  email: string;
-  password: string;
-  remember: boolean;
-}): Promise<AuthResult> {
-  return signIn("/auth/login", input);
+export async function signInWithPassword(
+  input: { email: string; password: string; remember: boolean },
+  returnTo?: string | null,
+): Promise<AuthResult> {
+  return signIn("/auth/login", input, returnTo);
 }
 
 export async function createAccount(input: {
@@ -194,7 +216,7 @@ export async function resendVerification(): Promise<{ ok: boolean; message?: str
  * GOOGLE_CALLBACK_PATH (app/api/auth/callback/google), which checks the
  * state and hands the code to the API.
  */
-export async function startGoogleOAuth(): Promise<AuthResult> {
+export async function startGoogleOAuth(returnTo?: string | null): Promise<AuthResult> {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
     return {
@@ -211,6 +233,16 @@ export async function startGoogleOAuth(): Promise<AuthResult> {
     path: GOOGLE_CALLBACK_PATH,
     maxAge: 600,
   });
+  const next = safeReturnTo(returnTo);
+  if (next) {
+    (await cookies()).set(OAUTH_RETURN_COOKIE, next, {
+      httpOnly: true,
+      secure: COOKIE_SECURE,
+      sameSite: "lax",
+      path: GOOGLE_CALLBACK_PATH,
+      maxAge: 600,
+    });
+  }
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -224,6 +256,31 @@ export async function startGoogleOAuth(): Promise<AuthResult> {
 }
 
 /** Second half, called by the callback route once `state` checks out. */
-export async function completeGoogleSignIn(code: string): Promise<AuthResult> {
-  return signIn("/auth/google", { code });
+export async function completeGoogleSignIn(code: string, returnTo?: string | null): Promise<AuthResult> {
+  return signIn("/auth/google", { code }, returnTo);
+}
+
+/* ---------- Account settings ---------- */
+
+export type AccountResult = { ok: true } | { ok: false; message?: string; fieldErrors?: Record<string, string> };
+
+/** Renames the account (the founder's application keeps its own "full name"). */
+export async function renameAccount(name: string): Promise<AccountResult> {
+  return guarded<AccountResult>(async () => {
+    const result = await api("/me", { method: "PATCH", body: { name }, auth: true });
+    if (result.status === 401) await redirectToSignIn();
+    return result.ok ? { ok: true } : refusal(result);
+  }, unavailable);
+}
+
+/**
+ * Changes (or, for a Google-only account, sets) the password. The API ends
+ * every other session; this one carries on.
+ */
+export async function changePassword(input: { currentPassword: string; newPassword: string }): Promise<AccountResult> {
+  return guarded<AccountResult>(async () => {
+    const result = await api("/me/password", { method: "POST", body: input, auth: true });
+    if (result.status === 401) await redirectToSignIn();
+    return result.ok ? { ok: true } : refusal(result);
+  }, unavailable);
 }

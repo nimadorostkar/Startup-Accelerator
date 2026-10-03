@@ -207,6 +207,8 @@ def withdraw(user: User) -> Application:
     """Pull a submission back before review starts, to keep editing."""
 
     def change(app):
+        if app.status in rules.EDITABLE:
+            raise Conflict("This application isn't submitted, so there's nothing to withdraw.")
         if app.status != "submitted":
             raise Conflict("Review has already started, so this can't be withdrawn.")
         app.status = "draft"

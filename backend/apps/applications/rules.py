@@ -11,12 +11,11 @@ show progress and hide invalid buttons; this copy is the one that's enforced).
 
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from apps.core.exceptions import Invalid
 from apps.core.validation import (
     Fields,
-    format_number,
     max_length,
     normalize_url,
     optional_email,
@@ -369,6 +368,8 @@ STARTUP_TEXT_LIMITS = {
     "useOfFunds": 1000,
 }
 STARTUP_URLS = ["website", "deckUrl", "demoUrl", "videoUrl"]
+# Counts of people: whole numbers only (so "1.200", meaning 1,200, isn't read as 1.2).
+STARTUP_WHOLE_NUMBERS = {"activeUsers", "payingCustomers"}
 STARTUP_NUMBERS = [
     "activeUsers",
     "payingCustomers",
@@ -399,7 +400,9 @@ def parse_startup(data: dict, *, today: datetime | None = None) -> dict:
             out[key] = _choice(f, key, allowed, message)
     if f.has("foundedOn"):
         value = f.text("foundedOn")
-        this_month = (today or datetime.now(UTC)).strftime("%Y-%m")
+        # The latest month anywhere on Earth (UTC+14), so a founder whose new month
+        # has begun before UTC's can still pick it.
+        this_month = ((today or datetime.now(UTC)) + timedelta(hours=14)).strftime("%Y-%m")
         valid_month = (
             len(value) == 7
             and value[4] == "-"
@@ -411,7 +414,7 @@ def parse_startup(data: dict, *, today: datetime | None = None) -> dict:
         out["foundedOn"] = value
     for key in STARTUP_NUMBERS:
         if f.has(key):
-            out[key] = f.number(key)
+            out[key] = f.number(key, whole=key in STARTUP_WHOLE_NUMBERS)
     if out.get("growthRate") is not None and out["growthRate"] > 1000:
         f.error("growthRate", "That looks too high — use % per month.")
     if f.errors:
@@ -467,5 +470,7 @@ def equity_error(members: list[dict]) -> str | None:
     # Rounded, so 33.3 + 33.3 + 33.4 counts as 100 rather than 100.00000000000001.
     total = round(sum(m.get("equity") or 0 for m in members), 6)
     if total > 100:
-        return f"That brings team equity to {format_number(total)}% — it can't exceed 100%."
+        # Up to 6 decimals, so 100.004 isn't printed as a refused "100%".
+        shown = f"{total:.6f}".rstrip("0").rstrip(".")
+        return f"That brings team equity to {shown}% — it can't exceed 100%."
     return None

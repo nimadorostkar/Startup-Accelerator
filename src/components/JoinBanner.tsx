@@ -20,17 +20,15 @@ export default function JoinBanner() {
         className="cta-glow absolute -bottom-44 -left-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.55),transparent)] [--glow-dir:-1]"
       />
 
-      {/* Photo on the right half, fading into the dark panel.
-          Stock photo (Jud Mackrill, Unsplash License: unsplash.com/photos/Of_m3hMsoAA);
-          swap in a real Fundup Club photo when there is one. */}
+      {/* Photo on the right half, fading into the dark panel. */}
       <div className="absolute inset-y-0 right-0 -z-10 w-full md:w-1/2">
         <Image
-          src="/images/founders-at-work.webp"
-          alt="Four founders gathered around a laptop, smiling"
+          src="/images/fundup-team.png"
+          alt="The Fundup Club team: ten people in suits, three seated in front and seven standing behind them"
           fill
           quality={55}
           sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover object-center"
+          className="object-cover object-top"
         />
         <div
           aria-hidden="true"

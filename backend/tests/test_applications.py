@@ -58,6 +58,17 @@ def test_profile_save_normalises_and_never_takes_the_email_from_the_form(founder
     [
         ({"phone": "12ab"}, "phone", "Enter a phone number with country code, e.g. +1 415 555 0100."),
         ({"linkedin": "twitter.com/maya"}, "linkedin", "Use your LinkedIn profile link (linkedin.com/in/…)."),
+        # Mentioning LinkedIn isn't enough: the link is public, so it must go there.
+        (
+            {"linkedin": "evil.example/linkedin.com/in/x"},
+            "linkedin",
+            "Use your LinkedIn profile link (linkedin.com/in/…).",
+        ),
+        (
+            {"linkedin": "notlinkedin.com/in/x"},
+            "linkedin",
+            "Use your LinkedIn profile link (linkedin.com/in/…).",
+        ),
         ({"experienceYears": "61"}, "experienceYears", "That's more than 60 years."),
         ({"experienceYears": "-1"}, "experienceYears", "Enter a positive number."),
         ({"commitment": "weekends"}, "commitment", "Pick an option."),
@@ -81,6 +92,11 @@ def test_profile_validation_messages(founder_client, body, field, message):
         ({"foundedOn": "2024-13"}, "foundedOn", "Pick a month that isn't in the future."),
         ({"growthRate": "1001"}, "growthRate", "That looks too high — use % per month."),
         ({"monthlyRevenue": "lots"}, "monthlyRevenue", "Enter a positive number."),
+        # 1e21 would come back from JavaScript as "1e+21" and block every later save.
+        ({"activeUsers": "1000000000000000000000"}, "activeUsers", "That number is too large."),
+        ({"seeking": 10**13}, "seeking", "That number is too large."),
+        ({"activeUsers": "1.200"}, "activeUsers", "Enter a whole number."),
+        ({"payingCustomers": "1.5"}, "payingCustomers", "Enter a whole number."),
         ({"businessModel": "Vibes"}, "businessModel", "Pick a model."),
     ],
 )
@@ -97,6 +113,21 @@ def test_startup_save_parses_numbers_and_links(founder_client):
     assert startup["growthRate"] == 12.5
     assert startup["website"] == "https://ledgerly.example"
     assert startup["deckUrl"] == "https://docsend.example/ledgerly"
+
+
+def test_line_breaks_count_once_and_are_stored_as_newlines(founder_client):
+    # Browsers send textarea line breaks as \r\n; the website's counter sees one character each.
+    bio = "\r\n".join(["x" * 59] * 20)  # 59 * 20 + 19 = 1199 characters as the founder sees it
+    response = founder_client.patch("/api/v1/me/application/profile", {"bio": bio}, format="json")
+    assert response.status_code == 200
+    assert response.json()["application"]["profile"]["bio"] == bio.replace("\r\n", "\n")
+
+
+def test_linkedin_subdomains_are_fine(founder_client):
+    response = founder_client.patch(
+        "/api/v1/me/application/profile", {"linkedin": "uk.linkedin.com/in/maya"}, format="json"
+    )
+    assert response.json()["application"]["profile"]["linkedin"] == "https://uk.linkedin.com/in/maya"
 
 
 def test_partial_saves_keep_other_answers(founder_client):
@@ -163,6 +194,19 @@ def test_equity_can_not_exceed_100_percent(founder_client):
     assert response.status_code == 422
     assert response.json()["errors"]["equity"] == "That brings team equity to 110% — it can't exceed 100%."
     assert len(app_of(founder_client)["team"]["members"]) == 1  # nothing written
+
+
+def test_equity_just_past_100_is_not_reported_as_100(founder_client):
+    [me] = app_of(founder_client)["team"]["members"]
+    founder_client.patch(
+        f"/api/v1/me/application/team/members/{me['id']}", {"role": "CEO", "equity": 100}, format="json"
+    )
+    response = founder_client.post(
+        "/api/v1/me/application/team/members", {"name": "Tom", "role": "CTO", "equity": 0.004}, format="json"
+    )
+    assert (
+        response.json()["errors"]["equity"] == "That brings team equity to 100.004% — it can't exceed 100%."
+    )
 
 
 def test_equity_that_adds_up_to_exactly_100_is_fine_despite_float_rounding(founder_client):
@@ -259,6 +303,11 @@ def test_withdraw_only_before_review_starts(submitted, founder_client):
     assert refused.status_code == 409
     assert refused.json()["message"] == "Review has already started, so this can't be withdrawn."
 
+    Application.objects.update(status="draft")
+    nothing = founder_client.post("/api/v1/me/application/withdraw")
+    assert nothing.status_code == 409
+    assert nothing.json()["message"] == "This application isn't submitted, so there's nothing to withdraw."
+
 
 def test_resubmitting_after_changes_requested(submitted, founder_client):
     Application.objects.update(status="changes_requested")
@@ -326,3 +375,16 @@ def test_minimum_lengths_count_like_the_website_does(founder_client):
     app = founder_client.get("/api/v1/me/application").json()["application"]
     assert not any(m["field"] == "bio" for m in app["progress"]["missing"])
     assert submit(founder_client).status_code == 200
+
+
+def test_founded_month_allows_a_month_that_has_begun_somewhere():
+    from datetime import UTC, datetime
+
+    from apps.applications.rules import parse_startup
+    from apps.core.exceptions import Invalid
+
+    # 23:00 UTC on 31 March is already 1 April east of UTC.
+    late_march = datetime(2026, 3, 31, 23, 0, tzinfo=UTC)
+    assert parse_startup({"foundedOn": "2026-04"}, today=late_march)["foundedOn"] == "2026-04"
+    with pytest.raises(Invalid):
+        parse_startup({"foundedOn": "2026-05"}, today=late_march)

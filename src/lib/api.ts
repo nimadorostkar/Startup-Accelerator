@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
+import { SESSION_COOKIE } from "./session";
 
 /* ══════════════════════════════════════════════════════════════════════
    THE BACKEND — every read and write goes through here.
@@ -21,8 +22,7 @@ import { cookies, headers } from "next/headers";
 /** Where the website's server reaches the API: http://backend:8000 inside Docker. */
 export const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8000").replace(/\/+$/, "");
 
-/** The sign-in cookie. The API sets the same name when browsers talk to it directly. */
-export const SESSION_COOKIE = "vcs_session";
+export { SESSION_COOKIE };
 
 /** How long public data is cached before it's fetched again (seconds). */
 export const PUBLIC_TTL = 60;
@@ -97,22 +97,32 @@ export async function api<T = unknown>(path: string, options: Options = {}): Pro
     if (token) requestHeaders.Authorization = `Bearer ${token}`;
   }
 
+  // 15 seconds for the API to answer. A streamed download (`raw`) is only timed
+  // until it starts: the file itself can take as long as the visitor's connection needs.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error("timed out after 15s")), 15_000);
   let response: Response;
   try {
     response = await fetch(`${BACKEND_URL}/api/v1${path}`, {
       method,
       headers: requestHeaders,
       body: body === undefined ? undefined : JSON.stringify(body),
-      signal: AbortSignal.timeout(15_000),
+      signal: controller.signal,
       ...(cached ? { next: { revalidate: PUBLIC_TTL, tags } } : { cache: "no-store" as const }),
     });
   } catch (err) {
+    clearTimeout(timer);
     throw new BackendUnavailable(`${method} ${path}: ${(err as Error).message}`);
   }
-  if (response.status >= 500) throw new BackendUnavailable(`${method} ${path} answered ${response.status}`);
+  if (raw && response.ok) clearTimeout(timer);
+  if (response.status >= 500) {
+    clearTimeout(timer);
+    throw new BackendUnavailable(`${method} ${path} answered ${response.status}`);
+  }
 
   const data =
     response.status === 204 || (raw && response.ok) ? null : await response.json().catch(() => null);
+  clearTimeout(timer);
   return response.ok
     ? { ok: true, status: response.status, data: data as T, response }
     : { ok: false, status: response.status, error: (data ?? {}) as ApiErrorBody, response };

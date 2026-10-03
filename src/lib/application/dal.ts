@@ -1,8 +1,7 @@
 import "server-only";
-import { redirect } from "next/navigation";
 import { cache } from "react";
 import { api } from "@/lib/api";
-import { getCurrentUser, type SessionUser } from "@/lib/auth";
+import { getCurrentUser, redirectToSignIn, type SessionUser } from "@/lib/auth";
 import { EDITABLE, type Application } from "./types";
 
 /* Data access for the dashboard. The API resolves the founder from their
@@ -13,7 +12,7 @@ import { EDITABLE, type Application } from "./types";
 /** For pages: no session → off to sign in. */
 export const requireUser = cache(async (): Promise<SessionUser> => {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToSignIn();
   return user;
 });
 
@@ -21,7 +20,7 @@ export const requireUser = cache(async (): Promise<SessionUser> => {
 export const getMyApplication = cache(async (): Promise<Application> => {
   await requireUser();
   const result = await api<{ application: Application }>("/me/application", { auth: true });
-  if (result.status === 401) redirect("/login");
+  if (result.status === 401) return redirectToSignIn();
   if (!result.ok) throw new Error(`Couldn't load the application (${result.status}).`);
   return result.data.application;
 });

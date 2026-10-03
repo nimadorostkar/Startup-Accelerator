@@ -13,7 +13,9 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function readString(form: FormData, key: string) {
   const v = form.get(key);
-  return typeof v === "string" ? v.trim() : "";
+  // Browsers send a textarea's line breaks as \r\n; its counter saw one character
+  // each, so count (and store) them as one, like the API does.
+  return typeof v === "string" ? v.replace(/\r\n?/g, "\n").trim() : "";
 }
 
 export function checkName(value: string) {

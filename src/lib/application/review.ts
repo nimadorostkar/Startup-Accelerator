@@ -1,8 +1,8 @@
 import "server-only";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { cache } from "react";
 import { api } from "@/lib/api";
-import { getCurrentUser, isReviewer, type SessionUser } from "@/lib/auth";
+import { getCurrentUser, isReviewer, redirectToSignIn, type SessionUser } from "@/lib/auth";
 import type { Filters } from "./queue";
 import {
   SCORE_AREAS,
@@ -22,7 +22,7 @@ import {
 /** Signed out → sign in. Signed in but not a reviewer → 404, so the panel isn't advertised. */
 export const requireReviewer = cache(async (): Promise<SessionUser> => {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) return redirectToSignIn();
   if (!isReviewer(user)) notFound();
   return user;
 });
@@ -90,7 +90,7 @@ export async function getQueue(filters: Filters): Promise<QueuePage> {
   if (filters.industry) params.set("industry", filters.industry);
   if (filters.mine) params.set("mine", "1");
   const result = await api<QueuePage>(`/admin/applications?${params}`, { auth: true });
-  if (result.status === 401) redirect("/login");
+  if (result.status === 401) return redirectToSignIn();
   if (result.status === 404) notFound();
   if (!result.ok) throw new Error(`Couldn't load the review queue (${result.status}).`);
   return result.data;
@@ -103,7 +103,8 @@ export const getForReview = cache(async (id: string): Promise<StoredApplication>
     `/admin/applications/${encodeURIComponent(id)}`,
     { auth: true },
   );
-  if (result.status === 401) redirect("/login");
-  if (!result.ok) notFound();
+  if (result.status === 401) return redirectToSignIn();
+  if (result.status === 404) notFound();
+  if (!result.ok) throw new Error(`Couldn't load the application (${result.status}).`);
   return result.data.application;
 });

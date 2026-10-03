@@ -2,7 +2,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from . import directory, rules
-from .models import Application
+from .models import Application, Scorecard
 
 
 @receiver(post_save, sender=Application)
@@ -16,3 +16,14 @@ def application_saved(sender, instance: Application, **kwargs):
 @receiver(post_delete, sender=Application)
 def application_deleted(sender, instance: Application, **kwargs):
     directory.invalidate()
+
+
+@receiver(post_delete, sender=Scorecard)
+def scorecard_deleted(sender, instance: Scorecard, **kwargs):
+    # A scorecard goes when its reviewer's account is deleted (or in the back
+    # office): keep the queue's stored team score, and its "Top score" sort, true.
+    from .services import team_average
+
+    Application.objects.filter(pk=instance.application_id).update(
+        team_score=team_average(instance.application_id)
+    )

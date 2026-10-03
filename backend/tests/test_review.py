@@ -151,6 +151,16 @@ def test_each_reviewer_keeps_one_scorecard_and_the_team_score_averages_them(subm
     assert Application.objects.get().team_score == pytest.approx((4 + 2) / 2)
 
 
+def test_deleting_a_reviewer_drops_their_scores_from_the_team_score(submitted, reviewer_client):
+    reviewer_client.put(url(submitted.pk, "/scorecard"), {"scores": {"problem": 5}}, format="json")
+    leaving = make_reviewer("jonas@example.com", "Jonas Weber")
+    client_for(leaving).put(url(submitted.pk, "/scorecard"), {"scores": {"problem": 1}}, format="json")
+    assert Application.objects.get().team_score == pytest.approx(3)
+
+    leaving.delete()  # their scorecard goes with them
+    assert Application.objects.get().team_score == pytest.approx(5)
+
+
 def test_scorecard_validation(submitted, reviewer_client):
     response = reviewer_client.put(
         url(submitted.pk, "/scorecard"),

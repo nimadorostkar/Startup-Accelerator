@@ -1,8 +1,11 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { api, BackendUnavailable, UNAVAILABLE } from "@/lib/api";
+import { SIGNED_OUT } from "@/app/dashboard/actions";
+import { RETURN_TO_HEADER, signInHref } from "@/lib/session";
 import { DECISIONS, type Decision } from "@/lib/application/decisions";
 import { SCORE_AREAS } from "@/lib/application/types";
 import { readString, type FieldErrors } from "@/lib/validation";
@@ -19,6 +22,10 @@ export type ReviewState = {
   values?: Record<string, string>;
   /** Changes on every success, so forms can reset. */
   savedAt?: string;
+  /** The application changed underneath (another reviewer decided first). */
+  conflict?: boolean;
+  /** The session ended: nothing was saved, and this signs in again (in a new tab, keeping the form). */
+  signInHref?: string;
 };
 
 function echo(form: FormData) {
@@ -48,12 +55,20 @@ async function send(
     }
     throw err;
   }
-  if (result.status === 401) redirect("/login");
+  if (result.status === 401) {
+    // Not a redirect: that would throw away a half-written note or scorecard.
+    return { ok: false, message: SIGNED_OUT, values, signInHref: signInHref((await headers()).get(RETURN_TO_HEADER)) };
+  }
   if (!result.ok) {
     // 404 means "not a reviewer" (or no such application): show the 404 page,
     // unless the application was deleted while the page was open.
     if (result.status === 404 && !result.error.message?.includes("no longer exists")) notFound();
     const { errors, message: refusal } = result.error;
+    if (result.status === 409) {
+      // Someone else changed it: refresh the page so the panel shows what's true now.
+      revalidatePath("/admin", "layout");
+      return { ok: false, conflict: true, message: refusal };
+    }
     // Field problems show under their fields, like the rest of the panel.
     return errors ? { ok: false, errors, values } : { ok: false, message: refusal, values };
   }

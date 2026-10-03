@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { api, BackendUnavailable } from "@/lib/api";
 
 /* Every application as a CSV, for the support team's own analysis. The API
@@ -12,7 +13,17 @@ export async function GET() {
     if (err instanceof BackendUnavailable) return new Response("The export is unavailable right now.", { status: 503 });
     throw err;
   }
-  if (!result.ok) return new Response("Not found", { status: 404 });
+  if (!result.ok) {
+    // Signed out (or the session ended): sign in again, like the rest of the panel.
+    if (result.status === 401) redirect("/login");
+    if (result.status === 429) {
+      return new Response(result.error.message ?? "Too many requests. Please try again shortly.", {
+        status: 429,
+        headers: { "Retry-After": result.response.headers.get("Retry-After") ?? "60" },
+      });
+    }
+    return new Response("Not found", { status: 404 });
+  }
 
   const upstream = result.response;
   return new Response(upstream.body, {

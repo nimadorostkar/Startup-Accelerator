@@ -36,6 +36,10 @@ services:
       - ./backend:/app
     environment: &dev-env
       DATABASE_URL: postgres://${POSTGRES_USER:-fundup}:${POSTGRES_PASSWORD:-fundup}@db:5432/${POSTGRES_DB:-fundup}
+      # runserver starts a thread per request, so kept-open connections pile up
+      # (one per finished thread) until Postgres refuses new ones. Gunicorn's
+      # threads are long-lived, so production keeps the default.
+      DATABASE_CONN_MAX_AGE: "0"
       REDIS_URL: redis://redis:6379/1
       CELERY_BROKER_URL: redis://redis:6379/0
       DJANGO_DEBUG: "true"

@@ -86,6 +86,20 @@ def test_login_with_remember_sets_a_lasting_cookie():
     assert session.remember and session.expires_at > timezone.now() + timedelta(days=29)
 
 
+def test_login_to_a_google_only_account_still_spends_time_hashing(monkeypatch):
+    # Otherwise a quick 401 would reveal "this account exists and signs in with Google".
+    user = make_user("maya@example.com")
+    user.set_unusable_password()
+    user.save()
+    hashed = []
+    original = User.set_password
+    monkeypatch.setattr(User, "set_password", lambda self, raw: hashed.append(raw) or original(self, raw))
+    response = APIClient().post(
+        "/api/v1/auth/login", {"email": "maya@example.com", "password": "guess-1234"}, format="json"
+    )
+    assert response.status_code == 401 and hashed == ["guess-1234"]
+
+
 def test_login_gives_one_generic_message_for_wrong_password_and_unknown_email():
     make_user("maya@example.com", password="ledgerly-2026")
     wrong = APIClient().post(

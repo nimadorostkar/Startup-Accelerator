@@ -114,8 +114,12 @@ def authenticate(data: dict, *, ip: str = "") -> tuple[User, bool]:
         # Spend the same time hashing as a real check, so response times don't reveal accounts.
         User().set_password(password)
         ok = False
+    elif not user.has_usable_password():
+        # Google-only account: hash anyway, so a quick answer doesn't reveal how it signs in.
+        User().set_password(password)
+        ok = False
     else:
-        ok = user.has_usable_password() and user.check_password(password) and user.is_active
+        ok = user.check_password(password) and user.is_active
     if not ok:
         _bump(pair, LOGIN_PAIR_WINDOW)
         _bump(account, LOGIN_ACCOUNT_WINDOW)

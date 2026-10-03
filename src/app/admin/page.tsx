@@ -33,9 +33,9 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
             Review queue
           </h1>
           <p className="mt-2 text-[15px] text-ink-soft/80">
-            {waiting === 0
+            {waiting === 0 && mine === 0
               ? "Nothing waiting for review right now."
-              : `${waiting} waiting for review · ${mine} in review with you`}
+              : `${waiting === 0 ? "Nothing" : waiting} waiting for review · ${mine} in review with you`}
           </p>
         </div>
         <a
@@ -48,7 +48,7 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
 
       {overdue > 0 && (
         <Link
-          href={queueHref(filters, { status: "submitted", sort: "waiting" })}
+          href="/admin?status=submitted&sort=waiting"
           className="mb-5 flex items-center gap-3 rounded-2xl border border-[#f3cfa0] bg-[#fff8ef] p-4 text-[14px] text-ink transition-colors hover:border-[#e9b877]"
         >
           <AlertIcon className="h-5 w-5 shrink-0 text-[#8f4700]" />
@@ -83,7 +83,9 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
         })}
       </nav>
 
-      <FilterBar filters={filters} />
+      {/* Keyed on the filters: a tab, Clear or banner link changes only the query
+          string, which keeps the page mounted, and the bar's inputs are uncontrolled. */}
+      <FilterBar key={queueHref(filters)} filters={filters} />
 
       <p className="mt-5 mb-3 text-[13px] text-muted" aria-live="polite">
         {total} {total === 1 ? "application" : "applications"}

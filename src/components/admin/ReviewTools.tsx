@@ -12,6 +12,7 @@ import {
 import { DECISIONS, type Decision } from "@/lib/application/decisions";
 import { RECOMMENDATIONS, SCORE_AREAS, type Scorecard, type Status } from "@/lib/application/types";
 import FormBanner from "../auth/FormBanner";
+import SignInAgain from "../auth/SignInAgain";
 import { CheckIcon } from "../icons";
 
 function Result({ state }: { state: ReviewState }) {
@@ -22,7 +23,10 @@ function Result({ state }: { state: ReviewState }) {
       {state.message}
     </p>
   ) : (
-    <FormBanner className="mt-3">{state.message}</FormBanner>
+    <FormBanner className="mt-3">
+      {state.message}
+      <SignInAgain href={state.signInHref} />
+    </FormBanner>
   );
 }
 
@@ -55,7 +59,8 @@ export function DecisionPanel({ id, status, available }: { id: string; status: S
   const [picked, setPicked] = useState<Decision | null>(null);
   const [state, formAction, pending] = useActionState<ReviewState, FormData>(async (prev, form) => {
     const result = await decide(id, prev, form);
-    if (result.ok) setPicked(null);
+    // On a conflict the page refreshes with the new status, so the pick no longer applies.
+    if (result.ok || result.conflict) setPicked(null);
     return result;
   }, {});
 
@@ -213,6 +218,9 @@ export function ScorecardForm({ id, mine }: { id: string; mine: Scorecard | null
               </label>
             ))}
           </div>
+          {state.errors?.recommendation && (
+            <p className="mt-1 text-[13px] text-danger">{state.errors.recommendation}</p>
+          )}
         </fieldset>
 
         <label className="flex flex-col gap-2">
@@ -266,7 +274,7 @@ export function NoteForm({ id }: { id: string }) {
       >
         {pending ? "Posting…" : "Add note"}
       </button>
-      {state.ok && <Result state={state} />}
+      <Result state={state} />
     </form>
   );
 }

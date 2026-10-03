@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Not the website's code: the API's virtualenv and collected static files
+    // (Django admin's vendored JS), and Playwright's reports.
+    "backend/**",
+    "e2e-report/**",
+    "test-results/**",
   ]),
 ]);
 

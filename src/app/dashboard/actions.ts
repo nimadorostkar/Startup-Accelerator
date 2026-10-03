@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { api, BackendUnavailable, UNAVAILABLE } from "@/lib/api";
-import { endSession, resendVerification } from "@/lib/auth";
-import { readString, type FieldErrors } from "@/lib/validation";
+import { changePassword, endSession, renameAccount, resendVerification } from "@/lib/auth";
+import { RETURN_TO_HEADER, signInHref } from "@/lib/session";
+import { checkName, checkNewPassword, collect, readString, type FieldErrors } from "@/lib/validation";
 
 /* The dashboard's forms. Each sends what was typed to the API, which checks
    every rule against the stored application (edit lock, equity cap, "complete
@@ -20,7 +22,12 @@ export type SaveState = {
   values?: Record<string, string>;
   /** Changes on every successful save, so the form can tell saves apart. */
   savedAt?: string;
+  /** The session ended: nothing was saved, and this signs in again (in a new tab, keeping the form). */
+  signInHref?: string;
 };
+
+/** Shown when the session ended between loading a form and saving it. */
+export const SIGNED_OUT = "You've been signed out, so this wasn't saved. Sign in again, then save.";
 
 function echo(form: FormData) {
   const values: Record<string, string> = {};
@@ -52,8 +59,15 @@ async function send(
     }
     throw err;
   }
-  if (result.status === 401) redirect("/login");
+  if (result.status === 401) {
+    // Not a redirect: that would throw away everything typed into the form.
+    return { ok: false, message: SIGNED_OUT, values, signInHref: signInHref((await headers()).get(RETURN_TO_HEADER)) };
+  }
   if (!result.ok) {
+    // The application changed underneath this page (locked for review, a member
+    // removed in another tab, an answer cleared before submitting): refresh it so
+    // it shows what's true now, e.g. the list of answers still missing.
+    if (result.status === 409 || result.status === 404 || result.error.missing) revalidatePath("/dashboard", "layout");
     return {
       ok: false,
       message: result.error.message ?? "That didn't save. Please try again.",
@@ -194,4 +208,32 @@ export async function resendVerificationEmail(): Promise<SaveState> {
 export async function signOut() {
   await endSession();
   redirect("/login");
+}
+
+/* ---------- Account settings ---------- */
+
+export async function saveAccountName(_prev: SaveState, form: FormData): Promise<SaveState> {
+  const name = readString(form, "name");
+  const error = checkName(name);
+  if (error) return { ok: false, errors: { name: error }, values: { name } };
+  const result = await renameAccount(name);
+  if (!result.ok) return { ok: false, message: result.message, errors: result.fieldErrors, values: { name } };
+  revalidatePath("/dashboard", "layout");
+  return { ok: true, message: "Name saved.", savedAt: new Date().toISOString() };
+}
+
+export async function savePassword(_prev: SaveState, form: FormData): Promise<SaveState> {
+  // Trimmed like every other sign-in form (the API does the same); never echoed back to the page.
+  const currentPassword = readString(form, "currentPassword");
+  const newPassword = readString(form, "newPassword");
+  const errors = collect([["newPassword", checkNewPassword(newPassword)]]);
+  if (errors) return { ok: false, errors };
+  const result = await changePassword({ currentPassword, newPassword });
+  if (!result.ok) return { ok: false, message: result.message, errors: result.fieldErrors };
+  revalidatePath("/dashboard", "layout");
+  return {
+    ok: true,
+    message: "Password changed. You've been signed out everywhere else.",
+    savedAt: new Date().toISOString(),
+  };
 }
