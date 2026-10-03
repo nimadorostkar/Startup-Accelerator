@@ -65,6 +65,8 @@ export type StartupCardData = {
   founders: string[];
   users: number | null;
   customers: number | null;
+  /** Last changed (ISO datetime), for the sitemap. */
+  updated?: string;
 };
 
 /** Everything the startup page shows. */
@@ -101,15 +103,42 @@ export type PublicStartup = StartupCardData & {
 
 /* ---------- Helpers ---------- */
 
-export function slugify(name: string) {
-  return (
-    name
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "startup"
-  );
+/** Latin letters NFKD doesn't split into a base letter and an accent. */
+const ASCII_LETTERS: Record<string, string> = {
+  ß: "ss",
+  æ: "ae",
+  œ: "oe",
+  ø: "o",
+  ł: "l",
+  đ: "d",
+  ð: "d",
+  þ: "th",
+  ı: "i",
+};
+
+/** A startup's address, as the API makes it (backend/apps/applications/models.py
+    slugify): folded to ASCII, "Café Nova!" → "cafe-nova", "Straße" →
+    "strasse", at most 70
+    characters. A name with nothing left ("東京", "🚀") falls back to
+    "startup-" and the first 8 hex digits of the application's id. */
+export function slugify(name: string, id = "") {
+  const slug = name
+    .toLowerCase()
+    .replace(/[ßæœøłđðþı]/g, (ch) => ASCII_LETTERS[ch])
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 70)
+    .replace(/-+$/, "");
+  if (slug) return slug;
+  const hex = id.replace(/-/g, "").slice(0, 8).toLowerCase();
+  return hex ? `startup-${hex}` : "startup";
+}
+
+/** How many different values, ignoring case and spaces: "Egypt" and " egypt" are one. */
+export function distinctCount(values: string[]) {
+  return new Set(values.map((v) => v.trim().toLowerCase()).filter(Boolean)).size;
 }
 
 /** "2025-06" → "Jun 2025" */

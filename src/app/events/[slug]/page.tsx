@@ -69,7 +69,7 @@ export default async function EventPage({
     },
     {
       Icon: UsersIcon,
-      label: `Up to ${e.capacity} guests`,
+      label: `Up to ${e.capacity} ${e.capacity === 1 ? "guest" : "guests"}`,
       sub: "Free to attend",
     },
   ];
@@ -123,8 +123,8 @@ export default async function EventPage({
             {/* Details */}
             <div className="order-2 lg:order-1">
               <ul className="grid gap-3 sm:grid-cols-3">
-                {facts.map(({ Icon, label, sub }) => (
-                  <li key={label} className="card p-5">
+                {facts.map(({ Icon, label, sub }, i) => (
+                  <li key={i} className="card p-5">
                     <Icon className="h-5 w-5 text-brand-strong" />
                     <p className="mt-3 text-[15px] leading-snug font-bold text-ink">
                       {label}
@@ -143,9 +143,9 @@ export default async function EventPage({
                 >
                   About this event
                 </h2>
-                {e.about.map((p) => (
+                {e.about.map((p, i) => (
                   <p
-                    key={p}
+                    key={i}
                     className="mt-4 text-[17px] leading-[1.75] text-ink-soft/90"
                   >
                     {p}
@@ -153,75 +153,78 @@ export default async function EventPage({
                 ))}
               </section>
 
-              <section aria-labelledby="takeaways-title" className="mt-12">
-                <h2
-                  id="takeaways-title"
-                  className="font-display text-[24px] font-bold tracking-[-0.015em] text-ink"
-                >
-                  What you&rsquo;ll get
-                </h2>
-                <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {e.takeaways.map((t) => (
-                    <li
-                      key={t}
-                      className="flex gap-3 rounded-[14px] bg-cream p-4 text-[15px] leading-[1.5] text-ink-soft"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-white">
-                        <CheckIcon className="h-3.5 w-3.5" />
-                      </span>
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {e.takeaways.length > 0 && (
+                <section aria-labelledby="takeaways-title" className="mt-12">
+                  <h2
+                    id="takeaways-title"
+                    className="font-display text-[24px] font-bold tracking-[-0.015em] text-ink"
+                  >
+                    What you&rsquo;ll get
+                  </h2>
+                  <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {e.takeaways.map((t, i) => (
+                      <li
+                        key={i}
+                        className="flex gap-3 rounded-[14px] bg-cream p-4 text-[15px] leading-[1.5] text-ink-soft"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-white">
+                          <CheckIcon className="h-3.5 w-3.5" />
+                        </span>
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
 
-              <section aria-labelledby="agenda-title" className="mt-12">
-                <h2
-                  id="agenda-title"
-                  className="font-display text-[24px] font-bold tracking-[-0.015em] text-ink"
-                >
-                  Agenda
-                </h2>
-                <p className="mt-1 text-[13px] text-muted">
-                  Times in {d.time.split(" ").pop()}
-                </p>
-                <ol className="relative mt-6 ml-2 border-l-2 border-dashed border-line pl-7">
-                  {e.agenda.map((a, i) => (
-                    <li
-                      key={a.time + a.item}
-                      className="relative pb-7 last:pb-0"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`absolute top-1 -left-[37px] h-4 w-4 rounded-full ring-4 ring-white ${
-                          i === 0 ? "bg-brand" : "bg-line"
-                        }`}
-                      />
-                      <p className="font-display text-[13px] font-bold tracking-[0.06em] text-brand-strong uppercase tabular-nums">
-                        {a.time}
-                      </p>
-                      <p className="mt-1 text-[16px] font-semibold text-ink">
-                        {a.item}
-                      </p>
-                    </li>
-                  ))}
-                </ol>
-              </section>
+              {e.agenda.length > 0 && (
+                <section aria-labelledby="agenda-title" className="mt-12">
+                  <h2
+                    id="agenda-title"
+                    className="font-display text-[24px] font-bold tracking-[-0.015em] text-ink"
+                  >
+                    Agenda
+                  </h2>
+                  <p className="mt-1 text-[13px] text-muted">
+                    Times in {d.zone}
+                  </p>
+                  <ol className="relative mt-6 ml-2 border-l-2 border-dashed border-line pl-7">
+                    {e.agenda.map((a, i) => (
+                      <li key={i} className="relative pb-7 last:pb-0">
+                        <span
+                          aria-hidden="true"
+                          className={`absolute top-1 -left-[37px] h-4 w-4 rounded-full ring-4 ring-white ${
+                            i === 0 ? "bg-brand" : "bg-line"
+                          }`}
+                        />
+                        <p className="font-display text-[13px] font-bold tracking-[0.06em] text-brand-strong uppercase tabular-nums">
+                          {a.time}
+                        </p>
+                        <p className="mt-1 text-[16px] font-semibold text-ink">
+                          {a.item}
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
 
-              <section
-                aria-labelledby="audience-title"
-                className="mt-12 rounded-[20px] border border-line-soft p-6"
-              >
-                <h2
-                  id="audience-title"
-                  className="font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase"
+              {e.audience.trim() && (
+                <section
+                  aria-labelledby="audience-title"
+                  className="mt-12 rounded-[20px] border border-line-soft p-6"
                 >
-                  Who it&rsquo;s for
-                </h2>
-                <p className="mt-2 text-[16px] leading-[1.6] text-ink">
-                  {e.audience}
-                </p>
-              </section>
+                  <h2
+                    id="audience-title"
+                    className="font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase"
+                  >
+                    Who it&rsquo;s for
+                  </h2>
+                  <p className="mt-2 text-[16px] leading-[1.6] text-ink">
+                    {e.audience}
+                  </p>
+                </section>
+              )}
             </div>
 
             {/* Registration */}

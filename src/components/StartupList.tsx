@@ -1,4 +1,5 @@
 import {
+  distinctCount,
   PUBLIC_STATUS_ORDER,
   type StartupCardData,
 } from "@/lib/application/directory";
@@ -41,8 +42,18 @@ function toItems(all: StartupCardData[], now = Date.now()): ListItem[] {
 export default async function StartupList() {
   const all = await listPublicStartups();
   const items = toItems(all);
-  const industries = new Set(all.map((s) => s.industry).filter(Boolean)).size;
-  const countries = new Set(all.map((s) => s.country).filter(Boolean)).size;
+  const industries = distinctCount(all.map((s) => s.industry));
+  const countries = distinctCount(all.map((s) => s.country));
+  // "12 startups across 5 industries and 8 countries", leaving out whichever
+  // has only one; a single startup can't span a range, so it gets its own line.
+  const spread = [
+    industries > 1 && `${industries} industries`,
+    countries > 1 && `${countries} countries`,
+  ].filter(Boolean);
+  const summary =
+    all.length === 1
+      ? "1 startup so far, and the list is growing."
+      : `${all.length} startups${spread.length ? ` across ${spread.join(" and ")}` : ""}, from first idea to funded.`;
 
   return (
     <section
@@ -62,12 +73,7 @@ export default async function StartupList() {
               <span className="text-brand-strong">right now</span>
             </h2>
             {all.length > 0 && (
-              <p className="mt-3 text-[15px] text-ink-soft/75">
-                {all.length} {all.length === 1 ? "startup" : "startups"}
-                {industries > 1 && ` across ${industries} industries`}
-                {countries > 1 && ` and ${countries} countries`}, from first
-                idea to funded.
-              </p>
+              <p className="mt-3 text-[15px] text-ink-soft/75">{summary}</p>
             )}
           </Reveal>
           <Reveal delay={120} className="hidden lg:block">

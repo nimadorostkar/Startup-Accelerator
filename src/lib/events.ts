@@ -48,9 +48,10 @@ export async function nextDemoDay(): Promise<SummitEvent | undefined> {
 
 export type RegistrationResult =
   | { ok: true; existing: boolean }
-  | { ok: false; message?: string; errors?: Record<string, string> };
+  | { ok: false; message?: string; errors?: Record<string, string>; closed: boolean };
 
-/** Registers a guest; `existing` when that email already signed up for the event. */
+/** Registers a guest; `existing` when that email already signed up for the event.
+    `closed` when the API refuses because the event has ended or is full (409). */
 export async function addRegistration(input: {
   event: string;
   name: string;
@@ -63,5 +64,10 @@ export async function addRegistration(input: {
     body,
   });
   if (result.ok) return { ok: true, existing: result.data.existing };
-  return { ok: false, message: result.error.message, errors: result.error.errors };
+  return {
+    ok: false,
+    message: result.error.message,
+    errors: result.error.errors,
+    closed: result.status === 409,
+  };
 }

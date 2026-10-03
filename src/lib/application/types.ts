@@ -250,7 +250,8 @@ export type Scorecard = {
 export type InternalNote = {
   id: string;
   at: string;
-  authorId: string;
+  /** null once the reviewer's account is deleted (authorName is then "Former reviewer"). */
+  authorId: string | null;
   authorName: string;
   body: string;
 };

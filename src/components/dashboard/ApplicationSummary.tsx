@@ -15,7 +15,11 @@ import { Panel } from "./ui";
 function Value({ children, long = false }: { children: ReactNode; long?: boolean }) {
   const empty = children === "" || children === null || children === undefined || children === "—";
   if (empty) return <span className="text-muted italic">Not answered</span>;
-  return <span className={long ? "whitespace-pre-line" : ""}>{children}</span>;
+  return (
+    <span dir="auto" className={long ? "whitespace-pre-line" : ""}>
+      {children}
+    </span>
+  );
 }
 
 function LinkValue({ href }: { href: string }) {
@@ -33,7 +37,7 @@ function Rows({ rows }: { rows: { label: string; value: ReactNode; wide?: boolea
       {rows.map((r) => (
         <div key={r.label} className={`min-w-0 ${r.wide ? "sm:col-span-2" : ""}`}>
           <dt className="text-[12px] font-semibold text-muted">{r.label}</dt>
-          <dd className="mt-1 text-[14px] leading-[1.6] break-words text-ink">{r.value}</dd>
+          <dd className="mt-1 text-[14px] leading-[1.6] wrap-anywhere text-ink">{r.value}</dd>
         </div>
       ))}
     </dl>
@@ -144,10 +148,12 @@ export default function ApplicationSummary({ app, editable }: { app: Application
           {t.members.map((m) => (
             <li key={m.id} className="rounded-xl border border-line-soft p-3.5">
               <p className="flex flex-wrap items-center gap-2 text-[14px] font-bold text-ink">
-                {m.name}
+                <bdi className="min-w-0 wrap-anywhere">{m.name}</bdi>
                 {m.isFounder && <span className="chip">Founder</span>}
               </p>
-              <p className="mt-0.5 text-[13px] text-ink-soft">{m.role || "Role not set"}</p>
+              <p dir="auto" className="mt-0.5 text-[13px] wrap-anywhere text-ink-soft">
+                {m.role || "Role not set"}
+              </p>
               <p className="mt-1 text-[12px] text-muted">
                 {[m.equity !== null ? `${m.equity}% equity` : "", commitment(m.commitment)].filter(Boolean).join(" · ") ||
                   "No equity or commitment given"}

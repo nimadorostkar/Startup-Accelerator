@@ -58,11 +58,24 @@ function Body({ blocks }: { blocks: Block[] }) {
           </p>
         );
       case "list":
+        if (b.ordered)
+          return (
+            <ol
+              key={i}
+              className="mt-6 list-decimal space-y-3 pl-6 text-[17px] leading-[1.7] text-ink-soft/90 marker:font-semibold marker:text-brand-strong sm:text-[18px]"
+            >
+              {b.items.map((item, j) => (
+                <li key={j} className="pl-1.5">
+                  {item}
+                </li>
+              ))}
+            </ol>
+          );
         return (
           <ul key={i} className="mt-6 space-y-3">
-            {b.items.map((item) => (
+            {b.items.map((item, j) => (
               <li
-                key={item}
+                key={j}
                 className="flex gap-3.5 text-[17px] leading-[1.7] text-ink-soft/90 sm:text-[18px]"
               >
                 <span
@@ -184,32 +197,34 @@ export default async function ArticlePage({
           </div>
         </article>
 
-        <section
-          aria-labelledby="more-title"
-          className="border-t border-line-soft bg-cream px-4 py-16 sm:px-8 sm:py-20"
-        >
-          <div className="mx-auto max-w-[1720px] lg:px-6">
-            <div className="flex items-end justify-between gap-6">
-              <h2 id="more-title" className="title-section">
-                More from <span className="text-brand-strong">the Brief</span>
-              </h2>
-              <Link
-                href="/newsletter#latest"
-                className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
-              >
-                All issues
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </Link>
+        {more.length > 0 && (
+          <section
+            aria-labelledby="more-title"
+            className="border-t border-line-soft bg-cream px-4 py-16 sm:px-8 sm:py-20"
+          >
+            <div className="mx-auto max-w-[1720px] lg:px-6">
+              <div className="flex items-end justify-between gap-6">
+                <h2 id="more-title" className="title-section">
+                  More from <span className="text-brand-strong">the Brief</span>
+                </h2>
+                <Link
+                  href="/newsletter#latest"
+                  className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
+                >
+                  All issues
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Link>
+              </div>
+              <ul className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                {more.map((p) => (
+                  <li key={p.slug}>
+                    <PostCard post={p} />
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-              {more.map((p) => (
-                <li key={p.slug}>
-                  <PostCard post={p} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
       <Footer />
     </>

@@ -23,9 +23,19 @@ const SORTS = [
   { id: "name", label: "Name A–Z" },
 ] as const;
 
+const SORT_IDS = SORTS.map((s) => s.id);
+const STAGE_IDS = STAGES.map((s) => s.id);
+
 const STATUS_RANK = Object.fromEntries(
   PUBLIC_STATUS_ORDER.map((s, i) => [s, i]),
 );
+
+/** A filter from the URL as one of the known values (any case), or "" if it
+    isn't one: an unknown value would only show "0 startups". */
+function known(value: string, allowed: readonly string[]) {
+  const v = value.trim().toLowerCase();
+  return allowed.find((a) => a.toLowerCase() === v) ?? "";
+}
 
 function haystack(s: StartupCardData) {
   return [s.name, s.tagline, s.industry, s.country, s.stageLabel, ...s.founders]
@@ -43,10 +53,16 @@ export default function Directory({
   initial: DirectoryQuery;
 }) {
   const [q, setQ] = useState(initial.q);
-  const [status, setStatus] = useState(initial.status);
-  const [industry, setIndustry] = useState(initial.industry);
-  const [stage, setStage] = useState(initial.stage);
-  const [sort, setSort] = useState(initial.sort || "newest");
+  const [status, setStatus] = useState(() =>
+    known(initial.status, PUBLIC_STATUS_ORDER),
+  );
+  const [industry, setIndustry] = useState(() =>
+    known(initial.industry, INDUSTRIES),
+  );
+  const [stage, setStage] = useState(() => known(initial.stage, STAGE_IDS));
+  const [sort, setSort] = useState(
+    () => known(initial.sort, SORT_IDS) || "newest",
+  );
 
   useEffect(() => {
     const p = new URLSearchParams();
@@ -145,8 +161,8 @@ export default function Directory({
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-12">
-      <aside className="lg:sticky lg:top-8 lg:self-start">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-12">
+      <aside className="min-w-0 lg:sticky lg:top-8 lg:self-start">
         <label className="relative block">
           <span className="sr-only">Search startups</span>
           <svg
@@ -200,7 +216,7 @@ export default function Directory({
         )}
       </aside>
 
-      <div>
+      <div className="min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p aria-live="polite" className="text-[14px] text-muted">
             <span className="font-semibold text-ink">{shown.length}</span>{" "}
@@ -236,9 +252,9 @@ export default function Directory({
         </div>
 
         {shown.length > 0 ? (
-          <ul className="mt-6 grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+          <ul className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2 2xl:grid-cols-3">
             {shown.map((s) => (
-              <li key={s.slug}>
+              <li key={s.slug} className="min-w-0">
                 <StartupCard s={s} />
               </li>
             ))}

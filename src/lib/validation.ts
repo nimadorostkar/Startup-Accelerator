@@ -8,8 +8,16 @@
 
 export type FieldErrors = Record<string, string>;
 
-/** Deliberately loose: the only real proof an address works is a sent email. */
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/** Deliberately loose: the only real proof an address works is a sent email.
+    But it refuses what the mailer can't put in a To or Reply-To header:
+    whitespace, control characters and the address-list punctuation
+    , ; : < > ( ) " [ ] \ (the API's EMAIL is the same pattern). */
+const EMAIL_PART = String.raw`[^\s@,;:<>()"\[\]\\\x00-\x1f\x7f-\x9f]`;
+const EMAIL = new RegExp(`^${EMAIL_PART}+@${EMAIL_PART}+\\.${EMAIL_PART}{2,}$`);
+
+/** Line breaks, tabs and other control characters, and the Unicode line and
+    paragraph separators: none belongs in a one-line value. */
+const CONTROL_CHARACTERS = /[\x00-\x1f\x7f-\x9f\u2028\u2029]/;
 
 export function readString(form: FormData, key: string) {
   const v = form.get(key);
@@ -20,6 +28,7 @@ export function readString(form: FormData, key: string) {
 
 export function checkName(value: string) {
   if (!value) return "Enter your full name.";
+  if (CONTROL_CHARACTERS.test(value)) return "Use a single line.";
   if (value.length < 2) return "That name looks too short.";
   if (value.length > 80) return "That name is too long.";
   return null;
@@ -43,7 +52,7 @@ export function checkNewPassword(value: string) {
 }
 
 export function maxLength(value: string, max: number) {
-  return value.length > max ? `Keep this under ${max} characters.` : null;
+  return value.length > max ? `Keep this to ${max} characters or fewer.` : null;
 }
 
 export function oneOf<T extends string>(

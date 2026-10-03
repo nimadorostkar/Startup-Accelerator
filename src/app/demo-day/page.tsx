@@ -452,7 +452,7 @@ export default async function DemoDayPage() {
                 </h3>
                 <ol className="relative mt-5 ml-1.5 border-l-2 border-dashed border-chip-line pl-6">
                   {(
-                    next?.agenda ?? [
+                    next?.agenda.length ? next.agenda : [
                       { time: "4:00 PM", item: "Doors open and check-in" },
                       {
                         time: "4:30 PM",
@@ -466,7 +466,7 @@ export default async function DemoDayPage() {
                     ]
                   ).map((a, i) => (
                     <li
-                      key={a.time + a.item}
+                      key={i}
                       className="relative pb-4 last:pb-0"
                     >
                       <span

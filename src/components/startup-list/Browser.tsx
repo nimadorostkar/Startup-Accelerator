@@ -71,7 +71,8 @@ function Pill({ s }: { s: ListItem }) {
         In review
       </span>
     );
-  if (s.isNew)
+  // Not for a startup that wasn't selected, however recently it applied
+  if (s.isNew && s.status !== "passed")
     return (
       <span className="inline-flex items-center rounded-full bg-ink px-2 py-[3px] text-[11px] leading-none font-semibold text-white">
         New
@@ -113,7 +114,7 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          <h3 className="font-display text-[16px] leading-snug font-bold tracking-[-0.01em] text-ink sm:text-[17px]">
+          <h3 className="min-w-0 font-display text-[16px] leading-snug font-bold tracking-[-0.01em] wrap-anywhere text-ink sm:text-[17px]">
             <Link
               href={`/startups/${s.slug}`}
               className="transition-colors duration-200 group-hover:text-brand-strong after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none!"
@@ -121,12 +122,15 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
               <span className="text-ink/35 tabular-nums transition-colors duration-200 group-hover:text-brand">
                 {rank}.
               </span>{" "}
-              {s.name}
+              <bdi>{s.name}</bdi>
             </Link>
           </h3>
           <Pill s={s} />
         </div>
-        <p className="mt-1 line-clamp-2 text-[14px] leading-snug text-ink-soft/80 sm:text-[15px]">
+        <p
+          dir="auto"
+          className="mt-1 line-clamp-2 text-[14px] leading-snug wrap-anywhere text-ink-soft/80 sm:text-[15px]"
+        >
           {s.tagline || "One-line pitch coming soon."}
         </p>
         {tags.length > 0 && (
@@ -134,8 +138,8 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
             <TagIcon className="h-4 w-4 shrink-0 text-muted transition-colors duration-300 group-hover:text-brand" />
             {tags.map((t, i) => (
               <span
-                key={t.text}
-                className={`flex items-center gap-2.5 ${t.wide ? "max-sm:hidden" : ""}`}
+                key={i}
+                className={`flex min-w-0 items-center gap-2.5 wrap-anywhere ${t.wide ? "max-sm:hidden" : ""}`}
               >
                 {i > 0 && (
                   <span
@@ -143,7 +147,7 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
                     className="h-[3px] w-[3px] rounded-full bg-muted/50"
                   />
                 )}
-                {t.text}
+                <bdi>{t.text}</bdi>
               </span>
             ))}
           </div>

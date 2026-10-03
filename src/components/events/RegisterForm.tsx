@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import Link from "next/link";
+import { useActionState, useRef } from "react";
 import { registerForEvent, type RegisterState } from "@/app/events/actions";
 import Field from "../auth/Field";
-import FormBanner from "../auth/FormBanner";
+import { FormAlert } from "../auth/FormBanner";
 import SubmitButton from "../auth/SubmitButton";
-import { CalendarIcon, CheckIcon } from "../icons";
+import { useResponseFocus } from "../auth/useResponseFocus";
+import { ArrowRight, CalendarIcon, CheckIcon } from "../icons";
 
 export default function RegisterForm({
   slug,
@@ -20,18 +22,51 @@ export default function RegisterForm({
   );
   const v = state.values ?? {};
   const err = state.errors ?? {};
+  const form = useRef<HTMLFormElement>(null);
+  const alert = useRef<HTMLDivElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useResponseFocus(state, { heading, form, alert });
+
+  // The event ended or filled up while the page was open: no point retrying.
+  if (state.closed) {
+    return (
+      <div>
+        <h3
+          ref={heading}
+          tabIndex={-1}
+          className="font-display text-[20px] font-bold text-ink"
+        >
+          Registration is closed
+        </h3>
+        <p className="mt-2 text-[14px] leading-[1.6] text-muted">
+          {state.closed}
+        </p>
+        <Link
+          href="/events#upcoming"
+          className="mt-5 flex h-12 items-center justify-center gap-2.5 rounded-full bg-brand-strong font-display text-[13px] font-bold tracking-[0.06em] text-white uppercase"
+        >
+          Upcoming events
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    );
+  }
 
   if (state.done) {
     return (
-      <div role="status" aria-live="polite">
+      <div>
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-chip text-brand-strong ring-1 ring-chip-line">
           <CheckIcon className="h-5 w-5" />
         </span>
-        <p className="mt-4 font-display text-[20px] font-bold text-ink">
+        <h3
+          ref={heading}
+          tabIndex={-1}
+          className="mt-4 font-display text-[20px] font-bold text-ink"
+        >
           {state.done.existing
             ? "You're already registered"
             : "You're registered"}
-        </p>
+        </h3>
         <p className="mt-2 text-[14px] leading-[1.6] text-muted">
           Joining details go to{" "}
           <span className="font-semibold text-ink">{state.done.email}</span>{" "}
@@ -51,13 +86,19 @@ export default function RegisterForm({
   }
 
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-4">
+    <form
+      ref={form}
+      action={formAction}
+      noValidate
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="event" value={slug} />
-      {state.message && <FormBanner>{state.message}</FormBanner>}
+      <FormAlert ref={alert} message={state.message} />
       <Field
         label="Full name"
         name="name"
         autoComplete="name"
+        maxLength={80}
         placeholder="Jane Founder"
         defaultValue={v.name}
         error={err.name}
@@ -68,6 +109,7 @@ export default function RegisterForm({
         type="email"
         inputMode="email"
         autoComplete="email"
+        maxLength={254}
         placeholder="you@company.com"
         defaultValue={v.email}
         error={err.email}
@@ -76,6 +118,7 @@ export default function RegisterForm({
         label="Company (optional)"
         name="company"
         autoComplete="organization"
+        maxLength={120}
         placeholder="Your startup or firm"
         defaultValue={v.company}
         error={err.company}

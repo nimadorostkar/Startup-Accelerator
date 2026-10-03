@@ -60,7 +60,10 @@ function Section({
         {title}
       </h2>
       {body && (
-        <p className="mt-3 text-[17px] leading-[1.75] whitespace-pre-line text-ink-soft/90">
+        <p
+          dir="auto"
+          className="mt-3 text-[17px] leading-[1.75] whitespace-pre-line wrap-anywhere text-ink-soft/90"
+        >
           {body}
         </p>
       )}
@@ -81,10 +84,10 @@ function ExternalLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-ink transition-colors duration-200 hover:border-brand hover:text-brand-strong"
+      className="inline-flex h-10 max-w-full items-center gap-2 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-ink transition-colors duration-200 hover:border-brand hover:text-brand-strong"
     >
-      {children}
-      <ExternalIcon className="h-3.5 w-3.5 text-muted" />
+      <span className="truncate">{children}</span>
+      <ExternalIcon className="h-3.5 w-3.5 shrink-0 text-muted" />
     </a>
   );
 }
@@ -171,7 +174,10 @@ export default async function StartupPage({
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <h1 className="font-display text-[36px] leading-[1.02] font-extrabold tracking-[-0.025em] text-ink sm:text-[52px]">
+                  <h1
+                    dir="auto"
+                    className="min-w-0 font-display text-[36px] leading-[1.02] font-extrabold tracking-[-0.025em] wrap-anywhere text-ink sm:text-[52px]"
+                  >
                     {s.name}
                   </h1>
                   <PublicStatusBadge
@@ -180,7 +186,10 @@ export default async function StartupPage({
                   />
                 </div>
                 {s.tagline && (
-                  <p className="lead mt-3 max-w-[680px] sm:text-[19px]">
+                  <p
+                    dir="auto"
+                    className="lead mt-3 max-w-[680px] wrap-anywhere sm:text-[19px]"
+                  >
                     {s.tagline}
                   </p>
                 )}
@@ -191,8 +200,12 @@ export default async function StartupPage({
                     s.country,
                   ]
                     .filter(Boolean)
-                    .map((c) => (
-                      <span key={c as string} className="chip">
+                    .map((c, i) => (
+                      <span
+                        key={i}
+                        dir="auto"
+                        className="chip max-w-full wrap-anywhere"
+                      >
                         {c}
                       </span>
                     ))}
@@ -254,7 +267,10 @@ export default async function StartupPage({
                         <p className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
                           What people use today
                         </p>
-                        <p className="mt-2 text-[15px] leading-[1.65] text-ink-soft">
+                        <p
+                          dir="auto"
+                          className="mt-2 text-[15px] leading-[1.65] whitespace-pre-line wrap-anywhere text-ink-soft"
+                        >
                           {s.competitors}
                         </p>
                       </div>
@@ -264,7 +280,10 @@ export default async function StartupPage({
                         <p className="text-[11px] font-semibold tracking-[0.12em] text-brand-strong uppercase">
                           Why this team wins
                         </p>
-                        <p className="mt-2 text-[15px] leading-[1.65] text-ink-soft">
+                        <p
+                          dir="auto"
+                          className="mt-2 text-[15px] leading-[1.65] whitespace-pre-line wrap-anywhere text-ink-soft"
+                        >
                           {s.advantage}
                         </p>
                       </div>
@@ -278,7 +297,9 @@ export default async function StartupPage({
                     <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-white">
                       <CheckIcon className="h-3 w-3" />
                     </span>
-                    {s.keyMetric}
+                    <span dir="auto" className="min-w-0 wrap-anywhere">
+                      {s.keyMetric}
+                    </span>
                   </p>
                 </Section>
               )}
@@ -290,7 +311,10 @@ export default async function StartupPage({
                         <dt className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
                           Worked together
                         </dt>
-                        <dd className="mt-1.5 text-[15px] font-semibold text-ink">
+                        <dd
+                          dir="auto"
+                          className="mt-1.5 text-[15px] font-semibold wrap-anywhere text-ink"
+                        >
                           {s.workedTogether}
                         </dd>
                       </div>
@@ -300,7 +324,10 @@ export default async function StartupPage({
                         <dt className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
                           Hiring
                         </dt>
-                        <dd className="mt-1.5 text-[15px] leading-[1.6] text-ink-soft">
+                        <dd
+                          dir="auto"
+                          className="mt-1.5 text-[15px] leading-[1.6] whitespace-pre-line wrap-anywhere text-ink-soft"
+                        >
                           {s.hiringNeeds}
                         </dd>
                       </div>
@@ -317,10 +344,16 @@ export default async function StartupPage({
                       className="h-12 w-12 text-[14px]"
                     />
                     <div className="min-w-0">
-                      <p className="text-[16px] font-bold text-ink">
+                      <p
+                        dir="auto"
+                        className="text-[16px] font-bold wrap-anywhere text-ink"
+                      >
                         {founder.name}
                       </p>
-                      <p className="text-[13px] text-muted">
+                      <p
+                        dir="auto"
+                        className="text-[13px] wrap-anywhere text-muted"
+                      >
                         {[
                           founder.title,
                           [founder.city, founder.country]
@@ -333,7 +366,10 @@ export default async function StartupPage({
                           ` · ${founder.experienceYears} ${founder.experienceYears === 1 ? "year" : "years"} of experience`}
                       </p>
                       {founder.bio && (
-                        <p className="mt-3 text-[15px] leading-[1.7] text-ink-soft/90">
+                        <p
+                          dir="auto"
+                          className="mt-3 text-[15px] leading-[1.7] whitespace-pre-line wrap-anywhere text-ink-soft/90"
+                        >
                           {founder.bio}
                         </p>
                       )}
@@ -363,7 +399,10 @@ export default async function StartupPage({
                       className="flex items-baseline justify-between gap-4 py-3"
                     >
                       <dt className="text-[13px] text-muted">{k}</dt>
-                      <dd className="text-right text-[14px] font-semibold text-ink">
+                      <dd
+                        dir="auto"
+                        className="min-w-0 text-right text-[14px] font-semibold wrap-anywhere text-ink"
+                      >
                         {v}
                       </dd>
                     </div>
@@ -380,9 +419,9 @@ export default async function StartupPage({
                     Founders and team
                   </h2>
                   <ul className="mt-4 flex flex-col gap-4">
-                    {s.team.map((m) => (
+                    {s.team.map((m, i) => (
                       <li
-                        key={m.name + m.role}
+                        key={i}
                         className="flex items-center gap-3"
                       >
                         <FounderDot
@@ -392,14 +431,17 @@ export default async function StartupPage({
                         />
                         <div className="min-w-0 flex-1">
                           <p className="flex flex-wrap items-center gap-x-2 text-[14px] font-bold text-ink">
-                            {m.name}
+                            <bdi className="min-w-0 wrap-anywhere">{m.name}</bdi>
                             {m.isFounder && (
                               <span className="rounded-full bg-chip px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.06em] text-brand-strong uppercase ring-1 ring-chip-line">
                                 Founder
                               </span>
                             )}
                           </p>
-                          <p className="truncate text-[13px] text-muted">
+                          <p
+                            dir="auto"
+                            className="truncate text-[13px] text-muted"
+                          >
                             {[
                               m.role,
                               m.commitment === "full-time"
@@ -440,7 +482,7 @@ export default async function StartupPage({
                   <ol className="relative mt-4 ml-1.5 border-l-2 border-dashed border-line pl-5">
                     {s.timeline.map((t, i) => (
                       <li
-                        key={t.at + t.title}
+                        key={i}
                         className="relative pb-4 last:pb-0"
                       >
                         <span

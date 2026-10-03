@@ -26,7 +26,10 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
         <Monogram name={s.name} logo={s.logo} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <h3 className="font-display text-[19px] leading-tight font-bold tracking-[-0.01em] text-ink">
+            <h3
+              dir="auto"
+              className="min-w-0 font-display text-[19px] leading-tight font-bold tracking-[-0.01em] wrap-anywhere text-ink"
+            >
               <Link
                 href={`/startups/${s.slug}`}
                 className="after:absolute after:inset-0 after:content-['']"
@@ -44,21 +47,27 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
         </div>
       </div>
 
-      <p className="mt-4 line-clamp-2 text-[15px] leading-[1.55] text-ink-soft/85">
+      <p
+        dir="auto"
+        className="mt-4 line-clamp-2 text-[15px] leading-[1.55] wrap-anywhere text-ink-soft/85"
+      >
         {s.tagline || "One-line pitch coming soon."}
       </p>
 
       {facts.length > 0 && (
         <ul className="mt-4 flex flex-wrap gap-x-3 gap-y-1.5 text-[13px] text-muted">
           {facts.map((f, i) => (
-            <li key={f} className="flex items-center gap-3">
+            <li
+              key={i}
+              className="flex min-w-0 items-center gap-3 wrap-anywhere"
+            >
               {i > 0 && (
                 <span
                   aria-hidden="true"
                   className="h-1 w-1 rounded-full bg-line"
                 />
               )}
-              {f}
+              <bdi>{f}</bdi>
             </li>
           ))}
         </ul>
@@ -79,13 +88,16 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
           <div className="flex items-center">
             {s.founders.slice(0, 3).map((f, i) => (
               <FounderDot
-                key={f}
+                key={i}
                 name={f}
                 photo={f === s.founder.name ? s.founder.photo : undefined}
                 className={`h-7 w-7 text-[10px] ${i > 0 ? "-ml-2" : ""}`}
               />
             ))}
-            <span className="ml-2.5 truncate text-[13px] font-medium text-ink">
+            <span
+              dir="auto"
+              className="ml-2.5 truncate text-[13px] font-medium text-ink"
+            >
               {s.founders.join(", ") || "Founders to be announced"}
             </span>
           </div>

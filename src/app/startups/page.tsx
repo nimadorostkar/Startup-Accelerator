@@ -7,6 +7,7 @@ import Directory, {
 } from "@/components/startups/Directory";
 import Eyebrow from "@/components/ui/Eyebrow";
 import UnicornCta from "@/components/UnicornCta";
+import { distinctCount } from "@/lib/application/directory";
 import { listPublicStartups } from "@/lib/application/public";
 
 export const metadata: Metadata = {
@@ -34,8 +35,8 @@ export default async function StartupsPage({
 
   const all = await listPublicStartups();
   const cohort = all.filter((s) => s.status === "cohort").length;
-  const industries = new Set(all.map((s) => s.industry).filter(Boolean)).size;
-  const countries = new Set(all.map((s) => s.country).filter(Boolean)).size;
+  const industries = distinctCount(all.map((s) => s.industry));
+  const countries = distinctCount(all.map((s) => s.country));
   const stats = [
     { value: all.length, label: all.length === 1 ? "Startup" : "Startups" },
     { value: cohort, label: "In the cohort" },

@@ -55,7 +55,13 @@ export async function sendContactMessage(
 
   try {
     const result = await saveContactMessage({ name, email, company, topic, message });
-    if (!result.ok) return { message: result.errors ? undefined : result.message, errors: result.errors, values };
+    if (!result.ok)
+      return {
+        // A refusal without a message of its own (an HTML 400 from a proxy) still says something
+        message: result.errors ? undefined : (result.message ?? "We couldn't send that just now. Please try again."),
+        errors: result.errors,
+        values,
+      };
   } catch (err) {
     unstable_rethrow(err);
     console.error(err);

@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId, useRef, useState } from "react";
 import {
   sendContactMessage,
   type ContactFormState,
 } from "@/app/contact/actions";
 import Field from "../auth/Field";
-import FormBanner from "../auth/FormBanner";
+import { FormAlert } from "../auth/FormBanner";
 import SubmitButton from "../auth/SubmitButton";
+import { useResponseFocus } from "../auth/useResponseFocus";
 import { CheckIcon } from "../icons";
 
 /* Topics come from the server page, since lib/contact is server-only. */
@@ -29,14 +30,22 @@ export default function ContactForm({ topics }: { topics: readonly string[] }) {
   const id = useId();
   const v = state.values ?? {};
   const err = state.errors ?? {};
+  const form = useRef<HTMLFormElement>(null);
+  const alert = useRef<HTMLDivElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useResponseFocus(state, { heading, form, alert });
 
   if (state.sent && dismissed !== state) {
     return (
-      <div role="status" aria-live="polite">
+      <div>
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-chip text-brand-strong ring-1 ring-chip-line">
           <CheckIcon className="h-5 w-5" />
         </span>
-        <h2 className="mt-5 font-display text-[24px] leading-tight font-bold tracking-[-0.01em] text-ink">
+        <h2
+          ref={heading}
+          tabIndex={-1}
+          className="mt-5 font-display text-[24px] leading-tight font-bold tracking-[-0.01em] text-ink"
+        >
           Message sent
         </h2>
         <p className="lead mt-3">
@@ -55,14 +64,22 @@ export default function ContactForm({ topics }: { topics: readonly string[] }) {
   }
 
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-5">
-      {state.message && <FormBanner>{state.message}</FormBanner>}
+    <form
+      ref={form}
+      action={formAction}
+      noValidate
+      className="flex flex-col gap-5"
+    >
+      <FormAlert ref={alert} message={state.message} />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field
           label="Full name"
           name="name"
           autoComplete="name"
+          maxLength={80}
+          // Back from "Send another message": start again at the top
+          autoFocus={dismissed === state}
           placeholder="Jane Founder"
           defaultValue={v.name}
           error={err.name}
@@ -73,6 +90,7 @@ export default function ContactForm({ topics }: { topics: readonly string[] }) {
           type="email"
           inputMode="email"
           autoComplete="email"
+          maxLength={254}
           placeholder="you@company.com"
           defaultValue={v.email}
           error={err.email}
@@ -84,6 +102,7 @@ export default function ContactForm({ topics }: { topics: readonly string[] }) {
           label="Company (optional)"
           name="company"
           autoComplete="organization"
+          maxLength={120}
           placeholder="Your startup or firm"
           defaultValue={v.company}
           error={err.company}

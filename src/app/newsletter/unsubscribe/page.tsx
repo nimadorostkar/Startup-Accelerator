@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import UnsubscribeForm from "@/components/newsletter/UnsubscribeForm";
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
 
 export default async function UnsubscribePage({ searchParams }: PageProps<"/newsletter/unsubscribe">) {
   const { token } = await searchParams;
+  // Missing, empty or given twice (?token=a&token=b): nothing to send.
+  const value = typeof token === "string" ? token.trim() : "";
 
   return (
     <>
@@ -25,7 +28,17 @@ export default async function UnsubscribePage({ searchParams }: PageProps<"/news
             You&rsquo;ll stop getting the issue every other Thursday. Emails about an application or an event you
             registered for still arrive.
           </p>
-          <UnsubscribeForm token={typeof token === "string" ? token : ""} />
+          {value ? (
+            <UnsubscribeForm token={value} />
+          ) : (
+            <p className="mt-8 rounded-xl border border-line bg-white px-4 py-3 text-[14px] text-ink-soft">
+              This unsubscribe link is incomplete. Use the link in your latest email again, or{" "}
+              <Link href="/newsletter" className="font-semibold text-brand-strong hover:text-ink">
+                go to the newsletter page
+              </Link>
+              .
+            </p>
+          )}
         </div>
       </main>
       <Footer />

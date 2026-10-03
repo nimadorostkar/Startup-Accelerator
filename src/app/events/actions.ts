@@ -16,6 +16,8 @@ export type RegisterState = {
   errors?: FieldErrors;
   values?: Record<string, string>;
   done?: { name: string; email: string; existing: boolean };
+  /** Why registration is closed (the event ended or filled up meanwhile). */
+  closed?: string;
 };
 
 export async function registerForEvent(
@@ -43,7 +45,15 @@ export async function registerForEvent(
 
   try {
     const result = await addRegistration({ event: slug, name, email, company });
-    if (!result.ok) return { message: result.errors ? undefined : result.message, errors: result.errors, values };
+    if (!result.ok && result.closed)
+      return { closed: result.message ?? "Registration for this event has closed." };
+    if (!result.ok)
+      return {
+        // A refusal without a message of its own (an HTML 400 from a proxy) still says something
+        message: result.errors ? undefined : (result.message ?? "We couldn't send that just now. Please try again."),
+        errors: result.errors,
+        values,
+      };
     return { done: { name, email, existing: result.existing } };
   } catch (err) {
     unstable_rethrow(err);

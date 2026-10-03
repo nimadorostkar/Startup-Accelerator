@@ -17,7 +17,8 @@ export type Block =
   | { type: "p"; text: string }
   | { type: "h2"; text: string }
   | { type: "quote"; text: string; cite?: string }
-  | { type: "list"; items: string[] };
+  /** `ordered` for a numbered list ("1. " lines in the back office). */
+  | { type: "list"; items: string[]; ordered?: boolean };
 
 export type Post = {
   slug: string;
@@ -29,6 +30,8 @@ export type Post = {
   /** ISO date */
   date: string;
   minutes: number;
+  /** Last edited (ISO datetime), for the sitemap. */
+  updated?: string;
   body: Block[];
 };
 

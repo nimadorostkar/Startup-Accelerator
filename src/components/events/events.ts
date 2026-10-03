@@ -32,40 +32,61 @@ export type SummitEvent = {
   takeaways: string[];
   agenda: { time: string; item: string }[];
   audience: string;
+  /** Last edited (ISO datetime), for the sitemap. */
+  updated?: string;
 };
 
 export function isPast(e: SummitEvent, now = Date.now()) {
   return new Date(e.end).getTime() < now;
 }
 
-/** Date parts in the event's own time zone. */
+/** The event's zone, or UTC when this runtime doesn't know it (Intl throws
+    a RangeError for names like "Factory"), so a bad zone can't break a page. */
+function knownZone(tz: string) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return tz;
+  } catch {
+    return "UTC";
+  }
+}
+
+/** Date parts in the event's own time zone. An event that ends on a later
+    day (in that zone) shows both dates. */
 export function eventDate(e: SummitEvent) {
-  const d = new Date(e.start);
-  const part = (o: Intl.DateTimeFormatOptions) =>
-    d.toLocaleString("en-US", { ...o, timeZone: e.tz });
-  const time = (iso: string) =>
-    new Date(iso).toLocaleString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: e.tz,
-    });
-  const zone = d
-    .toLocaleString("en-US", { timeZone: e.tz, timeZoneName: "short" })
-    .split(" ")
-    .pop();
-  return {
-    day: part({ day: "numeric" }),
-    month: part({ month: "short" }),
-    weekday: part({ weekday: "short" }),
-    long: part({
+  const timeZone = knownZone(e.tz);
+  const start = new Date(e.start);
+  const end = new Date(e.end);
+  const fmt = (d: Date, o: Intl.DateTimeFormatOptions) =>
+    d.toLocaleString("en-US", { ...o, timeZone });
+  const time = (d: Date) => fmt(d, { hour: "numeric", minute: "2-digit" });
+  const zone = fmt(start, { timeZoneName: "short" }).split(" ").pop();
+  const ymd = (d: Date) =>
+    fmt(d, { year: "numeric", month: "2-digit", day: "2-digit" });
+  const multiDay = ymd(start) !== ymd(end);
+  const longDay = (d: Date, year = true) =>
+    fmt(d, {
       weekday: "long",
       month: "long",
       day: "numeric",
-      year: "numeric",
-    }),
-    time: `${time(e.start)} – ${time(e.end)} ${zone}`,
+      ...(year && { year: "numeric" }),
+    });
+  const shortDay = (d: Date) => fmt(d, { month: "short", day: "numeric" });
+  const sameYear = fmt(start, { year: "numeric" }) === fmt(end, { year: "numeric" });
+  return {
+    day: fmt(start, { day: "numeric" }),
+    month: fmt(start, { month: "short" }),
+    weekday: fmt(start, { weekday: "short" }),
+    long: multiDay
+      ? `${longDay(start, !sameYear)} – ${longDay(end)}`
+      : longDay(start),
+    time: multiDay
+      ? `${shortDay(start)}, ${time(start)} – ${shortDay(end)}, ${time(end)} ${zone}`
+      : `${time(start)} – ${time(end)} ${zone}`,
     /** Start time only, e.g. "4:00 PM PDT" */
-    start: `${time(e.start)} ${zone}`,
+    start: `${time(start)} ${zone}`,
+    /** The zone's short name, e.g. "PDT" ("UTC" for a zone we can't show). */
+    zone,
   };
 }
 

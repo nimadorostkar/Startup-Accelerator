@@ -7,6 +7,12 @@ import { SITE_URL } from "@/lib/site";
 // Rebuilt hourly, or as soon as an event, article or startup changes (cache tags).
 export const revalidate = 3600;
 
+/** A payload's `updated` time, when it has a valid one. */
+function modified(updated?: string) {
+  const d = updated ? new Date(updated) : null;
+  return d && !Number.isNaN(d.getTime()) ? { lastModified: d } : {};
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = (path: string) => `${SITE_URL}${path}`;
 
@@ -32,18 +38,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = allPosts.map((p) => ({
     url: url(`/newsletter/${p.slug}`),
     lastModified: new Date(`${p.date}T00:00:00Z`),
+    ...modified(p.updated),
     changeFrequency: "yearly" as const,
     priority: 0.6,
   }));
 
   const events = allEvents.map((e) => ({
     url: url(`/events/${e.slug}`),
+    ...modified(e.updated),
     changeFrequency: "weekly" as const,
     priority: 0.6,
   }));
 
   const startups = allStartups.map((s) => ({
     url: url(`/startups/${s.slug}`),
+    ...modified(s.updated),
     changeFrequency: "weekly" as const,
     priority: 0.5,
   }));
