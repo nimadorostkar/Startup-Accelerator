@@ -73,7 +73,9 @@ async function send(
   }
   revalidatePath("/admin", "layout");
   revalidatePath("/dashboard", "layout");
-  revalidateTag("startups", "max");
+  // Only a decision changes what the public directory shows (assignments,
+  // scorecards and notes are the review team's own).
+  if (tail === "/decisions") revalidateTag("startups", "max");
   return { ok: true, message, savedAt: new Date().toISOString() };
 }
 
