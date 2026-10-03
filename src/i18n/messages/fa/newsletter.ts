@@ -1,5 +1,72 @@
 import type en from "../en/newsletter";
 
-const newsletter: typeof en = {};
+const newsletter: typeof en = {
+  categories: {
+    Fundraising: "جذب سرمایه",
+    Building: "ساختن محصول",
+    AI: "هوش مصنوعی",
+    "Founder Stories": "داستان بنیان‌گذاران",
+    "Program News": "اخبار برنامه",
+  },
+  minRead: "{count} دقیقه مطالعه",
+  issue: "شمارهٔ {issue}",
+  page: {
+    metaTitle: "خبرنامه — The Founder Brief · Fundup Club",
+    metaDescription:
+      "راهنمای جذب سرمایه، آموزش ساختن با هوش مصنوعی و داستان بنیان‌گذاران از شبکهٔ Fundup Club. پنجشنبه‌ها، یک هفته در میان، رایگان.",
+    eyebrow: "The Founder Brief · خبرنامه",
+    heading: "یادداشت‌های ساختن\nبرای بنیان‌گذاران\n{accent}",
+    headingAccent: "بلندپرواز",
+    lead: "راهنمای جذب سرمایه، آموزش ساختن با هوش مصنوعی و داستان بنیان‌گذاران از شبکهٔ Fundup Club، مستقیم در صندوق ایمیل شما.",
+    perks: ["پنجشنبه‌ها، یک هفته در میان", "۵ دقیقه مطالعه", "همیشه رایگان"],
+    inboxTo: "به شما · شمارهٔ {issue}",
+    inboxNew: "تازه",
+    readThis: "خواندن این شماره",
+    featured: "ویژه",
+    by: "نویسنده: {author}",
+    readIssue: "خواندن این شماره",
+    archiveEyebrow: "از آرشیو",
+    latest: "تازه‌ترین {accent}",
+    latestAccent: "شماره‌ها",
+    filterLabel: "فیلتر بر اساس موضوع",
+    allTopics: "همهٔ موضوع‌ها",
+    noun: { one: "مطلب", other: "مطلب" },
+    emptyTopic: "هنوز مطلبی در این موضوع منتشر نشده است.",
+    bandEyebrow: "هیچ شماره‌ای را از دست ندهید",
+    bandHeading: "همان راهنماهایی که بنیان‌گذاران ما به کار می‌برند، در صندوق ایمیل شما.",
+  },
+  article: {
+    metaTitle: "{title} — The Founder Brief",
+    allIssues: "همهٔ شماره‌ها",
+    subscribeHeading: "از این شماره خوشتان آمد؟",
+    subscribeLead: "The Founder Brief را پنجشنبه‌ها، یک هفته در میان، دریافت کنید. رایگان است و ۵ دقیقه وقت می‌گیرد.",
+    more: "مطالب بیشتر از {accent}",
+    moreAccent: "خبرنامه",
+  },
+  subscribe: {
+    label: "نشانی ایمیل",
+    placeholder: "you@company.com",
+    submit: "عضویت",
+    pending: "در حال عضویت…",
+    doneNew: "عضو شدید. شمارهٔ بعدی به {email} فرستاده می‌شود.",
+    doneExisting: "{email} از قبل در فهرست است.",
+    failed: "الان نتوانستیم شما را عضو کنیم. لطفاً دوباره تلاش کنید.",
+  },
+  unsubscribe: {
+    metaTitle: "لغو اشتراک — The Founder Brief · Fundup Club",
+    eyebrow: "The Founder Brief",
+    heading: "لغو اشتراک در خبرنامه",
+    lead: "دیگر شماره‌های دوهفتگی پنجشنبه‌ها را دریافت نمی‌کنید. ایمیل‌های مربوط به درخواست شما یا رویدادی که در آن ثبت‌نام کرده‌اید همچنان می‌رسند.",
+    incomplete: "این پیوند لغو اشتراک ناقص است. دوباره از پیوند آخرین ایمیل خود استفاده کنید یا {link}.",
+    incompleteLink: "به صفحهٔ خبرنامه بروید",
+    done: "عضویت شما لغو شد",
+    doneLead: "{email} دیگر The Founder Brief را دریافت نمی‌کند.",
+    changedMind: "نظرتان عوض شد؟ هر زمان بخواهید می‌توانید {link}.",
+    signUpAgain: "دوباره عضو شوید",
+    submit: "لغو اشتراک",
+    pending: "در حال لغو اشتراک…",
+    failed: "این پیوند کار نکرد.",
+  },
+};
 
 export default newsletter;

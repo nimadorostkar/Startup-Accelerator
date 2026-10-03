@@ -34,12 +34,14 @@ function GlobeIcon({ className = "" }: { className?: string }) {
   );
 }
 
-/** The header's dropdown (desktop). `className` sets the text colour, like the header's links. */
+/** The header's dropdown (desktop). `className` sets the text colour, like the header's links.
+    A native <details>, so it opens and its links work before the page's JavaScript has loaded;
+    once it has, it also closes on a click elsewhere or Escape, and keeps the query when switching. */
 export default function LanguageSwitcher({ label, className = "text-ink" }: { label: string; className?: string }) {
   const locale = useLocale();
   const target = useTargets();
   const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLDetailsElement>(null);
   const listId = useId();
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function LanguageSwitcher({ label, className = "text-ink" }: { la
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       setOpen(false);
-      root.current?.querySelector("button")?.focus();
+      root.current?.querySelector("summary")?.focus();
     };
     document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
@@ -62,55 +64,54 @@ export default function LanguageSwitcher({ label, className = "text-ink" }: { la
   }, [open, listId]);
 
   return (
-    <div ref={root} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-controls={listId}
+    <details
+      ref={root}
+      open={open}
+      onToggle={(e) => setOpen(e.currentTarget.open)}
+      className="group/lang relative"
+    >
+      <summary
         aria-label={`${label}: ${LOCALE_INFO[locale].label}`}
-        className={`group flex h-10 items-center gap-1.5 rounded-full px-2.5 transition-colors duration-200 hover:text-brand focus-visible:outline-2 focus-visible:outline-brand ${className}`}
+        className={`flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full px-2.5 transition-colors duration-200 hover:text-brand focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden ${className}`}
       >
         <GlobeIcon className="h-[17px] w-[17px] shrink-0" />
         <span className="font-display text-[12px] font-bold tracking-[0.06em]">{LOCALE_INFO[locale].short}</span>
-        <svg viewBox="0 0 12 12" aria-hidden="true" className={`h-2.5 w-2.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
+        <svg viewBox="0 0 12 12" aria-hidden="true" className="h-2.5 w-2.5 shrink-0 transition-transform duration-200 group-open/lang:rotate-180">
           <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </button>
+      </summary>
 
-      {open && (
-        <ul
-          id={listId}
-          aria-label={label}
-          className="menu-in absolute end-0 top-[calc(100%+8px)] z-50 w-[200px] rounded-2xl border border-line-soft bg-white p-1.5 shadow-[0_24px_60px_-24px_rgba(20,26,34,0.45)]"
-        >
-          {LOCALES.map((l) => {
-            const current = l === locale;
-            return (
-              <li key={l}>
-                <a
-                  href={target(l)}
-                  hrefLang={l}
-                  lang={l}
-                  dir={LOCALE_INFO[l].dir}
-                  aria-current={current ? "true" : undefined}
-                  onClick={current ? (e) => (e.preventDefault(), setOpen(false)) : go(target(l))}
-                  className={`flex h-11 items-center gap-3 rounded-xl px-3 text-[14px] transition-colors duration-150 hover:bg-cream focus-visible:bg-cream focus-visible:outline-none ${
-                    current ? "font-semibold text-ink" : "text-ink-soft"
-                  }`}
-                >
-                  <span className="w-7 shrink-0 font-display text-[11px] font-bold tracking-[0.06em] text-muted">
-                    {LOCALE_INFO[l].short}
-                  </span>
-                  <span className="flex-1">{LOCALE_INFO[l].label}</span>
-                  {current && <CheckIcon className="h-4 w-4 shrink-0 text-brand-strong" />}
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+      <ul
+        id={listId}
+        aria-label={label}
+        className="menu-in absolute end-0 top-[calc(100%+8px)] z-50 w-[200px] rounded-2xl border border-line-soft bg-white p-1.5 shadow-[0_24px_60px_-24px_rgba(20,26,34,0.45)]"
+      >
+        {LOCALES.map((l) => {
+          const current = l === locale;
+          return (
+            <li key={l}>
+              <a
+                href={target(l)}
+                hrefLang={l}
+                lang={l}
+                dir={LOCALE_INFO[l].dir}
+                aria-current={current ? "true" : undefined}
+                onClick={current ? (e) => (e.preventDefault(), setOpen(false)) : go(target(l))}
+                className={`flex h-11 items-center gap-3 rounded-xl px-3 text-[14px] transition-colors duration-150 hover:bg-cream focus-visible:bg-cream focus-visible:outline-none ${
+                  current ? "font-semibold text-ink" : "text-ink-soft"
+                }`}
+              >
+                <span className="w-7 shrink-0 font-display text-[11px] font-bold tracking-[0.06em] text-muted">
+                  {LOCALE_INFO[l].short}
+                </span>
+                <span className="flex-1">{LOCALE_INFO[l].label}</span>
+                {current && <CheckIcon className="h-4 w-4 shrink-0 text-brand-strong" />}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </details>
   );
 }
 

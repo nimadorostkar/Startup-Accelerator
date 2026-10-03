@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
-import LegalArticle, { type LegalSection } from "@/components/LegalArticle";
+import LegalArticle, {
+  legalMetadata,
+  type LegalSection,
+} from "@/components/LegalArticle";
 
-export const metadata: Metadata = {
-  title: "Terms of use — Fundup Club",
-  description:
-    "The terms that apply when you use the Fundup Club website, apply to the program or register for an event.",
-};
+export function generateMetadata() {
+  return legalMetadata("terms");
+}
 
-/* DRAFT — have counsel review it, and add your legal entity, governing law and
+/* The document is in English on every language's page (LegalArticle).
+   DRAFT — have counsel review it, and add your legal entity, governing law and
    dispute-resolution terms, before launch. Program terms live in the program agreement. */
 const SECTIONS: LegalSection[] = [
   {
@@ -90,13 +91,6 @@ const SECTIONS: LegalSection[] = [
 
 export default function TermsPage() {
   return (
-    <LegalArticle
-      eyebrow="Legal"
-      title="Terms of use"
-      updated="2026-09-25"
-      current="/terms"
-      intro="The rules for using this site, applying to the program and coming to our events. The program itself has its own agreement."
-      sections={SECTIONS}
-    />
+    <LegalArticle doc="terms" updated="2026-09-25" sections={SECTIONS} />
   );
 }

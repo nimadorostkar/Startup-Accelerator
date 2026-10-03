@@ -1,17 +1,15 @@
 import Image from "next/image";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { getDictionary } from "@/i18n/server";
 import { ArrowRight, CheckIcon } from "@/components/icons";
 import { BrandLogo } from "@/components/Logo";
 
-const PROOF = [
-  "Apply once, reach 180+ investment firms",
-  "Mentors and operators from 65+ markets",
-  "Demo Day, pitch reviews and warm intros",
-];
-
-/* Two-panel auth shell: brand story on the left from lg up, form on the
-   right. Below lg the panel drops away and the form gets the screen. */
-export default function AuthLayout({ children }: LayoutProps<"/[lang]">) {
+/* Two-panel auth shell: brand story at the start (left, or right on
+   right-to-left pages) from lg up, form beside it. Below lg the panel drops
+   away and the form gets the screen. */
+export default async function AuthLayout({ children }: LayoutProps<"/[lang]">) {
+  const { auth, common } = await getDictionary();
+  const t = auth.layout;
   return (
     <div className="flex min-h-[100svh] flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       {/* Brand panel */}
@@ -27,21 +25,21 @@ export default function AuthLayout({ children }: LayoutProps<"/[lang]">) {
           className="-z-20 object-cover object-[58%_center]"
         />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(160deg,rgba(20,26,34,0.92),rgba(20,26,34,0.55)_45%,rgba(20,26,34,0.88))]" />
-        <div className="cta-glow absolute -top-32 -left-24 -z-10 h-[340px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)] blur-2xl" />
+        <div className="cta-glow absolute -start-24 -top-32 -z-10 h-[340px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)] blur-2xl" />
 
         <BrandLogo className="h-[40px] w-auto self-start" />
 
         <div className="max-w-[460px]">
           <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-brand uppercase">
-            Founder access
+            {t.eyebrow}
           </p>
           <p className="mt-5 font-display text-[34px] leading-[1.1] font-bold tracking-[-0.02em] text-white xl:text-[40px]">
-            The room where ideas
+            {t.headingLine1}
             <br />
-            find their capital.
+            {t.headingLine2}
           </p>
           <ul className="mt-8 flex flex-col gap-3.5">
-            {PROOF.map((line) => (
+            {t.proof.map((line) => (
               <li
                 key={line}
                 className="flex items-start gap-3 text-[15px] leading-[1.5] text-white/80"
@@ -56,10 +54,7 @@ export default function AuthLayout({ children }: LayoutProps<"/[lang]">) {
         </div>
 
         <dl className="flex gap-10">
-          {[
-            ["$420B+", "Capital represented"],
-            ["25,000+", "Founders trained"],
-          ].map(([value, label]) => (
+          {t.stats.map(({ value, label }) => (
             <div key={label} className="flex flex-col-reverse">
               <dt className="font-display mt-1.5 text-[11px] font-semibold tracking-[0.1em] text-white/70 uppercase">
                 {label}
@@ -77,7 +72,7 @@ export default function AuthLayout({ children }: LayoutProps<"/[lang]">) {
         <header className="flex items-center justify-between gap-4 px-5 pt-5 sm:px-8 sm:pt-7 lg:justify-end lg:px-12 lg:pt-10">
           <Link
             href="/"
-            aria-label="Fundup Club home"
+            aria-label={common.site.home}
             className="flex items-center lg:hidden"
           >
             <BrandLogo className="h-[32px] w-auto" />
@@ -86,8 +81,9 @@ export default function AuthLayout({ children }: LayoutProps<"/[lang]">) {
             href="/"
             className="group inline-flex items-center gap-2 text-[13px] font-semibold text-muted transition-colors duration-200 hover:text-ink"
           >
+            {/* A forward arrow turned round: it points back on either reading direction. */}
             <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-0.5" />
-            Back to site
+            {t.backToSite}
           </Link>
         </header>
 

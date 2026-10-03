@@ -9,6 +9,14 @@ The API behind these pages (endpoints, data model, emails, caching) is in [backe
 
 The site has four areas: a public landing page, sign-in pages, a founder dashboard where startups submit their application, and an admin panel where the support team reviews them. The website is built with Next.js 16 (App Router), React 19 and Tailwind CSS 4, with no extra dependencies; its data lives in a Django API ([backend/](../backend/)), which also has a back office at `/backoffice/` for content, accounts and roles.
 
+**Languages.** Every public page and the sign-in pages exist in English, Turkish and Persian: `/events`, `/tr/events`, `/fa/events` (every route below except `/dashboard…`, `/admin…` and `/backoffice/`, which are English only). Persian pages run right to left in the Vazirmatn font. Code, conventions and how to add a string: [src/i18n/README.md](../src/i18n/README.md).
+
+- **Switching:** the header has a language button (globe, `EN`/`TR`/`FA`) that opens a small menu of the three languages, each written in its own script, the current one ticked; the phone menu has them as three side-by-side segments. Switching keeps the page, its filters and its position (`/startups?status=cohort` → `/tr/startups?status=cohort`).
+- **Addresses:** English has no prefix; `/en/…` redirects to it. Links on a Turkish or Persian page stay in that language; links into the dashboard go to the English one.
+- **What is translated:** everything the site itself says (navigation, pages, forms, their messages, including the API's validation and rate-limit messages, page titles). Content entered by people (events, articles, startups' answers) is shown as written. The legal pages show a translated frame and notice, with the document itself in English, the version that applies.
+- **Dates and numbers** follow the language: Persian pages use the Persian calendar and digits.
+- **Search engines:** `<html lang>` and `dir`, an `og:locale` per language, and every page listed in each language in the sitemap with `hreflang` alternates.
+
 | Route | Page | Who uses it | Access |
 | --- | --- | --- | --- |
 | `/` | Landing page | Everyone | Public |

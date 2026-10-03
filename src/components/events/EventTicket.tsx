@@ -1,8 +1,9 @@
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { getDictionary, getLocale } from "@/i18n/server";
 import { ArrowRight } from "../icons";
 import { eventDate, type SummitEvent } from "./events";
 
-export function FormatBadge({
+export async function FormatBadge({
   e,
   dark = false,
 }: {
@@ -10,6 +11,7 @@ export function FormatBadge({
   dark?: boolean;
 }) {
   const online = e.format === "Online";
+  const t = (await getDictionary()).events;
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-[5px] text-[12px] leading-none font-semibold ${
@@ -22,17 +24,18 @@ export function FormatBadge({
         aria-hidden="true"
         className={`h-1.5 w-1.5 rounded-full ${online ? "bg-green-bright" : "bg-brand"}`}
       />
-      {online ? "Online" : e.city}
+      {online ? t.online : <span dir="auto">{e.city}</span>}
     </span>
   );
 }
 
 /* Ticket-style row: date stub, perforation, details, register cue. */
-export default function EventTicket({ e }: { e: SummitEvent }) {
-  const d = eventDate(e);
+export default async function EventTicket({ e }: { e: SummitEvent }) {
+  const [t, locale] = [(await getDictionary()).events, await getLocale()];
+  const d = eventDate(e, locale);
   return (
     <article className="card card-lift group relative flex overflow-hidden">
-      <div className="relative flex w-[92px] shrink-0 flex-col items-center justify-center border-r border-dashed border-line bg-cream py-6 sm:w-[124px]">
+      <div className="relative flex w-[92px] shrink-0 flex-col items-center justify-center border-e border-dashed border-line bg-cream py-6 sm:w-[124px]">
         <span className="font-display text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
           {d.weekday}
         </span>
@@ -45,23 +48,24 @@ export default function EventTicket({ e }: { e: SummitEvent }) {
         {/* Perforation notches */}
         <span
           aria-hidden="true"
-          className="absolute -top-3 -right-3 h-6 w-6 rounded-full bg-[var(--notch,#fff)] ring-1 ring-line-soft"
+          className="absolute -end-3 -top-3 h-6 w-6 rounded-full bg-[var(--notch,#fff)] ring-1 ring-line-soft"
         />
         <span
           aria-hidden="true"
-          className="absolute -right-3 -bottom-3 h-6 w-6 rounded-full bg-[var(--notch,#fff)] ring-1 ring-line-soft"
+          className="absolute -end-3 -bottom-3 h-6 w-6 rounded-full bg-[var(--notch,#fff)] ring-1 ring-line-soft"
         />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-8 sm:p-7">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="chip">{e.type}</span>
+            <span className="chip">{t.types[e.type] ?? e.type}</span>
             <FormatBadge e={e} />
           </div>
           <h3 className="mt-3 text-[18px] leading-[1.25] font-bold tracking-[-0.01em] text-ink sm:text-[21px]">
             <Link
               href={`/events/${e.slug}`}
+              dir="auto"
               className="after:absolute after:inset-0 after:content-['']"
             >
               {e.title}
@@ -70,12 +74,12 @@ export default function EventTicket({ e }: { e: SummitEvent }) {
           <p className="mt-1.5 text-[13px] font-medium text-ink-soft">
             {d.time}
           </p>
-          <p className="mt-2 hidden max-w-[640px] text-[14px] leading-[1.6] text-muted sm:line-clamp-2">
+          <p dir="auto" className="mt-2 hidden max-w-[640px] text-[14px] leading-[1.6] text-muted sm:line-clamp-2">
             {e.summary}
           </p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-line px-5 py-2.5 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 group-hover:border-brand group-hover:bg-brand-strong group-hover:text-white sm:self-center">
-          Register
+          {t.ticket.register}
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
         </span>
       </div>

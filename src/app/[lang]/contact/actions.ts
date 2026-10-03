@@ -1,6 +1,7 @@
 "use server";
 
 import { unstable_rethrow } from "next/navigation";
+import { formLocale, translateErrors, translateMessage } from "@/i18n/form-messages";
 import { CONTACT_TOPICS, saveContactMessage } from "@/lib/contact";
 import {
   checkEmail,
@@ -23,6 +24,7 @@ export async function sendContactMessage(
   _prev: ContactFormState,
   form: FormData,
 ): Promise<ContactFormState> {
+  const locale = formLocale(form);
   const name = readString(form, "name");
   const email = readString(form, "email");
   const company = readString(form, "company");
@@ -51,22 +53,24 @@ export async function sendContactMessage(
     ],
   ]);
   if (errors || !oneOf(topic, CONTACT_TOPICS))
-    return { errors: errors ?? {}, values };
+    return { errors: translateErrors(locale, errors ?? {}), values };
 
   try {
     const result = await saveContactMessage({ name, email, company, topic, message });
     if (!result.ok)
       return {
         // A refusal without a message of its own (an HTML 400 from a proxy) still says something
-        message: result.errors ? undefined : (result.message ?? "We couldn't send that just now. Please try again."),
-        errors: result.errors,
+        message: result.errors
+          ? undefined
+          : translateMessage(locale, result.message ?? "We couldn't send that just now. Please try again."),
+        errors: translateErrors(locale, result.errors),
         values,
       };
   } catch (err) {
     unstable_rethrow(err);
     console.error(err);
     return {
-      message: "We couldn't send your message just now. Please try again.",
+      message: translateMessage(locale, "We couldn't send your message just now. Please try again."),
       values,
     };
   }

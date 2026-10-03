@@ -5,10 +5,12 @@ import { UNAVAILABLE } from "@/lib/api";
 import {
   completeGoogleSignIn,
   GOOGLE_CALLBACK_PATH,
+  OAUTH_LOCALE_COOKIE,
   OAUTH_RETURN_COOKIE,
   OAUTH_STATE_COOKIE,
   type AuthResult,
 } from "@/lib/auth";
+import { isLocale, localePath } from "@/i18n/config";
 import { SITE_URL } from "@/lib/site";
 
 /* Google sends the visitor back here after the consent screen. The `state`
@@ -40,14 +42,18 @@ export async function GET(request: NextRequest) {
   const jar = await cookies();
   const expected = jar.get(OAUTH_STATE_COOKIE)?.value;
   const returnTo = jar.get(OAUTH_RETURN_COOKIE)?.value;
+  const lang = jar.get(OAUTH_LOCALE_COOKIE)?.value;
+  // Failures go back to the sign-in page in the language the visitor started in.
+  const login = (error: string) => localePath(isLocale(lang) ? lang : "en", `/login?error=${error}`);
+  jar.delete({ name: OAUTH_LOCALE_COOKIE, path: GOOGLE_CALLBACK_PATH });
   jar.delete({ name: OAUTH_STATE_COOKIE, path: GOOGLE_CALLBACK_PATH });
   jar.delete({ name: OAUTH_RETURN_COOKIE, path: GOOGLE_CALLBACK_PATH });
 
-  if (params.get("error")) return back("/login?error=google_cancelled");
+  if (params.get("error")) return back(login("google_cancelled"));
   const code = params.get("code");
   const state = params.get("state");
-  if (!code || !state || !expected || !same(state, expected)) return back("/login?error=google_state");
+  if (!code || !state || !expected || !same(state, expected)) return back(login("google_state"));
 
   const result = await completeGoogleSignIn(code, returnTo);
-  return back(result.ok ? result.redirectTo : `/login?error=${errorCode(result)}`);
+  return back(result.ok ? result.redirectTo : login(errorCode(result)));
 }

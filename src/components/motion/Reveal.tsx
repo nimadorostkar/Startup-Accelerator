@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { LOCALE_INFO } from "@/i18n/config";
+import { useLocale } from "@/i18n/client";
 
 type RevealProps = {
   children: ReactNode;
   className?: string;
   /** Delay before the element animates in, in ms. */
   delay?: number;
-  /** Start offset in px (slides from here to its resting place). */
+  /** Start offset in px (slides from here to its resting place). `x` is
+      along the reading direction: negative starts toward the line's start
+      (the left in English, the right in Persian). */
   x?: number;
   y?: number;
   as?: "div" | "li";
@@ -29,6 +33,7 @@ export default function Reveal({
   style,
 }: RevealProps) {
   const ref = useRef<HTMLDivElement & HTMLLIElement>(null);
+  const rtl = LOCALE_INFO[useLocale()].dir === "rtl";
 
   useEffect(() => {
     const el = ref.current;
@@ -57,7 +62,7 @@ export default function Reveal({
       style={
         {
           "--d": `${delay}ms`,
-          "--rx": `${x}px`,
+          "--rx": `${rtl ? -x : x}px`,
           "--ry": `${y}px`,
           ...style,
         } as CSSProperties

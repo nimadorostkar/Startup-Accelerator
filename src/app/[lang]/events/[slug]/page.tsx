@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, plural } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
 import Countdown from "@/components/events/Countdown";
 import EventTicket, { FormatBadge } from "@/components/events/EventTicket";
 import { eventDate, googleCalendarUrl, isPast } from "@/components/events/events";
 import RegisterForm from "@/components/events/RegisterForm";
+import { rich } from "@/i18n/rich";
 import Footer from "@/components/Footer";
 import { ArrowRight, CalendarIcon, CheckIcon } from "@/components/icons";
 import { UsersIcon } from "@/components/journey/icons";
@@ -25,7 +28,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const e = await findEvent(slug);
   if (!e) notFound(); // keeps the 404 page's own title
-  return { title: `${e.title} — Fundup Club Events`, description: e.summary };
+  const t = (await getDictionary()).events.detail;
+  return { title: format(t.metaTitle, { title: e.title }), description: e.summary };
 }
 
 function PinIcon({ className = "" }: { className?: string }) {
@@ -53,24 +57,23 @@ export default async function EventPage({
   const e = await findEvent(slug);
   if (!e) notFound();
 
+  const [{ events }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = events.detail;
   const ended = isPast(e);
-  const d = eventDate(e);
+  const d = eventDate(e, locale);
   const more = (await upcomingEvents()).filter((x) => x.slug !== e.slug).slice(0, 3);
 
   const facts = [
     { Icon: CalendarIcon, label: d.long, sub: d.time },
     {
       Icon: PinIcon,
-      label: e.format === "Online" ? "Online" : e.city,
-      sub:
-        e.format === "Online"
-          ? "Joining link sent after you register"
-          : "Venue shared with registered guests",
+      label: e.format === "Online" ? events.online : <bdi>{e.city}</bdi>,
+      sub: e.format === "Online" ? t.onlineNote : t.venueNote,
     },
     {
       Icon: UsersIcon,
-      label: `Up to ${e.capacity} ${e.capacity === 1 ? "guest" : "guests"}`,
-      sub: "Free to attend",
+      label: plural(locale, e.capacity, t.capacity),
+      sub: t.free,
     },
   ];
 
@@ -81,7 +84,7 @@ export default async function EventPage({
         <header className="relative isolate bg-cream px-4 pt-[116px] pb-12 sm:px-8 sm:pb-16 lg:pt-[calc(min(5.74vw,110px)+56px)]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)] rtl:[mask-image:radial-gradient(ellipse_at_top_right,#000,transparent_70%)]"
           />
           <div className="mx-auto max-w-[1200px] lg:px-6">
             <Link
@@ -89,21 +92,21 @@ export default async function EventPage({
               className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-brand-strong"
             >
               <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-1" />
-              All events
+              {t.allEvents}
             </Link>
             <div className="mt-7 flex flex-wrap items-center gap-2">
-              <span className="chip">{e.type}</span>
+              <span className="chip">{events.types[e.type] ?? e.type}</span>
               <FormatBadge e={e} />
               {ended && (
                 <span className="rounded-full bg-ink px-2.5 py-[5px] text-[12px] leading-none font-semibold text-white">
-                  Ended
+                  {events.ended}
                 </span>
               )}
             </div>
             <h1 className="mt-5 max-w-[860px] font-display text-[36px] leading-[1.05] font-extrabold tracking-[-0.025em] text-balance text-ink sm:text-[56px]">
-              {e.title}
+              <bdi>{e.title}</bdi>
             </h1>
-            <p className="lead mt-5 max-w-[680px] sm:text-[18px]">
+            <p dir="auto" className="lead mt-5 max-w-[680px] sm:text-[18px]">
               {e.summary}
             </p>
             {e.type === "Demo Day" && (
@@ -111,7 +114,7 @@ export default async function EventPage({
                 href="/demo-day"
                 className="group mt-5 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand-strong uppercase"
               >
-                How Demo Day works
+                {t.howDemoDayWorks}
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
             )}
@@ -141,11 +144,12 @@ export default async function EventPage({
                   id="about-title"
                   className="font-display text-[24px] font-bold tracking-[-0.015em] text-ink"
                 >
-                  About this event
+                  {t.about}
                 </h2>
                 {e.about.map((p, i) => (
                   <p
                     key={i}
+                    dir="auto"
                     className="mt-4 text-[17px] leading-[1.75] text-ink-soft/90"
                   >
                     {p}
@@ -159,18 +163,19 @@ export default async function EventPage({
                     id="takeaways-title"
                     className="font-display text-[24px] font-bold tracking-[-0.015em] text-ink"
                   >
-                    What you&rsquo;ll get
+                    {t.takeaways}
                   </h2>
                   <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {e.takeaways.map((t, i) => (
+                    {e.takeaways.map((item, i) => (
                       <li
                         key={i}
+                        dir="auto"
                         className="flex gap-3 rounded-[14px] bg-cream p-4 text-[15px] leading-[1.5] text-ink-soft"
                       >
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-white">
                           <CheckIcon className="h-3.5 w-3.5" />
                         </span>
-                        {t}
+                        {item}
                       </li>
                     ))}
                   </ul>
@@ -183,25 +188,26 @@ export default async function EventPage({
                     id="agenda-title"
                     className="font-display text-[24px] font-bold tracking-[-0.015em] text-ink"
                   >
-                    Agenda
+                    {t.agenda}
                   </h2>
                   <p className="mt-1 text-[13px] text-muted">
-                    Times in {d.zone}
+                    {rich(t.timesIn, { zone: <bdi>{d.zone}</bdi> })}
                   </p>
-                  <ol className="relative mt-6 ml-2 border-l-2 border-dashed border-line pl-7">
+                  <ol className="relative ms-2 mt-6 border-s-2 border-dashed border-line ps-7">
                     {e.agenda.map((a, i) => (
                       <li key={i} className="relative pb-7 last:pb-0">
                         <span
                           aria-hidden="true"
-                          className={`absolute top-1 -left-[37px] h-4 w-4 rounded-full ring-4 ring-white ${
+                          className={`absolute -start-[37px] top-1 h-4 w-4 rounded-full ring-4 ring-white ${
                             i === 0 ? "bg-brand" : "bg-line"
                           }`}
                         />
+                        {/* From the API: kept beside the timeline, isolated from the page's direction */}
                         <p className="font-display text-[13px] font-bold tracking-[0.06em] text-brand-strong uppercase tabular-nums">
-                          {a.time}
+                          <bdi>{a.time}</bdi>
                         </p>
                         <p className="mt-1 text-[16px] font-semibold text-ink">
-                          {a.item}
+                          <bdi>{a.item}</bdi>
                         </p>
                       </li>
                     ))}
@@ -218,9 +224,9 @@ export default async function EventPage({
                     id="audience-title"
                     className="font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase"
                   >
-                    Who it&rsquo;s for
+                    {t.audience}
                   </h2>
-                  <p className="mt-2 text-[16px] leading-[1.6] text-ink">
+                  <p dir="auto" className="mt-2 text-[16px] leading-[1.6] text-ink">
                     {e.audience}
                   </p>
                 </section>
@@ -237,30 +243,30 @@ export default async function EventPage({
                   id="register-title"
                   className="font-display text-[22px] font-bold tracking-[-0.015em] text-ink"
                 >
-                  {ended ? "This event has ended" : "Register"}
+                  {ended ? t.endedTitle : t.register}
                 </h2>
                 {ended ? (
                   <>
                     <p className="mt-2 text-[14px] leading-[1.6] text-muted">
-                      Thanks to everyone who came. See what&rsquo;s coming up
-                      next.
+                      {t.endedLead}
                     </p>
                     <Link
                       href="/events#upcoming"
                       className="mt-6 flex h-12 items-center justify-center gap-2.5 rounded-full bg-brand-strong font-display text-[13px] font-bold tracking-[0.06em] text-white uppercase"
                     >
-                      Upcoming events
+                      {t.upcoming}
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </>
                 ) : (
                   <>
                     <p className="mt-1 mb-5 text-[14px] text-muted">{d.long}</p>
-                    <Countdown to={e.start} tone="light" />
+                    <Countdown to={e.start} tone="light" t={events.countdown} />
                     <div className="mt-6">
                       <RegisterForm
                         slug={e.slug}
-                        calendarUrl={googleCalendarUrl(e)}
+                        calendarUrl={googleCalendarUrl(e, t.calendarOnline)}
+                        t={events.register}
                       />
                     </div>
                   </>
@@ -278,13 +284,15 @@ export default async function EventPage({
             <div className="mx-auto max-w-[1200px] lg:px-6">
               <div className="flex items-end justify-between gap-6">
                 <h2 id="more-events" className="title-section">
-                  More <span className="text-brand-strong">events</span>
+                  {rich(t.more, {
+                    accent: <span className="text-brand-strong">{t.moreAccent}</span>,
+                  })}
                 </h2>
                 <Link
                   href="/events#upcoming"
                   className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
                 >
-                  Full calendar
+                  {t.fullCalendar}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </div>

@@ -1,4 +1,6 @@
 import type { StartupCardData } from "@/lib/application/directory";
+import type { Messages } from "@/i18n/messages";
+import en from "@/i18n/messages/en/landing";
 
 /**
  * Who the landing page features: the hero's "Featured founders" panel, the
@@ -20,21 +22,34 @@ export type PanelFounder = {
   logo: string;
 };
 
-/** Short labels for the cards, where the application's industry names are too long. */
-const SECTORS: Record<string, string> = {
-  "AI & machine learning": "AI",
-  "B2B software / SaaS": "SaaS",
-  "Climate & energy": "CleanTech",
-  "Deep tech & hardware": "Deep tech",
-  "E-commerce & retail": "Retail",
-  Education: "EdTech",
-  "Health & biotech": "HealthTech",
-  "Mobility & logistics": "Logistics",
+type Sectors = Messages["landing"]["sectors"];
+
+/** Short labels for the cards, where the application's industry names are too
+    long (the words themselves are in the landing dictionary, `sectors`). */
+const SECTORS: Record<string, keyof Sectors> = {
+  "AI & machine learning": "ai",
+  "B2B software / SaaS": "saas",
+  "Climate & energy": "climate",
+  Consumer: "consumer",
+  "Deep tech & hardware": "deepTech",
+  "E-commerce & retail": "retail",
+  Education: "education",
+  Fintech: "fintech",
+  "Health & biotech": "health",
+  Marketplaces: "marketplaces",
+  "Mobility & logistics": "logistics",
+  Other: "other",
 };
 
-export function sectorLabel(industry: string) {
-  return SECTORS[industry] ?? industry;
+/** The card label for an industry, in the page's language (English by default). */
+export function sectorLabel(industry: string, sectors: Sectors = en.sectors) {
+  const key = SECTORS[industry];
+  return key ? sectors[key] : industry;
 }
+
+/** The words the cards need: `landing.sectors` and `landing.founders.founder`. */
+export type CardWords = { sectors: Sectors; founder: string };
+const EN_WORDS: CardWords = { sectors: en.sectors, founder: en.founders.founder };
 
 const MAX_CARDS = 12;
 
@@ -44,7 +59,11 @@ const MAX_CARDS = 12;
  * the most recent first within each. Startups that weren't selected, or whose
  * founder has no name yet, are left out.
  */
-export function featured(all: StartupCardData[], limit = MAX_CARDS): PanelFounder[] {
+export function featured(
+  all: StartupCardData[],
+  limit = MAX_CARDS,
+  words: CardWords = EN_WORDS,
+): PanelFounder[] {
   const rank = (s: StartupCardData) => (s.status === "cohort" ? 0 : 2) + (s.founder.photo ? 0 : 1);
   return all
     .filter((s) => s.status !== "passed" && s.founder.name)
@@ -53,9 +72,9 @@ export function featured(all: StartupCardData[], limit = MAX_CARDS): PanelFounde
     .map((s) => ({
       slug: s.slug,
       name: s.founder.name,
-      role: s.founder.role || "Founder",
+      role: s.founder.role || words.founder,
       company: s.name,
-      sector: sectorLabel(s.industry),
+      sector: sectorLabel(s.industry, words.sectors),
       photo: s.founder.photo,
       logo: s.logo,
     }));

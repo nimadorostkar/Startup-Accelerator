@@ -2,12 +2,22 @@
 
 import { useActionState } from "react";
 import { continueWithGoogle, type AuthFormState } from "@/app/[lang]/(auth)/actions";
+import { useLocale } from "@/i18n/client";
 import { GoogleMark } from "../icons";
 import FormBanner from "./FormBanner";
 
 /* Its own form, so a Google failure doesn't wipe what's typed in the
    email form next to it. */
-export default function GoogleButton({ label, next }: { label: string; next?: string }) {
+export default function GoogleButton({
+  label,
+  pendingLabel = "Opening Google…",
+  next,
+}: {
+  label: string;
+  pendingLabel?: string;
+  next?: string;
+}) {
+  const locale = useLocale();
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     continueWithGoogle,
     {},
@@ -16,6 +26,7 @@ export default function GoogleButton({ label, next }: { label: string; next?: st
   return (
     <div>
       <form action={formAction}>
+        <input type="hidden" name="lang" value={locale} />
         {next && <input type="hidden" name="next" value={next} />}
         <button
           type="submit"
@@ -24,7 +35,7 @@ export default function GoogleButton({ label, next }: { label: string; next?: st
         >
           <GoogleMark className="h-[18px] w-[18px] shrink-0" />
           <span className="font-display text-[14px] font-semibold">
-            {pending ? "Opening Google…" : label}
+            {pending ? pendingLabel : label}
           </span>
         </button>
       </form>

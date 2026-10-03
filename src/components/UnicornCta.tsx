@@ -1,16 +1,19 @@
+import { getDictionary } from "@/i18n/server";
 import Reveal from "./motion/Reveal";
 import ButtonLink from "./ui/ButtonLink";
 
-export default function UnicornCta() {
+/* The closing band of the landing, about and startups pages. */
+export default async function UnicornCta() {
+  const t = (await getDictionary()).landing.unicorn;
   return (
     <section
       aria-labelledby="unicorn-title"
-      className="relative isolate overflow-hidden bg-[linear-gradient(120deg,var(--night)_0%,var(--ember)_55%,var(--brand-strong)_100%)] px-4 py-20 text-center sm:px-8 sm:py-24 xl:py-28"
+      className="relative isolate overflow-hidden bg-[linear-gradient(120deg,var(--night)_0%,var(--ember)_55%,var(--brand-strong)_100%)] rtl:bg-[linear-gradient(240deg,var(--night)_0%,var(--ember)_55%,var(--brand-strong)_100%)] px-4 py-20 text-center sm:px-8 sm:py-24 xl:py-28"
     >
       {/* Soft light pools, same idea as the glows on the dark bands */}
       <div
         aria-hidden="true"
-        className="cta-glow absolute -top-40 left-1/4 -z-10 h-[360px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(170,235,170,0.14),transparent)]"
+        className="cta-glow absolute -top-40 start-1/4 -z-10 h-[360px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(170,235,170,0.14),transparent)]"
       />
       <div
         aria-hidden="true"
@@ -20,11 +23,11 @@ export default function UnicornCta() {
       <div className="mx-auto max-w-[680px]">
         <Reveal>
           <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-brand-soft uppercase">
-            <span className="block sm:inline">$420B+ capital represented</span>
+            <span className="block sm:inline">{t.capital}</span>
             <span aria-hidden="true" className="mx-2.5 hidden sm:inline">
               ·
             </span>
-            <span className="block sm:inline">180+ investment firms</span>
+            <span className="block sm:inline">{t.firms}</span>
           </p>
         </Reveal>
         <Reveal delay={90}>
@@ -32,13 +35,12 @@ export default function UnicornCta() {
             id="unicorn-title"
             className="mt-5 font-display text-[34px] leading-[1.08] font-bold tracking-[-0.02em] text-white sm:text-[48px]"
           >
-            Turn your idea into the next unicorn
+            {t.title}
           </h2>
         </Reveal>
         <Reveal delay={180}>
           <p className="mx-auto mt-5 max-w-[560px] text-[16px] leading-[1.65] text-white/85">
-            Founders from 65+ markets have used the program to build, launch
-            and fund their companies. Yours could be next.
+            {t.body}
           </p>
         </Reveal>
         <Reveal delay={260}>
@@ -47,7 +49,7 @@ export default function UnicornCta() {
             variant="white"
             className="mt-9 w-full max-w-[400px] sm:w-auto"
           >
-            Apply now
+            {t.apply}
           </ButtonLink>
         </Reveal>
       </div>

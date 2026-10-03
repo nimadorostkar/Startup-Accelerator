@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
-import LegalArticle, { type LegalSection } from "@/components/LegalArticle";
+import LegalArticle, {
+  legalMetadata,
+  type LegalSection,
+} from "@/components/LegalArticle";
 
-export const metadata: Metadata = {
-  title: "Privacy policy — Fundup Club",
-  description:
-    "What Fundup Club collects, why, who can see it, and how to ask for changes.",
-};
+export function generateMetadata() {
+  return legalMetadata("privacy");
+}
 
-/* DRAFT — written to match what the site actually does today. Have counsel
+/* The document is in English on every language's page (LegalArticle).
+   DRAFT — written to match what the site actually does today. Have counsel
    review it, and add your legal entity, address and jurisdiction, before launch. */
 const SECTIONS: LegalSection[] = [
   {
@@ -85,13 +86,6 @@ const SECTIONS: LegalSection[] = [
 
 export default function PrivacyPage() {
   return (
-    <LegalArticle
-      eyebrow="Legal"
-      title="Privacy policy"
-      updated="2026-09-25"
-      current="/privacy"
-      intro="What we collect when you use this site, why we collect it, who can see it, and how to ask for changes."
-      sections={SECTIONS}
-    />
+    <LegalArticle doc="privacy" updated="2026-09-25" sections={SECTIONS} />
   );
 }

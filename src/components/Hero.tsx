@@ -1,14 +1,18 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { LOCALE_INFO, type Locale } from "@/i18n/config";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, formatNumber } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
 import { listPublicStartups } from "@/lib/application/public";
 import { nextDemoDay } from "@/lib/events";
-import { eventDate } from "./events/events";
+import { eventDate, type SummitEvent } from "./events/events";
 import { Arrow } from "./hero/Arrow";
 import { pitches } from "./hero/demo-day";
 import { featured } from "./hero/founders";
 import FoundersPanel from "./hero/FoundersPanel";
 import s from "./hero/Hero.module.css";
+import { rich } from "@/i18n/rich";
 
 /* Landing hero (Fundup Club design): a light intro with the featured-founders
    panel, over a dark Demo Day band. Layout and motion live in
@@ -17,6 +21,23 @@ import s from "./hero/Hero.module.css";
 
 /** Entrance delay for one block of the staggered reveal. */
 const at = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
+
+/** The next edition's date ("Oct 22") and start time ("4:00 PM PDT") in the
+    page's language, in the event's own time zone. */
+function editionWhen(e: SummitEvent, locale: Locale) {
+  const { zone } = eventDate(e);
+  let timeZone = e.tz;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone });
+  } catch {
+    timeZone = "UTC";
+  }
+  const intl = LOCALE_INFO[locale].intl;
+  const start = new Date(e.start);
+  const date = new Intl.DateTimeFormat(intl, { month: "short", day: "numeric", timeZone }).format(start);
+  const time = new Intl.DateTimeFormat(intl, { hour: "numeric", minute: "2-digit", timeZone }).format(start);
+  return { date, start: `${time} ${zone}` };
+}
 
 function CalendarGlyph() {
   return (
@@ -36,11 +57,21 @@ function CalendarGlyph() {
 }
 
 export default async function Hero() {
-  const [next, startups] = await Promise.all([nextDemoDay(), listPublicStartups()]);
-  const when = next && eventDate(next);
-  const founders = featured(startups);
+  const [next, startups, { landing }, locale] = await Promise.all([
+    nextDemoDay(),
+    listPublicStartups(),
+    getDictionary(),
+    getLocale(),
+  ]);
+  const t = landing.hero;
+  const band = landing.demoDay;
+  const when = next && editionWhen(next, locale);
+  const founders = featured(startups, undefined, {
+    sectors: landing.sectors,
+    founder: landing.founders.founder,
+  });
   const faces = founders.filter((f) => f.photo).slice(0, 5);
-  const onStage = pitches(startups);
+  const onStage = pitches(startups, landing.sectors);
 
   return (
     <section className={s.hero} aria-labelledby="hero-title">
@@ -50,26 +81,26 @@ export default async function Hero() {
         <div className={s.introInner}>
           <div className={s.copy}>
             <p className={`${s.eyebrow} ${s.rise}`} style={at(100)}>
-              Where founders find their next
+              {t.eyebrow}
             </p>
             <h1 id="hero-title" className={s.title}>
               <span className={s.line}>
-                <span style={at(220)}>Built to launch.</span>
+                <span style={at(220)}>{t.titleLine1}</span>
               </span>{" "}
               <span className={`${s.line} ${s.lineAccent}`}>
-                <span style={at(340)}>Made to connect.</span>
+                <span style={at(340)}>{t.titleLine2}</span>
               </span>
             </h1>
             <p className={`${s.lede} ${s.rise}`} style={at(480)}>
-              A home for bold startups and the people building them.
+              {t.lede}
             </p>
             <div className={`${s.ctas} ${s.rise}`} style={at(600)}>
               <Link href="/startups" className={`${s.btn} ${s.btnSolid}`}>
-                Explore startups
+                {t.exploreStartups}
                 <Arrow />
               </Link>
               <Link href="/dashboard" className={`${s.btn} ${s.btnOutline}`}>
-                Join the club
+                {t.joinClub}
               </Link>
             </div>
             <div className={`${s.proof} ${s.rise}`} style={at(720)}>
@@ -88,15 +119,17 @@ export default async function Hero() {
                 </span>
               )}
               <p>
-                <strong>25,000+ founders</strong> trained ·{" "}
-                <strong>180+</strong> investment firms
+                {rich(t.proof, {
+                  founders: <strong>{t.proofFounders}</strong>,
+                  firms: <strong>{t.proofFirms}</strong>,
+                })}
               </p>
             </div>
           </div>
 
           {/* Featured founders */}
           <div className={`${s.showcase} ${s.rise}`} style={at(450)}>
-            <FoundersPanel founders={founders} />
+            <FoundersPanel founders={founders} t={landing.founders} />
           </div>
         </div>
       </div>
@@ -106,17 +139,14 @@ export default async function Hero() {
         <div className={s.bandGlow} aria-hidden="true" />
         <div className={s.bandInner}>
           <div className={`${s.bandCopy} ${s.rise}`} style={at(800)}>
-            <p className={s.bandEyebrow}>Demo Day</p>
+            <p className={s.bandEyebrow}>{band.eyebrow}</p>
             <h2 className={s.bandTitle}>
-              Tomorrow&rsquo;s big ideas. <span>Live on stage.</span>
+              {band.title} <span>{band.titleAccent}</span>
             </h2>
-            <p className={s.bandLede}>
-              Meet emerging founders. Watch the pitches. Find your next
-              opportunity.
-            </p>
+            <p className={s.bandLede}>{band.lede}</p>
             <div className={s.bandActions}>
               <Link href="/demo-day" className={`${s.btn} ${s.btnSolid}`}>
-                Explore Demo Day
+                {band.explore}
                 <Arrow />
               </Link>
               <div className={s.edition}>
@@ -124,19 +154,19 @@ export default async function Hero() {
                 {next && when ? (
                   <p>
                     <Link href={`/events/${next.slug}`}>
-                      Next edition · {when.month} {when.day}
+                      {format(band.nextEdition, { date: when.date })}
                     </Link>
                     <span>
                       {next.format === "Online"
-                        ? "Online"
-                        : `Live in ${next.city}`}{" "}
+                        ? band.online
+                        : format(band.liveIn, { city: next.city })}{" "}
                       · {when.start}
                     </span>
                   </p>
                 ) : (
                   <p>
-                    <Link href="/newsletter">Next edition · Date soon</Link>
-                    <span>Get the date first in the newsletter</span>
+                    <Link href="/newsletter">{band.dateSoon}</Link>
+                    <span>{band.newsletter}</span>
                   </p>
                 )}
               </div>
@@ -161,7 +191,7 @@ export default async function Hero() {
                   />
                   <span className={s.pitchBody}>
                     <span className={s.pitchNum} aria-hidden="true">
-                      {String(i + 1).padStart(2, "0")}
+                      {formatNumber(locale, i + 1, { minimumIntegerDigits: 2 })}
                     </span>
                     <span className={s.pitchSector}>{p.sector}</span>
                     <span className={s.pitchName}>{p.name}</span>

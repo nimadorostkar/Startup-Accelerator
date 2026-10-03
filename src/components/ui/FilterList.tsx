@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useLocale } from "@/i18n/client";
+import { formatNumber } from "@/i18n/format";
 
 /* Filter chips over a list of server-rendered items: only the filter state
    ships as JavaScript, not the items themselves. */
@@ -8,6 +10,7 @@ export default function FilterList({
   label,
   allLabel,
   categories,
+  categoryLabels,
   items,
   hideOnAll,
   noun,
@@ -17,7 +20,10 @@ export default function FilterList({
   /** Accessible name for the chip group, e.g. "Filter by topic". */
   label: string;
   allLabel: string;
+  /** The stored category values: items are matched on these. */
   categories: readonly string[];
+  /** What each category's chip says, if not the value itself (a translated label). */
+  categoryLabels?: Record<string, string>;
   items: { key: string; category: string; node: ReactNode }[];
   /** Item already featured elsewhere: left out of the "all" view only. */
   hideOnAll?: string;
@@ -26,6 +32,7 @@ export default function FilterList({
   emptyText: string;
   listClassName: string;
 }) {
+  const locale = useLocale();
   const [active, setActive] = useState<string | null>(null);
   const shown = active
     ? items.filter((i) => i.category === active)
@@ -52,14 +59,15 @@ export default function FilterList({
                   : "border-line bg-white text-ink-soft hover:border-brand hover:text-brand-strong"
               }`}
             >
-              {c ?? allLabel}
+              {c === null ? allLabel : (categoryLabels?.[c] ?? c)}
             </button>
           );
         })}
       </div>
 
       <p aria-live="polite" className="sr-only">
-        {shown.length} {shown.length === 1 ? noun[0] : noun[1]}
+        {formatNumber(locale, shown.length)}{" "}
+        {shown.length === 1 ? noun[0] : noun[1]}
       </p>
 
       <ul className={listClassName}>

@@ -1,15 +1,20 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 import { chooseNewPassword, type AuthFormState } from "@/app/[lang]/(auth)/actions";
+import { LocalLink as Link, useLocale } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import Field from "./Field";
 import FormBanner from "./FormBanner";
 import SubmitButton from "./SubmitButton";
 
 /* The second half of a password reset: the token comes from the emailed
    link, and a success signs the user straight in. */
-export default function ResetPasswordForm({ token }: { token: string }) {
+type Strings = Pick<Messages["auth"]["fields"], "showPassword" | "hidePassword"> &
+  Messages["auth"]["reset"]["form"];
+
+export default function ResetPasswordForm({ t, token }: { t: Strings; token: string }) {
+  const locale = useLocale();
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     chooseNewPassword,
     {},
@@ -21,21 +26,24 @@ export default function ResetPasswordForm({ token }: { token: string }) {
         <FormBanner>
           {state.message}{" "}
           <Link href="/forgot-password" className="font-semibold underline underline-offset-2">
-            Get a new link
+            {t.newLink}
           </Link>
         </FormBanner>
       )}
+      <input type="hidden" name="lang" value={locale} />
       <input type="hidden" name="token" value={token} />
       <Field
-        label="New password"
+        label={t.password}
         name="password"
         type="password"
         autoComplete="new-password"
-        placeholder="At least 8 characters, with a number"
+        placeholder={t.passwordPlaceholder}
+        showPasswordLabel={t.showPassword}
+        hidePasswordLabel={t.hidePassword}
         error={state.errors?.password}
       />
-      <SubmitButton pending={pending} pendingLabel="Saving…">
-        Set new password
+      <SubmitButton pending={pending} pendingLabel={t.pending}>
+        {t.submit}
       </SubmitButton>
     </form>
   );

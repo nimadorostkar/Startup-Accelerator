@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, formatNumber } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
+import { rich } from "@/i18n/rich";
 import Roadmap from "@/components/demo-day/Roadmap";
 import Countdown from "@/components/events/Countdown";
 import { eventDate } from "@/components/events/events";
-import Accordion, { type QA } from "@/components/faq/Accordion";
+import Accordion from "@/components/faq/Accordion";
 import Footer from "@/components/Footer";
 import { ArrowRight, CalendarIcon, CheckIcon } from "@/components/icons";
-import { STAGES } from "@/components/Journey";
+import { stagesIn } from "@/components/Journey";
 import Reveal from "@/components/motion/Reveal";
 import Navbar from "@/components/Navbar";
 import { featured } from "@/components/hero/founders";
-import { LEFT, RIGHT } from "@/components/results/data";
+import { testimonialsIn } from "@/components/results/data";
 import TestimonialCard from "@/components/results/TestimonialCard";
 import ButtonLink from "@/components/ui/ButtonLink";
 import Eyebrow from "@/components/ui/Eyebrow";
@@ -19,105 +22,37 @@ import { FounderDot } from "@/components/startups/Monogram";
 import { listPublicStartups } from "@/lib/application/public";
 import { nextDemoDay } from "@/lib/events";
 
-export const metadata: Metadata = {
-  title: "Demo Day — Fundup Club",
-  description:
-    "Ten weeks of building, one afternoon on stage. How Demo Day works, where it sits in the six-stage program, and what founders walk away with.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDictionary()).demoDay;
+  return { title: t.metaTitle, description: t.metaDescription };
+}
 
-const DEMO = STAGES.find((s) => s.id === "demo-day")!;
-const STAGE_NO = STAGES.indexOf(DEMO) + 1;
 
-/* Format facts, not outcomes. PLACEHOLDER network figures match the landing page. */
-const FORMAT = [
-  { value: "20", label: "Startups on stage" },
-  { value: "5 min", label: "Per pitch, then questions" },
-  { value: "180+", label: "Firms in the network" },
-  { value: "1:1", label: "Investor meetings after" },
-];
-
-const NUMBERS = [
-  { value: "$420B+", label: "Capital represented" },
-  { value: "180+", label: "Investment firms" },
-  { value: "65+", label: "Markets" },
-  { value: "1,200+", label: "Startups built" },
-  { value: "120+", label: "Company exits" },
-  { value: "30%", label: "Founders from emerging markets" },
-];
-
-const WALK_IN_WITH = [
-  "A pitch-ready deck, rehearsed in two mock Demo Days",
-  "A data room: cap table, monthly metrics, 18-month model",
-  "A shortlist of matched investors in the room",
-  "Three customers who will take a reference call",
-];
-
-const RUN_UP = [
-  "Pitch coaching twice a week with program mentors",
-  "Deck and narrative reviews until the story is one sentence",
-  "Two mock Demo Days in front of investor panels",
-  "Data room check: what investors will ask for, ready before they ask",
-  "Investor matching by sector, stage and geography",
-];
-
-const AFTER = [
-  "Investors mark the founders they want to meet",
-  "Introductions go out within 48 hours",
-  "Follow-up meetings in the two weeks after",
-  "Post-program mentorship through the Scale stage",
-];
-
-/* The structure every founder is coached on: five beats in five minutes. */
-const PITCH = [
-  {
-    beat: "Problem",
-    secs: 60,
-    note: "Who has it, and what it costs them today",
-  },
-  { beat: "Product", secs: 60, note: "What you shipped and how it solves it" },
-  { beat: "Traction", secs: 90, note: "Users, revenue and what is growing" },
-  { beat: "Team", secs: 30, note: "Why you are the ones to build this" },
-  { beat: "The ask", secs: 60, note: "How much, and what it buys" },
-];
-const PITCH_TOTAL = PITCH.reduce((s, p) => s + p.secs, 0);
-
-const STORIES = [LEFT[2], LEFT[1], RIGHT[1]];
-
-/* PLACEHOLDER ANSWERS — confirm attendance rules and streaming before launch. */
-const FAQS: QA[] = [
-  {
-    q: "Who can attend Demo Day?",
-    a: "Investors, founders, mentors and anyone considering the program. Seats are free but limited, so register on the event page.",
-  },
-  {
-    q: "Do I have to be in the program to pitch?",
-    a: "Yes. Founders pitch at the Demo Day that closes their cohort. If you want to be on stage, apply to the next cohort.",
-  },
-  {
-    q: "How long is a pitch?",
-    a: "Five minutes, followed by questions from the room. The coaching in weeks 9–10 is built around exactly that format.",
-  },
-  {
-    q: "What happens after the pitches?",
-    a: "Investors mark the founders they want to meet. Introductions go out within 48 hours, and one-to-one meetings follow in the two weeks after.",
-  },
-  {
-    q: "Is there a prize?",
-    a: "No. Demo Day isn't a competition; it's an introduction. The pitch opens the door, and the meetings after it are the point.",
-  },
-];
+/* The structure every founder is coached on: five beats in five minutes
+   (their names and notes are in the dictionary, in this order). */
+const PITCH_SECS = [60, 60, 90, 30, 60];
+const PITCH_TOTAL = PITCH_SECS.reduce((s, p) => s + p, 0);
 
 // Static, refreshed every minute and as soon as the API reports a change
 // (cache tags). The data comes from the API, see lib/api.ts (BUILDING).
 export const revalidate = 60;
 
 export default async function DemoDayPage() {
+  const [{ demoDay: t, events, landing }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  // The six stages and the (PLACEHOLDER) testimonials, in this language (landing dictionary).
+  const stages = stagesIn(landing);
+  const demo = stages.find((s) => s.id === "demo-day")!;
+  const { left, right } = testimonialsIn(landing);
+  const stories = [left[2], left[1], right[1]];
   const [next, startups] = await Promise.all([nextDemoDay(), listPublicStartups()]);
-  const nextDate = next && eventDate(next);
+  const nextDate = next && eventDate(next, locale);
+  const two = (n: number) => formatNumber(locale, n, { minimumIntegerDigits: 2 });
+  const demoWeeks = demo.weeks;
   // Founders already in the cohort, from the API's directory (those with a photo first).
   const onStage = featured(
     startups.filter((s) => s.status === "cohort"),
     5,
+    { sectors: landing.sectors, founder: landing.founders.founder },
   );
 
   return (
@@ -133,11 +68,11 @@ export default async function DemoDayPage() {
             preload
             quality={55}
             sizes="100vw"
-            className="-z-20 object-cover object-[70%_center] opacity-70"
+            className="-z-20 object-cover object-[70%_center] opacity-70 rtl:object-[30%_center]"
           />
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,var(--ink)_0%,rgba(20,26,34,0.94)_38%,rgba(20,26,34,0.55)_72%,rgba(20,26,34,0.35)_100%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,var(--ink)_0%,rgba(20,26,34,0.94)_38%,rgba(20,26,34,0.55)_72%,rgba(20,26,34,0.35)_100%)] rtl:bg-[linear-gradient(260deg,var(--ink)_0%,rgba(20,26,34,0.94)_38%,rgba(20,26,34,0.55)_72%,rgba(20,26,34,0.35)_100%)]"
           />
           <div
             aria-hidden="true"
@@ -149,20 +84,23 @@ export default async function DemoDayPage() {
               <div>
                 <Reveal>
                   <Eyebrow tone="dark">
-                    Stage {String(STAGE_NO).padStart(2, "0")} of{" "}
-                    {String(STAGES.length).padStart(2, "0")} · {DEMO.weeks}
+                    {format(t.hero.eyebrow, {
+                      stage: two(stages.indexOf(demo) + 1),
+                      total: two(stages.length),
+                      weeks: demoWeeks,
+                    })}
                   </Eyebrow>
                 </Reveal>
                 <Reveal delay={90}>
                   <h1 className="mt-5 font-display text-[56px] leading-[0.95] font-extrabold tracking-[-0.03em] uppercase sm:text-[84px] xl:text-[104px]">
-                    Demo <span className="text-brand">Day</span>
+                    {rich(t.hero.heading, {
+                      accent: <span className="text-brand">{t.hero.headingAccent}</span>,
+                    })}
                   </h1>
                 </Reveal>
                 <Reveal delay={180}>
                   <p className="mt-6 max-w-[540px] text-[17px] leading-[1.6] text-white/80 sm:text-[19px]">
-                    Ten weeks of building, one afternoon on stage. Twenty
-                    founders pitch to investors from 180+ firms, then meet the
-                    ones who want to go deeper, one to one.
+                    {t.hero.lead}
                   </p>
                 </Reveal>
                 <Reveal
@@ -171,13 +109,13 @@ export default async function DemoDayPage() {
                 >
                   {next ? (
                     <ButtonLink href={`/events/${next.slug}`}>
-                      Reserve a seat
+                      {t.hero.reserve}
                     </ButtonLink>
                   ) : (
-                    <ButtonLink href="/dashboard">Apply to pitch</ButtonLink>
+                    <ButtonLink href="/dashboard">{t.hero.apply}</ButtonLink>
                   )}
                   <ButtonLink href="#roadmap" variant="outline-dark">
-                    See the roadmap
+                    {t.hero.roadmap}
                   </ButtonLink>
                 </Reveal>
               </div>
@@ -193,46 +131,46 @@ export default async function DemoDayPage() {
                     <>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-brand px-3 py-1.5 text-[12px] leading-none font-bold text-white">
-                          Next Demo Day
+                          {t.hero.next}
                         </span>
                         <span className="rounded-full bg-white/10 px-3 py-1.5 text-[12px] leading-none font-semibold text-white/85">
-                          {next.format === "Online" ? "Online" : next.city}
+                          {next.format === "Online" ? events.online : <bdi>{next.city}</bdi>}
                         </span>
                       </div>
                       <p className="mt-5 font-display text-[26px] leading-tight font-bold tracking-[-0.02em] sm:text-[30px]">
-                        {next.title}
+                        <bdi>{next.title}</bdi>
                       </p>
                       <p className="mt-2 flex items-center gap-2 text-[14px] text-white/70">
                         <CalendarIcon className="h-4 w-4 text-brand" />
-                        {nextDate.long} · {nextDate.time}
+                        {format(events.dateTime, { date: nextDate.long, time: nextDate.time })}
                       </p>
                       <div className="mt-6">
-                        <Countdown to={next.start} />
+                        <Countdown to={next.start} t={events.countdown} />
                       </div>
                       <Link
                         href={`/events/${next.slug}`}
                         className="group mt-6 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand uppercase"
                       >
-                        Event details and registration
+                        {t.hero.details}
                         <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                       </Link>
                     </>
                   ) : (
                     <>
                       <span className="rounded-full bg-white/10 px-3 py-1.5 text-[12px] leading-none font-semibold text-white/85">
-                        Next date coming soon
+                        {t.hero.soon}
                       </span>
                       <p className="mt-5 font-display text-[26px] leading-tight font-bold">
-                        The next Demo Day is being scheduled.
+                        {t.hero.scheduling}
                       </p>
                       <p className="mt-3 text-[14px] text-white/70">
-                        New dates land in the newsletter first.
+                        {t.hero.newsletterFirst}
                       </p>
                       <Link
                         href="/newsletter"
                         className="mt-6 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand uppercase"
                       >
-                        Subscribe
+                        {t.hero.subscribe}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </>
@@ -243,7 +181,7 @@ export default async function DemoDayPage() {
 
             <Reveal delay={320} className="mt-14 border-t border-white/12 pt-8">
               <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-                {FORMAT.map((f) => (
+                {t.format.map((f) => (
                   <div key={f.label} className="flex flex-col-reverse">
                     <dt className="mt-1.5 text-[12px] font-semibold tracking-[0.08em] text-white/60 uppercase">
                       {f.label}
@@ -267,26 +205,23 @@ export default async function DemoDayPage() {
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <div className="max-w-[720px]">
               <Reveal>
-                <Eyebrow>The program roadmap</Eyebrow>
+                <Eyebrow>{t.roadmap.eyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h2 id="roadmap-title" className="title-section mt-4">
-                  Six stages. One that
-                  <br />
-                  <span className="text-brand-strong">changes everything.</span>
+                  {rich(t.roadmap.heading, {
+                    accent: <span className="text-brand-strong">{t.roadmap.headingAccent}</span>,
+                  })}
                 </h2>
               </Reveal>
               <Reveal delay={180}>
                 <p className="lead mt-5">
-                  Ten weeks from the first customer conversation to the stage.
-                  Demo Day is stage five: where the work of the first eight
-                  weeks meets the people who fund it. Everything before it
-                  builds toward it, and everything after it builds on it.
+                  {t.roadmap.lead}
                 </p>
               </Reveal>
             </div>
             <div className="mt-12 lg:mt-16">
-              <Roadmap />
+              <Roadmap stages={stages} t={t.roadmap} locale={locale} />
             </div>
             <p className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-muted">
               <span className="inline-flex items-center gap-2">
@@ -294,20 +229,20 @@ export default async function DemoDayPage() {
                   aria-hidden="true"
                   className="h-[3px] w-6 rounded-full bg-brand"
                 />
-                In the ten-week program
+                {t.roadmap.inProgram}
               </span>
               <span className="inline-flex items-center gap-2">
                 <span
                   aria-hidden="true"
                   className="h-0 w-6 border-t-[3px] border-dashed border-brand/60"
                 />
-                After the program
+                {t.roadmap.afterProgram}
               </span>
               <Link
                 href="/#program"
                 className="inline-flex items-center gap-1.5 font-semibold text-ink hover:text-brand-strong"
               >
-                All six stages in detail
+                {t.roadmap.allStages}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </p>
@@ -323,42 +258,33 @@ export default async function DemoDayPage() {
           <div className="mx-auto grid max-w-[1720px] items-center gap-12 lg:grid-cols-2 lg:gap-20 lg:px-6">
             <div>
               <Reveal>
-                <Eyebrow>What it is</Eyebrow>
+                <Eyebrow>{t.what.eyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h2 id="what-title" className="title-section mt-4">
-                  The afternoon the
-                  <br />
-                  <span className="text-brand-strong">
-                    program is built around
-                  </span>
+                  {rich(t.what.heading, {
+                    accent: <span className="text-brand-strong">{t.what.headingAccent}</span>,
+                  })}
                 </h2>
               </Reveal>
               <Reveal delay={180}>
-                <p className="lead mt-6 max-w-[560px]">
-                  Demo Day closes every cohort. Each founder takes the stage for
-                  a five-minute pitch in front of investors from our network,
-                  then meets the ones who want to go deeper, one to one.
-                </p>
-                <p className="lead mt-4 max-w-[560px]">
-                  It isn&rsquo;t a competition and there is no prize. The pitch
-                  is the door; the meetings after it are the point.
-                </p>
+                <p className="lead mt-6 max-w-[560px]">{t.what.lead1}</p>
+                <p className="lead mt-4 max-w-[560px]">{t.what.lead2}</p>
               </Reveal>
               <Reveal delay={260}>
                 <h3 className="mt-8 font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase">
-                  What every founder walks in with
+                  {t.what.walkInTitle}
                 </h3>
                 <ul className="mt-4 grid gap-2.5">
-                  {WALK_IN_WITH.map((t) => (
+                  {t.what.walkIn.map((item) => (
                     <li
-                      key={t}
+                      key={item}
                       className="flex gap-3 text-[15px] leading-[1.5] text-ink-soft"
                     >
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-white">
                         <CheckIcon className="h-3 w-3" />
                       </span>
-                      {t}
+                      {item}
                     </li>
                   ))}
                 </ul>
@@ -371,7 +297,7 @@ export default async function DemoDayPage() {
                     swap in a real Demo Day photo when there is one. */}
                 <Image
                   src="/images/founders-at-work.webp"
-                  alt="Four founders gathered around a laptop, smiling"
+                  alt={t.what.photoAlt}
                   width={1800}
                   height={1200}
                   quality={55}
@@ -382,16 +308,16 @@ export default async function DemoDayPage() {
                   aria-hidden="true"
                   className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/70 to-transparent"
                 />
-                <p className="absolute bottom-5 left-5 right-5 text-[13px] font-medium text-white/85 sm:bottom-6 sm:left-6">
-                  Founders and mentors, working side by side.
+                <p className="absolute inset-x-5 bottom-5 text-[13px] font-medium text-white/85 sm:start-6 sm:bottom-6">
+                  {t.what.photoCaption}
                 </p>
               </div>
-              <div className="absolute -top-5 -right-3 rounded-[18px] border border-line-soft bg-white px-5 py-4 shadow-[0_24px_50px_-24px_rgba(20,26,34,0.35)] sm:-right-6">
+              <div className="absolute -end-3 -top-5 rounded-[18px] border border-line-soft bg-white px-5 py-4 shadow-[0_24px_50px_-24px_rgba(20,26,34,0.35)] sm:-end-6">
                 <p className="font-display text-[28px] leading-none font-extrabold tracking-[-0.02em] text-ink">
-                  180+
+                  {t.what.badgeValue}
                 </p>
                 <p className="mt-1 text-[11px] font-semibold tracking-[0.1em] text-muted uppercase">
-                  Firms in the network
+                  {t.what.badgeLabel}
                 </p>
               </div>
             </Reveal>
@@ -405,34 +331,35 @@ export default async function DemoDayPage() {
         >
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <Reveal>
-              <Eyebrow>How it works</Eyebrow>
+              <Eyebrow>{t.how.eyebrow}</Eyebrow>
             </Reveal>
             <Reveal delay={90}>
               <h2 id="how-title" className="title-section mt-4">
-                Before, on the day,{" "}
-                <span className="text-brand-strong">after</span>
+                {rich(t.how.heading, {
+                  accent: <span className="text-brand-strong">{t.how.headingAccent}</span>,
+                })}
               </h2>
             </Reveal>
 
             <div className="mt-10 grid gap-5 lg:grid-cols-3">
               <Reveal delay={120} className="card p-6 sm:p-7">
                 <p className="font-display text-[11px] font-bold tracking-[0.14em] text-brand-strong uppercase">
-                  {DEMO.weeks} · The run-up
+                  {format(t.how.runUpLabel, { weeks: demoWeeks })}
                 </p>
                 <h3 className="mt-2 font-display text-[22px] leading-tight font-bold text-ink">
-                  Two weeks of pitch prep
+                  {t.how.runUpTitle}
                 </h3>
                 <ul className="mt-5 grid gap-3">
-                  {RUN_UP.map((t) => (
+                  {t.how.runUp.map((item) => (
                     <li
-                      key={t}
+                      key={item}
                       className="flex gap-3 text-[14px] leading-[1.55] text-ink-soft"
                     >
                       <span
                         aria-hidden="true"
                         className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-brand"
                       />
-                      {t}
+                      {item}
                     </li>
                   ))}
                 </ul>
@@ -443,43 +370,30 @@ export default async function DemoDayPage() {
                 className="card border-brand/50 bg-[linear-gradient(160deg,#fff3eb,#fff_60%)] p-6 sm:p-7"
               >
                 <p className="font-display text-[11px] font-bold tracking-[0.14em] text-brand-strong uppercase">
-                  The day
+                  {t.how.dayLabel}
                 </p>
                 <h3 className="mt-2 font-display text-[22px] leading-tight font-bold text-ink">
-                  {next
-                    ? `How ${nextDate?.weekday} ${nextDate?.month} ${nextDate?.day} runs`
-                    : "How the afternoon runs"}
+                  {next && nextDate
+                    ? format(t.how.dayTitle, { date: nextDate.dayLabel })
+                    : t.how.dayTitleGeneric}
                 </h3>
-                <ol className="relative mt-5 ml-1.5 border-l-2 border-dashed border-chip-line pl-6">
-                  {(
-                    next?.agenda.length ? next.agenda : [
-                      { time: "4:00 PM", item: "Doors open and check-in" },
-                      {
-                        time: "4:30 PM",
-                        item: "Welcome from the program team",
-                      },
-                      { time: "4:45 PM", item: "Founder pitches" },
-                      {
-                        time: "7:15 PM",
-                        item: "Reception and investor meetings",
-                      },
-                    ]
-                  ).map((a, i) => (
+                <ol className="relative ms-1.5 mt-5 border-s-2 border-dashed border-chip-line ps-6">
+                  {(next?.agenda.length ? next.agenda : t.how.agenda).map((a, i) => (
                     <li
                       key={i}
                       className="relative pb-4 last:pb-0"
                     >
                       <span
                         aria-hidden="true"
-                        className={`absolute top-1.5 -left-[31px] h-3 w-3 rounded-full ring-4 ring-white ${
+                        className={`absolute -start-[31px] top-1.5 h-3 w-3 rounded-full ring-4 ring-white ${
                           i === 0 ? "bg-brand" : "bg-chip-line"
                         }`}
                       />
                       <p className="font-display text-[11px] font-bold tracking-[0.08em] text-brand-strong uppercase tabular-nums">
-                        {a.time}
+                        <bdi>{a.time}</bdi>
                       </p>
                       <p className="text-[14px] font-semibold text-ink">
-                        {a.item}
+                        <bdi>{a.item}</bdi>
                       </p>
                     </li>
                   ))}
@@ -488,22 +402,22 @@ export default async function DemoDayPage() {
 
               <Reveal delay={280} className="card p-6 sm:p-7">
                 <p className="font-display text-[11px] font-bold tracking-[0.14em] text-brand-strong uppercase">
-                  After · Fundraise and Scale
+                  {t.how.afterLabel}
                 </p>
                 <h3 className="mt-2 font-display text-[22px] leading-tight font-bold text-ink">
-                  Where the round happens
+                  {t.how.afterTitle}
                 </h3>
                 <ul className="mt-5 grid gap-3">
-                  {AFTER.map((t) => (
+                  {t.how.after.map((item) => (
                     <li
-                      key={t}
+                      key={item}
                       className="flex gap-3 text-[14px] leading-[1.55] text-ink-soft"
                     >
                       <span
                         aria-hidden="true"
                         className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-brand"
                       />
-                      {t}
+                      {item}
                     </li>
                   ))}
                 </ul>
@@ -520,19 +434,18 @@ export default async function DemoDayPage() {
           <div className="mx-auto max-w-[1200px] lg:px-6">
             <div className="max-w-[640px]">
               <Reveal>
-                <Eyebrow>The pitch</Eyebrow>
+                <Eyebrow>{t.pitch.eyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h2 id="pitch-title" className="title-section mt-4">
-                  Five minutes,{" "}
-                  <span className="text-brand-strong">five beats</span>
+                  {rich(t.pitch.heading, {
+                    accent: <span className="text-brand-strong">{t.pitch.headingAccent}</span>,
+                  })}
                 </h2>
               </Reveal>
               <Reveal delay={180}>
                 <p className="lead mt-5">
-                  The structure every founder is coached on. Investors hear
-                  twenty pitches in an afternoon; the ones they remember answer
-                  these five questions in this order.
+                  {t.pitch.lead}
                 </p>
               </Reveal>
             </div>
@@ -540,32 +453,39 @@ export default async function DemoDayPage() {
             <Reveal delay={240} className="mt-10">
               <div
                 role="img"
-                aria-label={PITCH.map(
-                  (p) => `${p.beat}: ${p.secs} seconds`,
-                ).join(", ")}
+                aria-label={t.pitch.beats
+                  .map((p, i) =>
+                    format(t.pitch.beatLabel, { beat: p.beat, secs: formatNumber(locale, PITCH_SECS[i]) }),
+                  )
+                  .join(t.pitch.join)}
                 className="flex h-16 w-full gap-1 sm:h-20"
               >
-                {PITCH.map((p, i) => (
+                {t.pitch.beats.map((p, i) => (
                   <div
                     key={p.beat}
-                    className="flex items-end overflow-hidden rounded-[10px] px-3 pb-2 first:rounded-l-[16px] last:rounded-r-[16px]"
+                    className="flex items-end overflow-hidden rounded-[10px] px-3 pb-2 first:rounded-s-[16px] last:rounded-e-[16px]"
                     style={{
-                      flexBasis: `${(p.secs / PITCH_TOTAL) * 100}%`,
+                      flexBasis: `${(PITCH_SECS[i] / PITCH_TOTAL) * 100}%`,
                       background: `color-mix(in srgb, var(--brand) ${45 + i * 13}%, ${i % 2 ? "#fff" : "var(--brand-strong)"})`,
                     }}
                   >
                     <span className="font-display text-[12px] leading-none font-bold text-white sm:text-[13px]">
-                      {p.secs}s
+                      {format(t.pitch.secsShort, { secs: formatNumber(locale, PITCH_SECS[i]) })}
                     </span>
                   </div>
                 ))}
               </div>
               <ol className="mt-6 grid gap-4 sm:grid-cols-5">
-                {PITCH.map((p, i) => (
+                {t.pitch.beats.map((p, i) => (
                   <li key={p.beat} className="border-t-2 border-line pt-4">
                     <p className="font-display text-[11px] font-bold tracking-[0.12em] text-brand-strong uppercase tabular-nums">
-                      {String(i + 1).padStart(2, "0")} ·{" "}
-                      {p.secs < 60 ? `${p.secs} sec` : `${p.secs / 60} min`}
+                      {format(t.pitch.beatHead, {
+                        n: two(i + 1),
+                        length:
+                          PITCH_SECS[i] < 60
+                            ? format(t.pitch.secs, { n: formatNumber(locale, PITCH_SECS[i]) })
+                            : format(t.pitch.mins, { n: formatNumber(locale, PITCH_SECS[i] / 60) }),
+                      })}
                     </p>
                     <p className="mt-1.5 font-display text-[17px] font-bold text-ink">
                       {p.beat}
@@ -591,33 +511,32 @@ export default async function DemoDayPage() {
           />
           <div
             aria-hidden="true"
-            className="cta-glow absolute -top-40 -right-24 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)]"
+            className="cta-glow absolute -end-24 -top-40 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)]"
           />
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-[560px]">
                 <Reveal>
-                  <Eyebrow tone="dark">The room</Eyebrow>
+                  <Eyebrow tone="dark">{t.numbers.eyebrow}</Eyebrow>
                 </Reveal>
                 <Reveal delay={90}>
                   <h2
                     id="numbers-title"
                     className="mt-4 font-display text-[34px] leading-[1.05] font-bold tracking-[-0.025em] sm:text-[46px]"
                   >
-                    Who&rsquo;s on the other side of the stage
+                    {t.numbers.heading}
                   </h2>
                 </Reveal>
               </div>
               <Reveal delay={180}>
                 <p className="max-w-[420px] text-[15px] leading-[1.6] text-white/70">
-                  The network founders pitch into, and the track record behind
-                  it. Figures across the program to date.
+                  {t.numbers.lead}
                 </p>
               </Reveal>
             </div>
             <Reveal delay={240} className="mt-12">
               <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[22px] border border-white/10 bg-white/10 sm:grid-cols-3">
-                {NUMBERS.map((n) => (
+                {t.numbers.items.map((n) => (
                   <div
                     key={n.label}
                     className="flex flex-col-reverse justify-end bg-night px-5 py-7 sm:px-8 sm:py-9"
@@ -643,24 +562,25 @@ export default async function DemoDayPage() {
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <div className="max-w-[680px]">
               <Reveal>
-                <Eyebrow>After the stage</Eyebrow>
+                <Eyebrow>{t.stories.eyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h2 id="stories-title" className="title-section mt-4">
-                  From Demo Day{" "}
-                  <span className="text-brand-strong">to funded</span>
+                  {rich(t.stories.heading, {
+                    accent: <span className="text-brand-strong">{t.stories.headingAccent}</span>,
+                  })}
                 </h2>
               </Reveal>
             </div>
             <ul className="mt-10 grid gap-5 lg:grid-cols-3">
-              {STORIES.map((t, i) => (
+              {stories.map((story, i) => (
                 <Reveal
                   as="li"
-                  key={t.name}
+                  key={story.name}
                   delay={120 + i * 80}
                   className="flex"
                 >
-                  <TestimonialCard t={t} className="w-full" />
+                  <TestimonialCard t={story} className="w-full" />
                 </Reveal>
               ))}
             </ul>
@@ -672,7 +592,7 @@ export default async function DemoDayPage() {
               >
                 <div>
                   <p className="font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase">
-                    Founders who have taken the stage
+                    {t.stories.onStage}
                   </p>
                   <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-4">
                     {onStage.map((f) => (
@@ -694,17 +614,17 @@ export default async function DemoDayPage() {
                                 width={18}
                                 height={18}
                                 unoptimized
-                                className="absolute -right-1 -bottom-1 h-[18px] w-[18px] rounded-full bg-white object-cover ring-2 ring-white"
+                                className="absolute -end-1 -bottom-1 h-[18px] w-[18px] rounded-full bg-white object-cover ring-2 ring-white"
                               />
                             )}
                           </span>
                           <span className="leading-tight">
-                            <span className="block text-[14px] font-bold text-ink transition-colors group-hover:text-brand-strong">
+                            <bdi className="block text-[14px] font-bold text-ink transition-colors group-hover:text-brand-strong">
                               {f.name}
-                            </span>
-                            <span className="block text-[12px] text-muted">
+                            </bdi>
+                            <bdi className="block text-[12px] text-muted">
                               {f.company}
-                            </span>
+                            </bdi>
                           </span>
                         </Link>
                       </li>
@@ -715,7 +635,7 @@ export default async function DemoDayPage() {
                   href="/#founders"
                   className="group inline-flex shrink-0 items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 hover:text-brand-strong"
                 >
-                  Meet the portfolio
+                  {t.stories.portfolio}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </Reveal>
@@ -730,27 +650,27 @@ export default async function DemoDayPage() {
         >
           <div className="mx-auto max-w-[1200px] lg:px-6">
             <h2 id="ways-title" className="sr-only">
-              Two ways to be at Demo Day
+              {t.ways.heading}
             </h2>
             <div className="grid gap-5 md:grid-cols-2">
               <Reveal className="card flex flex-col p-7 sm:p-9">
                 <p className="font-display text-[11px] font-bold tracking-[0.14em] text-brand-strong uppercase">
-                  In the audience
+                  {t.ways.audienceLabel}
                 </p>
                 <h3 className="mt-3 font-display text-[28px] leading-tight font-bold tracking-[-0.02em] text-ink">
-                  Come and watch
+                  {t.ways.audienceTitle}
                 </h3>
                 <p className="lead mt-3">
-                  {next
-                    ? `${next.title} is on ${nextDate?.long}. Seats are free but limited.`
-                    : "The next Demo Day is being scheduled. Follow the events page to hear first."}
+                  {next && nextDate
+                    ? rich(t.ways.audienceLead, { title: <bdi>{next.title}</bdi>, date: nextDate.long })
+                    : t.ways.audienceLeadNone}
                 </p>
                 <div className="mt-7">
                   <ButtonLink
                     href={next ? `/events/${next.slug}` : "/events"}
                     variant="outline"
                   >
-                    {next ? "Reserve a seat" : "See all events"}
+                    {next ? t.ways.reserve : t.ways.allEvents}
                   </ButtonLink>
                 </div>
               </Reveal>
@@ -760,21 +680,20 @@ export default async function DemoDayPage() {
               >
                 <div
                   aria-hidden="true"
-                  className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_top_right,#000,transparent_75%)]"
+                  className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_top_right,#000,transparent_75%)] rtl:[mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_75%)]"
                 />
                 <p className="font-display text-[11px] font-bold tracking-[0.14em] text-brand-soft uppercase">
-                  On the stage
+                  {t.ways.stageLabel}
                 </p>
                 <h3 className="mt-3 font-display text-[28px] leading-tight font-bold tracking-[-0.02em]">
-                  Pitch at the next one
+                  {t.ways.stageTitle}
                 </h3>
                 <p className="mt-3 text-[16px] leading-[1.65] text-white/85">
-                  Applications for Silicon Valley Fall 2026 are open. Ten weeks
-                  later, it&rsquo;s your five minutes.
+                  {t.ways.stageLead}
                 </p>
                 <div className="mt-7">
                   <ButtonLink href="/dashboard" variant="white">
-                    Apply now
+                    {t.ways.apply}
                   </ButtonLink>
                 </div>
               </Reveal>
@@ -790,20 +709,25 @@ export default async function DemoDayPage() {
           <div className="mx-auto max-w-[760px]">
             <Reveal>
               <h2 id="dd-faq-title" className="title-section text-center">
-                Demo Day <span className="text-brand-strong">questions</span>
+                {rich(t.faq.heading, {
+                  accent: <span className="text-brand-strong">{t.faq.headingAccent}</span>,
+                })}
               </h2>
             </Reveal>
             <Reveal delay={120} className="mt-10">
-              <Accordion items={FAQS} />
+              <Accordion items={t.faq.items} />
             </Reveal>
             <p className="mt-6 text-center text-[14px] text-muted">
-              Something else?{" "}
-              <Link
-                href="/contact"
-                className="font-semibold text-ink underline-offset-4 hover:underline"
-              >
-                Ask the team
-              </Link>
+              {rich(t.faq.more, {
+                link: (
+                  <Link
+                    href="/contact"
+                    className="font-semibold text-ink underline-offset-4 hover:underline"
+                  >
+                    {t.faq.ask}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         </section>

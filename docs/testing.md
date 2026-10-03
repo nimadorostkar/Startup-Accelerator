@@ -6,7 +6,7 @@ As of 2026-10-03. Three layers, from fastest to most complete:
 | --- | --- | --- | --- |
 | API tests | `backend/tests/` (pytest, 248 tests) | Every rule, against a real PostgreSQL, including requests racing on separate connections | `cd backend && pytest` |
 | End-to-end: API | `e2e/api/` (Playwright, 43 tests) | Every endpoint over real HTTP against a running stack: Postgres, Redis, the Celery worker, real emails (read back from Mailpit), rate limits, cache refresh | `npm run test:e2e:api` |
-| End-to-end: website | `e2e/web/` (Playwright, 26 tests) | The site in a real browser: public pages fed by the API, sign-up to sign-out, returning to the page asked for after signing in, account settings, every form, and a whole application lifecycle with a founder and a reviewer side by side | `npm run test:e2e` (runs both) |
+| End-to-end: website | `e2e/web/` (Playwright, 30 tests) | The site in a real browser: public pages fed by the API, sign-up to sign-out, returning to the page asked for after signing in, account settings, every form, and a whole application lifecycle with a founder and a reviewer side by side | `npm run test:e2e` (runs both) |
 
 Plus `npx tsc --noEmit && npm run lint` for the website, and `ruff check . && ruff format --check .` in `backend/`.
 
@@ -80,6 +80,7 @@ Later still, the whole suite was run against the production build with the test 
 | `e2e/web/forms.spec.ts` | Event registration (and the repeat), newsletter sign-up and unsubscribe from the email, the contact form, the back office |
 | `e2e/web/images.spec.ts` | A founder uploads a logo and a photo from the dashboard (and a file that isn't an image is refused); the directory and the startup's page show them; removing a logo; every card in the hero's featured-founders panel is a startup from the directory |
 | `e2e/web/form-state.spec.ts` | A save the server refuses keeps everything typed or picked, dropdowns and choice cards included |
+| `e2e/web/languages.spec.ts` | English, Turkish and Persian addresses, `lang` and `dir`, translated navigation with links that keep the language, `/en/…` redirecting, the switcher keeping the page and its filters (desktop and phone), localized 404s, the sitemap's languages |
 | `e2e/web/session.spec.ts` | Signed-out visitors come back to the page they asked for after signing in (`?next=`), and `next` never leads off the site or into the wrong area; a refused sign-in keeps "Keep me signed in" ticked; account settings (rename, wrong then right current password, other sessions ended, sign in with the new one); a session ending mid-edit keeps what was typed and offers a way back in |
 
 Left to the API tests (they need setup the running stack doesn't expose): a successful Google sign-in (Google's token endpoint is mocked there), full events, the daily review digest and event reminders.

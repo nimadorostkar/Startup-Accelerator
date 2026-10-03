@@ -1,12 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "@/i18n/client";
+import { formatNumber } from "@/i18n/format";
+import type { Messages } from "@/i18n/messages";
 import {
   PUBLIC_STATUS_ORDER,
-  PUBLIC_STATUSES,
   type StartupCardData,
 } from "@/lib/application/directory";
 import { INDUSTRIES, STAGES } from "@/lib/application/types";
+import {
+  optionLabel,
+  pluralForm,
+  rich,
+  stageName,
+  type StartupOptions,
+} from "./i18n";
 import StartupCard from "./StartupCard";
 
 export type DirectoryQuery = {
@@ -18,9 +27,9 @@ export type DirectoryQuery = {
 };
 
 const SORTS = [
-  { id: "newest", label: "Newest first" },
-  { id: "cohort", label: "Cohort first" },
-  { id: "name", label: "Name A–Z" },
+  { id: "newest", label: "sortNewest" },
+  { id: "cohort", label: "sortCohort" },
+  { id: "name", label: "sortName" },
 ] as const;
 
 const SORT_IDS = SORTS.map((s) => s.id);
@@ -37,10 +46,20 @@ function known(value: string, allowed: readonly string[]) {
   return allowed.find((a) => a.toLowerCase() === v) ?? "";
 }
 
-function haystack(s: StartupCardData) {
-  return [s.name, s.tagline, s.industry, s.country, s.stageLabel, ...s.founders]
+/** What a search looks through: the English values and the shown labels. */
+function haystack(s: StartupCardData, options: StartupOptions) {
+  return [
+    s.name,
+    s.tagline,
+    s.industry,
+    optionLabel(options.industries, s.industry),
+    s.country,
+    s.stageLabel,
+    stageName(options, s.stage),
+    ...s.founders,
+  ]
     .join(" ")
-    .toLowerCase();
+    .toLocaleLowerCase();
 }
 
 /* Instant search and filters over the server-rendered list. The query lives
@@ -48,10 +67,14 @@ function haystack(s: StartupCardData) {
 export default function Directory({
   startups,
   initial,
+  t,
 }: {
   startups: StartupCardData[];
   initial: DirectoryQuery;
+  t: Pick<Messages["startups"], "filters" | "card" | "options">;
 }) {
+  const locale = useLocale();
+  const f = t.filters;
   const [q, setQ] = useState(initial.q);
   const [status, setStatus] = useState(() =>
     known(initial.status, PUBLIC_STATUS_ORDER),
@@ -79,12 +102,12 @@ export default function Directory({
     );
   }, [q, status, industry, stage, sort]);
 
-  const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const words = q.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const matches = (
     s: StartupCardData,
     ignore?: "status" | "industry" | "stage",
   ) =>
-    (words.length === 0 || words.every((w) => haystack(s).includes(w))) &&
+    (words.length === 0 || words.every((w) => haystack(s, t.options).includes(w))) &&
     (ignore === "status" || !status || s.status === status) &&
     (ignore === "industry" || !industry || s.industry === industry) &&
     (ignore === "stage" || !stage || s.stage === stage);
@@ -116,12 +139,12 @@ export default function Directory({
   const statusOptions = [
     {
       id: "",
-      label: "All",
+      label: f.all,
       n: startups.filter((s) => matches(s, "status")).length,
     },
     ...PUBLIC_STATUS_ORDER.map((id) => ({
       id,
-      label: PUBLIC_STATUSES[id].label,
+      label: t.options.statuses[id],
       n: count((s) => s.status === id, "status"),
     })),
   ];
@@ -129,12 +152,12 @@ export default function Directory({
   const industryOptions = [
     {
       id: "",
-      label: "All industries",
+      label: f.allIndustries,
       n: startups.filter((s) => matches(s, "industry")).length,
     },
     ...INDUSTRIES.filter((i) => present.has(i)).map((id) => ({
       id,
-      label: id,
+      label: optionLabel(t.options.industries, id),
       n: count((s) => s.industry === id, "industry"),
     })),
   ];
@@ -142,12 +165,12 @@ export default function Directory({
   const stageOptions = [
     {
       id: "",
-      label: "All stages",
+      label: f.allStages,
       n: startups.filter((s) => matches(s, "stage")).length,
     },
     ...STAGES.filter((st) => presentStages.has(st.id)).map((st) => ({
       id: st.id,
-      label: st.label,
+      label: t.options.stages[st.id],
       n: count((s) => s.stage === st.id, "stage"),
     })),
   ];
@@ -164,7 +187,7 @@ export default function Directory({
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-12">
       <aside className="min-w-0 lg:sticky lg:top-8 lg:self-start">
         <label className="relative block">
-          <span className="sr-only">Search startups</span>
+          <span className="sr-only">{f.searchLabel}</span>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -172,7 +195,7 @@ export default function Directory({
             strokeWidth="1.8"
             strokeLinecap="round"
             aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-4 h-[18px] w-[18px] -translate-y-1/2 text-muted"
+            className="pointer-events-none absolute start-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted"
           >
             <circle cx="11" cy="11" r="6.5" />
             <path d="m20 20-4.2-4.2" />
@@ -181,25 +204,25 @@ export default function Directory({
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search startups, founders, countries"
-            className="field-input h-12 rounded-full pl-11 shadow-[0_18px_40px_-28px_rgba(20,26,34,0.35)]"
+            placeholder={f.searchPlaceholder}
+            className="field-input h-12 rounded-full ps-11 shadow-[0_18px_40px_-28px_rgba(20,26,34,0.35)]"
           />
         </label>
 
         <FilterGroup
-          label="Status"
+          label={f.status}
           value={status}
           onChange={setStatus}
           options={statusOptions}
         />
         <FilterGroup
-          label="Industry"
+          label={f.industry}
           value={industry}
           onChange={setIndustry}
           options={industryOptions}
         />
         <FilterGroup
-          label="Stage"
+          label={f.stage}
           value={stage}
           onChange={setStage}
           options={stageOptions}
@@ -211,7 +234,7 @@ export default function Directory({
             onClick={clear}
             className="mt-6 hidden text-[13px] font-semibold text-muted underline-offset-4 hover:text-ink hover:underline lg:block"
           >
-            Clear all filters
+            {f.clearAll}
           </button>
         )}
       </aside>
@@ -219,8 +242,13 @@ export default function Directory({
       <div className="min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p aria-live="polite" className="text-[14px] text-muted">
-            <span className="font-semibold text-ink">{shown.length}</span>{" "}
-            {shown.length === 1 ? "startup" : "startups"}
+            {rich(pluralForm(locale, shown.length, f.count), {
+              count: (
+                <span className="font-semibold text-ink">
+                  {formatNumber(locale, shown.length)}
+                </span>
+              ),
+            })}
             {active && (
               <>
                 {" "}
@@ -230,21 +258,21 @@ export default function Directory({
                   onClick={clear}
                   className="font-semibold text-brand-strong underline-offset-4 hover:underline"
                 >
-                  Clear filters
+                  {f.clear}
                 </button>
               </>
             )}
           </p>
           <label className="flex items-center gap-2 text-[13px] text-muted">
-            Sort
+            {f.sort}
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="field-input h-10 w-auto rounded-full pr-10 pl-4 text-[13px] font-semibold text-ink"
+              className="field-input h-10 w-auto rounded-full ps-4 pe-10 text-[13px] font-semibold text-ink"
             >
               {SORTS.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.label}
+                  {f[s.label]}
                 </option>
               ))}
             </select>
@@ -255,24 +283,24 @@ export default function Directory({
           <ul className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2 2xl:grid-cols-3">
             {shown.map((s) => (
               <li key={s.slug} className="min-w-0">
-                <StartupCard s={s} />
+                <StartupCard s={s} t={t} locale={locale} />
               </li>
             ))}
           </ul>
         ) : (
           <div className="mt-6 rounded-[18px] border border-dashed border-line px-6 py-16 text-center">
             <p className="font-display text-[20px] font-bold text-ink">
-              No startups match
+              {f.noMatchTitle}
             </p>
             <p className="mt-2 text-[14px] text-muted">
-              Try another word, or clear the filters to see everything.
+              {f.noMatchBody}
             </p>
             <button
               type="button"
               onClick={clear}
               className="mt-6 h-11 rounded-full border border-line bg-white px-6 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors hover:border-brand"
             >
-              Show all startups
+              {f.showAll}
             </button>
           </div>
         )}
@@ -292,6 +320,7 @@ function FilterGroup({
   onChange: (v: string) => void;
   options: { id: string; label: string; n: number }[];
 }) {
+  const locale = useLocale();
   return (
     <div role="group" aria-label={label} className="mt-6">
       <p className="font-display text-[11px] font-bold tracking-[0.16em] text-muted uppercase">
@@ -318,7 +347,7 @@ function FilterGroup({
                   on ? "bg-white/15 text-white" : "bg-cream text-muted"
                 }`}
               >
-                {o.n}
+                {formatNumber(locale, o.n)}
               </span>
             </button>
           );

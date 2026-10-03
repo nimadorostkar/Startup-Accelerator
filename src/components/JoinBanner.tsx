@@ -1,9 +1,11 @@
 import Image from "next/image";
+import { getDictionary } from "@/i18n/server";
 import Reveal from "./motion/Reveal";
 import { CalendarIcon } from "./icons";
 import ButtonLink from "./ui/ButtonLink";
 
-export default function JoinBanner() {
+export default async function JoinBanner() {
+  const t = (await getDictionary()).landing.join;
   return (
     <section
       aria-labelledby="join-title"
@@ -14,21 +16,21 @@ export default function JoinBanner() {
         aria-hidden="true"
         className="absolute inset-0 -z-20 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:50px_50px]"
       />
-      {/* Green glow, bottom-left */}
+      {/* Orange glow, bottom-start */}
       <div
         aria-hidden="true"
-        className="cta-glow absolute -bottom-44 -left-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.55),transparent)] [--glow-dir:-1]"
+        className="cta-glow absolute -bottom-44 -start-40 -z-10 h-[380px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.55),transparent)] [--glow-dir:-1] rtl:[--glow-dir:1]"
       />
 
-      {/* The team photo, whole: on the right half, as tall as its own shape
+      {/* The team photo, whole: on the end half (the right in English), as tall as its own shape
           makes it (4:3), standing on the bottom edge. On wide screens it fills
           the panel's height and only the floor is cropped; nobody at the sides
-          is cut off. Its left and top edges fade into the dark panel. On
+          is cut off. Its start and top edges fade into the dark panel. On
           phones it is a dimmed backdrop behind the text. */}
-      <div className="absolute right-0 bottom-0 -z-10 w-full max-md:inset-y-0 md:aspect-[1237/932] md:max-h-full md:w-1/2">
+      <div className="absolute end-0 bottom-0 -z-10 w-full max-md:inset-y-0 md:aspect-[1237/932] md:max-h-full md:w-1/2">
         <Image
           src="/images/fundup-team.png"
-          alt="The Fundup Club team: ten people in suits, three seated in front and seven standing behind them"
+          alt={t.photoAlt}
           fill
           quality={75}
           sizes="(min-width: 768px) 50vw, 100vw"
@@ -36,7 +38,7 @@ export default function JoinBanner() {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-r from-night via-night/25 via-8% to-transparent to-20% max-md:bg-night/80"
+          className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-night via-night/25 via-8% to-transparent to-20% max-md:bg-night/80"
         />
         <div
           aria-hidden="true"
@@ -48,11 +50,11 @@ export default function JoinBanner() {
         <div className="max-w-[600px]">
           <Reveal x={-24} y={0}>
             <p className="type-wide text-[11px] font-semibold tracking-[0.2em] text-brand-soft uppercase">
-              <span className="block sm:inline">Applications open</span>
+              <span className="block sm:inline">{t.open}</span>
               <span aria-hidden="true" className="mx-2.5 hidden sm:inline">
                 ·
               </span>
-              <span className="block sm:inline">Silicon Valley Fall 2026</span>
+              <span className="block sm:inline">{t.cohort}</span>
             </p>
           </Reveal>
           <Reveal x={-24} y={0} delay={90}>
@@ -60,16 +62,14 @@ export default function JoinBanner() {
               id="join-title"
               className="mt-5 font-display text-[40px] leading-[1.04] font-bold tracking-[-0.025em] text-white sm:text-[52px]"
             >
-              Stop Planning.
+              {t.titleLine1}
               <br />
-              Start Building.
+              {t.titleLine2}
             </h2>
           </Reveal>
           <Reveal x={-24} y={0} delay={180}>
             <p className="mt-6 max-w-[560px] text-[16px] leading-[1.7] text-white/80 sm:text-[17px]">
-              Join thousands of founders who turned their ideas into funded
-              startups. AI rewrote the rules, you bring the vision, we bring
-              everything else.
+              {t.body}
             </p>
           </Reveal>
           <Reveal
@@ -79,10 +79,10 @@ export default function JoinBanner() {
             className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
           >
             <ButtonLink href="/dashboard" variant="bright">
-              Apply now
+              {t.apply}
             </ButtonLink>
             <ButtonLink href="/events" variant="outline-dark" icon={CalendarIcon}>
-              Attend a free event
+              {t.event}
             </ButtonLink>
           </Reveal>
         </div>

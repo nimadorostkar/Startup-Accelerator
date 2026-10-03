@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, plural } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
 import { ExternalIcon } from "@/components/dashboard/icons";
 import Footer from "@/components/Footer";
 import { ArrowRight, CheckIcon } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import Monogram, { FounderDot } from "@/components/startups/Monogram";
 import PublicStatusBadge from "@/components/startups/PublicStatusBadge";
-import StartupCard from "@/components/startups/StartupCard";
 import {
-  compact,
-  formatDay,
-  formatMonth,
-  type StartupCardData,
-} from "@/lib/application/directory";
+  compactIn,
+  dayIn,
+  monthIn,
+  optionLabel,
+  stageName,
+} from "@/components/startups/i18n";
+import StartupCard from "@/components/startups/StartupCard";
+import type { StartupCardData } from "@/lib/application/directory";
 import {
   findPublicStartup,
   listPublicStartups,
@@ -29,10 +33,13 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: PageProps<"/[lang]/startups/[slug]">): Promise<Metadata> {
-  const s = await findPublicStartup((await params).slug);
+  const [s, { startups }] = await Promise.all([
+    findPublicStartup((await params).slug),
+    getDictionary(),
+  ]);
   return {
-    title: `${s.name} — Startups · Fundup Club`,
-    description: s.tagline || `${s.name} on Fundup Club.`,
+    title: format(startups.page.metaTitle, { name: s.name }),
+    description: s.tagline || format(startups.page.metaDescription, { name: s.name }),
   };
 }
 
@@ -105,6 +112,11 @@ export default async function StartupPage({
 }: PageProps<"/[lang]/startups/[slug]">) {
   const { slug } = await params;
   const s = await findPublicStartup(slug); // 404s on its own
+  const [{ startups: dict }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = dict.page;
+  const o = dict.options;
+  const stage = stageName(o, s.stage);
+  const industry = optionLabel(o.industries, s.industry);
 
   const others = (await listPublicStartups()).filter((x) => x.slug !== slug);
   const related = [
@@ -114,34 +126,29 @@ export default async function StartupPage({
 
   const facts: [string, string][] = (
     [
-      ["Stage", s.stageLabel !== "Not set" ? s.stageLabel : ""],
-      ["Industry", s.industry],
-      ["Headquarters", s.country],
-      ["Founded", formatMonth(s.foundedOn)],
-      ["Business model", s.businessModel],
+      [t.factStage, stage],
+      [t.factIndustry, industry],
+      [t.factHeadquarters, s.country],
+      [t.factFounded, monthIn(locale, s.foundedOn)],
+      [t.factBusinessModel, optionLabel(o.businessModels, s.businessModel)],
       [
-        "Incorporated",
+        t.factIncorporated,
         s.incorporated === "yes"
-          ? "Yes"
+          ? t.yes
           : s.incorporated === "no"
-            ? "Not yet"
+            ? t.notYet
             : "",
       ],
-      [
-        "Team",
-        s.team.length
-          ? `${s.team.length} ${s.team.length === 1 ? "person" : "people"}`
-          : "",
-      ],
-      ["Applied", s.appliedAt ? formatDay(s.appliedAt) : ""],
+      [t.factTeam, s.team.length ? plural(locale, s.team.length, t.people) : ""],
+      [t.factApplied, s.appliedAt ? dayIn(locale, s.appliedAt) : ""],
     ] as [string, string][]
   ).filter(([, v]) => v);
 
   const traction = [
-    s.users !== null && { value: compact(s.users), label: "Active users" },
+    s.users !== null && { value: compactIn(locale, s.users), label: t.activeUsers },
     s.customers !== null && {
-      value: compact(s.customers),
-      label: "Paying customers",
+      value: compactIn(locale, s.customers),
+      label: t.payingCustomers,
     },
   ].filter(Boolean) as { value: string; label: string }[];
 
@@ -155,7 +162,7 @@ export default async function StartupPage({
         <header className="relative isolate bg-cream px-4 pt-[116px] pb-10 sm:px-8 sm:pb-14 lg:pt-[calc(min(5.74vw,110px)+56px)]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(20,26,34,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(20,26,34,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)] rtl:[mask-image:radial-gradient(ellipse_at_top_right,#000,transparent_70%)]"
           />
           <div className="mx-auto max-w-[1200px] lg:px-6">
             <Link
@@ -163,7 +170,7 @@ export default async function StartupPage({
               className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-brand-strong"
             >
               <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-1" />
-              All startups
+              {t.back}
             </Link>
 
             <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-start">
@@ -182,6 +189,7 @@ export default async function StartupPage({
                   </h1>
                   <PublicStatusBadge
                     status={s.status}
+                    label={o.statuses[s.status]}
                     className="text-[13px]"
                   />
                 </div>
@@ -194,11 +202,7 @@ export default async function StartupPage({
                   </p>
                 )}
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {[
-                    s.industry,
-                    s.stageLabel !== "Not set" && s.stageLabel,
-                    s.country,
-                  ]
+                  {[industry, stage, s.country]
                     .filter(Boolean)
                     .map((c, i) => (
                       <span
@@ -218,10 +222,10 @@ export default async function StartupPage({
                       </ExternalLink>
                     )}
                     {s.demoUrl && (
-                      <ExternalLink href={s.demoUrl}>Product demo</ExternalLink>
+                      <ExternalLink href={s.demoUrl}>{t.demo}</ExternalLink>
                     )}
                     {s.videoUrl && (
-                      <ExternalLink href={s.videoUrl}>Video</ExternalLink>
+                      <ExternalLink href={s.videoUrl}>{t.video}</ExternalLink>
                     )}
                   </div>
                 )}
@@ -251,21 +255,21 @@ export default async function StartupPage({
                 </dl>
               )}
 
-              <Section id="problem" title="The problem" body={s.problem} />
-              <Section id="solution" title="The solution" body={s.solution} />
+              <Section id="problem" title={t.problem} body={s.problem} />
+              <Section id="solution" title={t.solution} body={s.solution} />
               <Section
                 id="customer"
-                title="Who it's for"
+                title={t.customer}
                 body={s.targetCustomer}
               />
-              <Section id="market" title="Market" body={s.marketSize} />
+              <Section id="market" title={t.market} body={s.marketSize} />
               {(s.competitors || s.advantage) && (
-                <Section id="edge" title="Competition and edge">
+                <Section id="edge" title={t.edge}>
                   <div className="mt-3 grid gap-4 sm:grid-cols-2">
                     {s.competitors && (
                       <div className="rounded-[16px] bg-cream p-5">
                         <p className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
-                          What people use today
+                          {t.usedToday}
                         </p>
                         <p
                           dir="auto"
@@ -278,7 +282,7 @@ export default async function StartupPage({
                     {s.advantage && (
                       <div className="rounded-[16px] border border-chip-line bg-chip/60 p-5">
                         <p className="text-[11px] font-semibold tracking-[0.12em] text-brand-strong uppercase">
-                          Why this team wins
+                          {t.whyWins}
                         </p>
                         <p
                           dir="auto"
@@ -292,7 +296,7 @@ export default async function StartupPage({
                 </Section>
               )}
               {s.keyMetric && (
-                <Section id="metric" title="Headline metric">
+                <Section id="metric" title={t.metric}>
                   <p className="mt-3 flex items-start gap-3 text-[17px] leading-[1.6] font-semibold text-ink">
                     <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-white">
                       <CheckIcon className="h-3 w-3" />
@@ -304,25 +308,25 @@ export default async function StartupPage({
                 </Section>
               )}
               {(s.whyUs || s.workedTogether || s.hiringNeeds) && (
-                <Section id="team-story" title="The team" body={s.whyUs}>
+                <Section id="team-story" title={t.teamStory} body={s.whyUs}>
                   <dl className="mt-4 grid gap-3 sm:grid-cols-2">
                     {s.workedTogether && (
                       <div className="rounded-[16px] bg-cream p-5">
                         <dt className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
-                          Worked together
+                          {t.workedTogether}
                         </dt>
                         <dd
                           dir="auto"
                           className="mt-1.5 text-[15px] font-semibold wrap-anywhere text-ink"
                         >
-                          {s.workedTogether}
+                          {optionLabel(o.workedTogether, s.workedTogether)}
                         </dd>
                       </div>
                     )}
                     {s.hiringNeeds && (
                       <div className="rounded-[16px] bg-cream p-5">
                         <dt className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">
-                          Hiring
+                          {t.hiring}
                         </dt>
                         <dd
                           dir="auto"
@@ -336,7 +340,7 @@ export default async function StartupPage({
                 </Section>
               )}
               {showFounder && (
-                <Section id="founder" title="About the founder">
+                <Section id="founder" title={t.aboutFounder}>
                   <div className="mt-4 flex gap-4">
                     <FounderDot
                       name={founder.name}
@@ -344,26 +348,27 @@ export default async function StartupPage({
                       className="h-12 w-12 text-[14px]"
                     />
                     <div className="min-w-0">
-                      <p
-                        dir="auto"
-                        className="text-[16px] font-bold wrap-anywhere text-ink"
-                      >
-                        {founder.name}
+                      <p className="text-[16px] font-bold wrap-anywhere text-ink">
+                        <bdi>{founder.name}</bdi>
                       </p>
-                      <p
-                        dir="auto"
-                        className="text-[13px] wrap-anywhere text-muted"
-                      >
+                      {/* The founder's own words in a <bdi> each, so the
+                          page's language sets the line's direction */}
+                      <p className="text-[13px] wrap-anywhere text-muted">
                         {[
                           founder.title,
                           [founder.city, founder.country]
                             .filter(Boolean)
                             .join(", "),
+                          founder.experienceYears !== null &&
+                            plural(locale, founder.experienceYears, t.experience),
                         ]
                           .filter(Boolean)
-                          .join(" · ")}
-                        {founder.experienceYears !== null &&
-                          ` · ${founder.experienceYears} ${founder.experienceYears === 1 ? "year" : "years"} of experience`}
+                          .map((part, i) => (
+                            <span key={i}>
+                              {i > 0 && " · "}
+                              <bdi>{part}</bdi>
+                            </span>
+                          ))}
                       </p>
                       {founder.bio && (
                         <p
@@ -380,7 +385,7 @@ export default async function StartupPage({
                           rel="noopener noreferrer"
                           className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-strong underline-offset-4 hover:underline"
                         >
-                          LinkedIn
+                          {t.linkedin}
                           <ExternalIcon className="h-3.5 w-3.5" />
                         </a>
                       )}
@@ -401,7 +406,7 @@ export default async function StartupPage({
                       <dt className="text-[13px] text-muted">{k}</dt>
                       <dd
                         dir="auto"
-                        className="min-w-0 text-right text-[14px] font-semibold wrap-anywhere text-ink"
+                        className="min-w-0 text-end text-[14px] font-semibold wrap-anywhere text-ink"
                       >
                         {v}
                       </dd>
@@ -416,7 +421,7 @@ export default async function StartupPage({
                     id="team-title"
                     className="font-display text-[13px] font-bold tracking-[0.16em] text-brand-strong uppercase"
                   >
-                    Founders and team
+                    {t.team}
                   </h2>
                   <ul className="mt-4 flex flex-col gap-4">
                     {s.team.map((m, i) => (
@@ -434,24 +439,24 @@ export default async function StartupPage({
                             <bdi className="min-w-0 wrap-anywhere">{m.name}</bdi>
                             {m.isFounder && (
                               <span className="rounded-full bg-chip px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.06em] text-brand-strong uppercase ring-1 ring-chip-line">
-                                Founder
+                                {t.founderBadge}
                               </span>
                             )}
                           </p>
-                          <p
-                            dir="auto"
-                            className="truncate text-[13px] text-muted"
-                          >
+                          <p className="truncate text-[13px] text-muted">
                             {[
                               m.role,
-                              m.commitment === "full-time"
-                                ? "Full-time"
-                                : m.commitment === "part-time"
-                                  ? "Part-time"
-                                  : "",
+                              m.commitment
+                                ? optionLabel(o.commitments, m.commitment)
+                                : "",
                             ]
                               .filter(Boolean)
-                              .join(" · ")}
+                              .map((part, i) => (
+                                <span key={i}>
+                                  {i > 0 && " · "}
+                                  <bdi>{part}</bdi>
+                                </span>
+                              ))}
                           </p>
                         </div>
                         {m.linkedin && (
@@ -459,7 +464,7 @@ export default async function StartupPage({
                             href={m.linkedin}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`${m.name} on LinkedIn`}
+                            aria-label={format(t.onLinkedIn, { name: m.name })}
                             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-brand hover:text-brand-strong"
                           >
                             <ExternalIcon className="h-3.5 w-3.5" />
@@ -477,25 +482,25 @@ export default async function StartupPage({
                     id="journey-title"
                     className="font-display text-[13px] font-bold tracking-[0.16em] text-brand-strong uppercase"
                   >
-                    Journey
+                    {t.journey}
                   </h2>
-                  <ol className="relative mt-4 ml-1.5 border-l-2 border-dashed border-line pl-5">
-                    {s.timeline.map((t, i) => (
+                  <ol className="relative mt-4 ms-1.5 border-s-2 border-dashed border-line ps-5">
+                    {s.timeline.map((m, i) => (
                       <li
                         key={i}
                         className="relative pb-4 last:pb-0"
                       >
                         <span
                           aria-hidden="true"
-                          className={`absolute top-1.5 -left-[27px] h-3 w-3 rounded-full ring-4 ring-white ${
+                          className={`absolute top-1.5 -start-[27px] h-3 w-3 rounded-full ring-4 ring-white ${
                             i === s.timeline.length - 1 ? "bg-brand" : "bg-line"
                           }`}
                         />
                         <p className="text-[14px] font-semibold text-ink">
-                          {t.title}
+                          {optionLabel(o.timeline, m.title)}
                         </p>
                         <p className="text-[12px] text-muted">
-                          {formatDay(t.at)}
+                          {dayIn(locale, m.at)}
                         </p>
                       </li>
                     ))}
@@ -514,20 +519,25 @@ export default async function StartupPage({
             <div className="mx-auto max-w-[1720px] lg:px-6">
               <div className="flex items-end justify-between gap-6">
                 <h2 id="more-startups" className="title-section">
-                  More <span className="text-brand-strong">startups</span>
+                  {t.moreStart}{" "}
+                  <span className="text-brand-strong">{t.moreAccent}</span>
                 </h2>
                 <Link
                   href="/startups"
                   className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
                 >
-                  Full directory
+                  {t.fullDirectory}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </div>
               <ul className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {related.map((r: StartupCardData) => (
                   <li key={r.slug}>
-                    <StartupCard s={r} />
+                    <StartupCard
+                      s={r}
+                      t={{ card: dict.card, options: o }}
+                      locale={locale}
+                    />
                   </li>
                 ))}
               </ul>

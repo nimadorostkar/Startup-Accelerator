@@ -1,13 +1,6 @@
 import { useId } from "react";
 import type { CountryCode } from "./data";
 
-const LABEL: Record<CountryCode, string> = {
-  fr: "France",
-  ng: "Nigeria",
-  id: "Indonesia",
-  br: "Brazil",
-};
-
 function Art({ code }: { code: CountryCode }) {
   switch (code) {
     case "fr":
@@ -44,18 +37,21 @@ function Art({ code }: { code: CountryCode }) {
   }
 }
 
-/** Small circular country flag, used as an avatar badge. */
+/** Small circular country flag, used as an avatar badge. `label` is the
+    country's name (landing.results.countries). */
 export default function Flag({
   code,
+  label,
   className = "",
 }: {
   code: CountryCode;
+  label: string;
   className?: string;
 }) {
   const id = useId();
   return (
     <svg viewBox="0 0 24 24" className={className} role="img">
-      <title>{LABEL[code]}</title>
+      <title>{label}</title>
       <clipPath id={id}>
         <circle cx="12" cy="12" r="12" />
       </clipPath>

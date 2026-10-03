@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, formatNumber } from "@/i18n/format";
+import type { Messages } from "@/i18n/messages";
+import enLanding from "@/i18n/messages/en/landing";
+import { getDictionary, getLocale } from "@/i18n/server";
 import Reveal from "./motion/Reveal";
 import { ArrowRight } from "./icons";
 import {
@@ -21,94 +25,80 @@ import {
 import TiltCard from "./journey/TiltCard";
 import Eyebrow from "./ui/Eyebrow";
 
-type Stage = {
+type StageText = Messages["landing"]["stages"][keyof Messages["landing"]["stages"]];
+
+type Stage = StageText & {
   id: string;
-  eyebrow: string;
-  title: string;
-  body: string;
   Icon: (p: { className?: string }) => ReactNode;
   Art: () => ReactNode;
   /** Hover gesture for the stage icon */
   iconMove: string;
-  /** Where the stage sits in the ten-week program */
-  weeks: string;
-  /** What the founder is working on, in one line */
-  focus: string;
   /** Own page, when the stage has one */
   href?: string;
 };
 
-export const STAGES: Stage[] = [
+/* The six stages; their words (eyebrow, title, body, weeks — where the stage
+   sits in the ten-week program — and focus, what the founder is working on)
+   are in the landing dictionary, `stages`. */
+const STAGE_ART = [
   {
     id: "discover",
-    eyebrow: "Discovery",
-    title: "Discover",
-    body: "Validate the problem & founder-market fit.",
+    key: "discover",
     Icon: TargetIcon,
     iconMove: "group-hover:-rotate-12 group-hover:scale-110",
     Art: DiscoverArt,
-    weeks: "Weeks 1–2",
-    focus: "Talk to 20 customers and write down the problem worth solving.",
   },
   {
     id: "build",
-    eyebrow: "Build",
-    title: "Build MVP",
-    body: "Define value prop, ship lean product.",
+    key: "build",
     Icon: RocketIcon,
     iconMove: "group-hover:translate-x-1 group-hover:-translate-y-1.5",
     Art: BuildArt,
-    weeks: "Weeks 2–4",
-    focus: "Ship the smallest product that delivers the value proposition.",
   },
   {
     id: "validate",
-    eyebrow: "Validation",
-    title: "Validate",
-    body: "Get real users, test & iterate on KPIs.",
+    key: "validate",
     Icon: UserCheckIcon,
     iconMove: "group-hover:scale-115",
     Art: ValidateArt,
-    weeks: "Weeks 4–6",
-    focus: "Put it in front of real users and iterate on three KPIs.",
   },
   {
     id: "traction",
-    eyebrow: "Traction",
-    title: "Get Traction",
-    body: "First revenue/paying customers, growth experiments.",
+    key: "traction",
     Icon: ChartIcon,
     iconMove: "group-hover:-translate-y-1 group-hover:scale-110",
     Art: TractionArt,
-    weeks: "Weeks 6–8",
-    focus: "Land the first paying customers and run growth experiments.",
   },
   {
     id: "demo-day",
-    eyebrow: "Demo Day",
-    title: "Demo Day/ Fundraise",
-    body: "Pitch-ready deck + investor matching.",
+    key: "demoDay",
     Icon: UsersIcon,
     iconMove: "group-hover:scale-110 group-hover:rotate-6",
     Art: DemoDayArt,
-    weeks: "Weeks 9–10",
-    focus: "Pitch coaching, deck, data room and investor matching.",
     href: "/demo-day",
   },
   {
     id: "scale",
-    eyebrow: "Scale",
-    title: "Scale",
-    body: "Hire, systematize ops, post-program mentorship.",
+    key: "scale",
     Icon: GearIcon,
     iconMove: "group-hover:rotate-[120deg]",
     Art: ScaleArt,
-    weeks: "After Demo Day",
-    focus: "Close the round, hire, systematize operations.",
   },
-];
+] as const;
 
-export default function Journey() {
+/** The program's six stages with their words in a language: `stagesIn(landing)`. */
+export function stagesIn(landing: Messages["landing"]): Stage[] {
+  return STAGE_ART.map(({ key, ...stage }) => ({ ...stage, ...landing.stages[key] }));
+}
+
+/** The stages in English. Pages in other languages use stagesIn(landing). */
+export const STAGES: Stage[] = stagesIn(enLanding);
+
+export default async function Journey() {
+  const [{ landing }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = landing.program;
+  const stages = stagesIn(landing);
+  const two = (n: number) => formatNumber(locale, n, { minimumIntegerDigits: 2 });
   return (
     <section
       id="program"
@@ -118,25 +108,22 @@ export default function Journey() {
       <div className="mx-auto max-w-[1720px]">
         <div className="flex flex-col items-center text-center">
           <Reveal>
-            <Eyebrow>The program</Eyebrow>
+            <Eyebrow>{t.eyebrow}</Eyebrow>
           </Reveal>
           <Reveal delay={90}>
             <h2 id="program-title" className="title-section mt-4">
-              <span className="text-brand-strong">One founder journey</span>
+              <span className="text-brand-strong">{t.title}</span>
             </h2>
           </Reveal>
           <Reveal delay={180}>
-            <p className="lead mt-5 max-w-[560px]">
-              From first idea to post-program scale: the path every founder
-              takes with us, one milestone at a time.
-            </p>
+            <p className="lead mt-5 max-w-[560px]">{t.lead}</p>
           </Reveal>
         </div>
 
         {/* Compact stage cards. Phones: one swipeable row (next stage peeks in);
             sm: three across; lg and up: all six in one row. */}
         <ol className="snap-row mx-auto mt-8 max-w-[1180px] pt-1 pb-6 [--bleed:16px] sm:mt-10 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:p-0 lg:grid-cols-6">
-          {STAGES.map(
+          {stages.map(
             ({ id, eyebrow, title, body, Icon, Art, iconMove, href }, i) => (
               <Reveal
                 key={id}
@@ -150,18 +137,18 @@ export default function Journey() {
                 >
                   <span
                     aria-hidden="true"
-                    className="absolute top-0 left-4 h-[2px] w-6 rounded-b-full bg-brand transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-10"
+                    className="absolute top-0 start-4 h-[2px] w-6 rounded-b-full bg-brand transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-10"
                   />
 
                   {/* Stage counter — orients the swipe row on phones */}
                   <span
                     aria-hidden="true"
-                    className="absolute top-4 right-4 font-display text-[11px] font-bold tracking-[0.04em] text-ink/30 tabular-nums sm:hidden"
+                    className="absolute top-4 end-4 font-display text-[11px] font-bold tracking-[0.04em] text-ink/30 tabular-nums sm:hidden"
                   >
                     <span className="text-brand-strong">
-                      {String(i + 1).padStart(2, "0")}
+                      {two(i + 1)}
                     </span>
-                    &thinsp;/&thinsp;{String(STAGES.length).padStart(2, "0")}
+                    &thinsp;/&thinsp;{two(stages.length)}
                   </span>
 
                   <div className="relative px-4 pt-4">
@@ -179,11 +166,11 @@ export default function Journey() {
                     </p>
                     <Link
                       href={href ?? "/demo-day#roadmap"}
-                      aria-label={`Learn more about ${title}`}
+                      aria-label={format(t.learnMoreAbout, { title })}
                       className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink"
                     >
                       <span className="bg-[linear-gradient(var(--brand),var(--brand))] bg-[length:100%_1.5px] bg-bottom bg-no-repeat pb-px">
-                        Learn more
+                        {t.learnMore}
                       </span>
                       <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
                     </Link>

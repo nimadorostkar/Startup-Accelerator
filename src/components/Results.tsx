@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
+import { getDictionary } from "@/i18n/server";
 import Reveal from "./motion/Reveal";
 import ButtonLink from "./ui/ButtonLink";
 import Eyebrow from "./ui/Eyebrow";
 import Globe from "./results/Globe";
 import TestimonialCard from "./results/TestimonialCard";
 import LogoMarquee from "./results/LogoMarquee";
-import { LEFT, RIGHT } from "./results/data";
+import { testimonialsIn } from "./results/data";
 
 /* Per-card layout + tilt on the wide layout, measured from the design.
    `wrap` positions the card (and carries reveal/float motion); `tilt` rotates it. */
@@ -16,8 +17,8 @@ const LEFT_STYLE = [
 ];
 const RIGHT_STYLE = [
   { wrap: "", tilt: "xl:-rotate-[1.4deg]" },
-  { wrap: "xl:mt-[22px] xl:ml-auto xl:w-[90%]", tilt: "xl:rotate-[1deg]" },
-  { wrap: "xl:mt-[22px] xl:ml-auto xl:w-[90%]", tilt: "xl:-rotate-[0.6deg]" },
+  { wrap: "xl:mt-[22px] xl:ms-auto xl:w-[90%]", tilt: "xl:rotate-[1deg]" },
+  { wrap: "xl:mt-[22px] xl:ms-auto xl:w-[90%]", tilt: "xl:-rotate-[0.6deg]" },
 ];
 
 /* Slide width + snap point inside the phone swipe row. */
@@ -31,7 +32,10 @@ const float = (i: number, side: number) =>
     "--fdel": `${-(i * 1.3 + side * 0.7)}s`,
   }) as CSSProperties;
 
-export default function Results() {
+export default async function Results() {
+  const { landing } = await getDictionary();
+  const t = landing.results;
+  const { left: LEFT, right: RIGHT } = testimonialsIn(landing);
   return (
     <section
       id="results"
@@ -50,7 +54,7 @@ export default function Results() {
         <div className="relative order-first mb-8 flex min-w-0 flex-col items-center text-center md:col-span-2 xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:mb-0 xl:self-center">
           {/* Eyebrow — same pattern as the hero */}
           <Reveal delay={0}>
-            <Eyebrow>Alumni stories</Eyebrow>
+            <Eyebrow>{t.eyebrow}</Eyebrow>
           </Reveal>
 
           <Reveal delay={90}>
@@ -58,19 +62,16 @@ export default function Results() {
               id="results-title"
               className="title-section mt-4 xl:text-[30px] 2xl:text-[34px]"
             >
-              From idea
+              {t.titleLine1}
               <br />
-              to funded,
+              {t.titleLine2}
               <br />
-              <span className="text-brand-strong">in their words</span>
+              <span className="text-brand-strong">{t.titleAccent}</span>
             </h2>
           </Reveal>
 
           <Reveal delay={180}>
-            <p className="lead mt-5 max-w-[400px]">
-              Founders from 65+ markets and our 2026 AI cohorts on what the
-              program changed.
-            </p>
+            <p className="lead mt-5 max-w-[400px]">{t.lead}</p>
           </Reveal>
 
           <Reveal
@@ -78,12 +79,12 @@ export default function Results() {
             y={16}
             className="mt-7 w-full max-w-[420px] min-w-0"
           >
-            <LogoMarquee />
+            <LogoMarquee label={t.companies} />
           </Reveal>
 
           <Reveal delay={560}>
             <ButtonLink href="/startups?status=cohort" className="mt-8">
-              View more alumni
+              {t.viewMore}
             </ButtonLink>
           </Reveal>
         </div>

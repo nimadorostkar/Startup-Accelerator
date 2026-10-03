@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, formatNumber } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
+import { rich } from "@/i18n/rich";
 import Footer from "@/components/Footer";
 import { ArrowRight } from "@/components/icons";
 import { BrandMark } from "@/components/Logo";
@@ -25,8 +28,9 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await findPost(slug);
   if (!post) notFound(); // keeps the 404 page's own title
+  const t = (await getDictionary()).newsletter.article;
   return {
-    title: `${post.title} — The Founder Brief`,
+    title: format(t.metaTitle, { title: post.title }),
     description: post.excerpt,
     openGraph: {
       type: "article",
@@ -36,6 +40,9 @@ export async function generateMetadata({
   };
 }
 
+/* The issue's text, from the API, as written: each block takes the direction
+   of its own words (dir="auto"), so an English issue reads left to right on a
+   Persian page. */
 function Body({ blocks }: { blocks: Block[] }) {
   return blocks.map((b, i) => {
     switch (b.type) {
@@ -43,6 +50,7 @@ function Body({ blocks }: { blocks: Block[] }) {
         return (
           <h2
             key={i}
+            dir="auto"
             className="mt-12 font-display text-[24px] leading-tight font-bold tracking-[-0.015em] text-ink sm:text-[28px]"
           >
             {b.text}
@@ -52,6 +60,7 @@ function Body({ blocks }: { blocks: Block[] }) {
         return (
           <p
             key={i}
+            dir="auto"
             className="mt-5 text-[17px] leading-[1.8] text-ink-soft/90 sm:text-[18px]"
           >
             {b.text}
@@ -62,17 +71,18 @@ function Body({ blocks }: { blocks: Block[] }) {
           return (
             <ol
               key={i}
-              className="mt-6 list-decimal space-y-3 pl-6 text-[17px] leading-[1.7] text-ink-soft/90 marker:font-semibold marker:text-brand-strong sm:text-[18px]"
+              dir="auto"
+              className="mt-6 list-decimal space-y-3 ps-6 text-[17px] leading-[1.7] text-ink-soft/90 marker:font-semibold marker:text-brand-strong sm:text-[18px]"
             >
               {b.items.map((item, j) => (
-                <li key={j} className="pl-1.5">
+                <li key={j} className="ps-1.5">
                   {item}
                 </li>
               ))}
             </ol>
           );
         return (
-          <ul key={i} className="mt-6 space-y-3">
+          <ul key={i} dir="auto" className="mt-6 space-y-3">
             {b.items.map((item, j) => (
               <li
                 key={j}
@@ -91,11 +101,12 @@ function Body({ blocks }: { blocks: Block[] }) {
         return (
           <figure
             key={i}
+            dir="auto"
             className="relative my-12 rounded-[20px] bg-[linear-gradient(140deg,#fff4ec_0%,#fff_60%)] px-7 py-8 ring-1 ring-line sm:px-10"
           >
             <span
               aria-hidden="true"
-              className="absolute -top-6 left-7 font-display text-[80px] leading-none font-extrabold text-brand sm:left-10"
+              className="absolute -top-6 start-7 font-display text-[80px] leading-none font-extrabold text-brand sm:start-10"
             >
               &ldquo;
             </span>
@@ -120,6 +131,8 @@ export default async function ArticlePage({
   const post = await findPost(slug);
   if (!post) notFound();
 
+  const [{ newsletter }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = newsletter.article;
   const others = (await listPosts()).filter((p) => p.slug !== slug);
   const more = [
     ...others.filter((p) => p.category === post.category),
@@ -146,25 +159,25 @@ export default async function ArticlePage({
                 className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-muted uppercase transition-colors duration-200 hover:text-brand-strong"
               >
                 <ArrowRight className="h-4 w-4 rotate-180 transition-transform duration-200 group-hover:-translate-x-1" />
-                All issues
+                {t.allIssues}
               </Link>
               <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-[13px] text-muted">
-                <span className="chip">{post.category}</span>
-                <span>Issue Nº{post.issue}</span>
+                <span className="chip">{newsletter.categories[post.category] ?? post.category}</span>
+                <span>{format(newsletter.issue, { issue: formatNumber(locale, post.issue, { useGrouping: false }) })}</span>
                 <span aria-hidden="true">·</span>
-                <time dateTime={post.date}>{formatDate(post.date)}</time>
+                <time dateTime={post.date}>{formatDate(post.date, locale)}</time>
                 <span aria-hidden="true">·</span>
-                <span>{post.minutes} min read</span>
+                <span>{format(newsletter.minRead, { count: formatNumber(locale, post.minutes) })}</span>
               </div>
-              <h1 className="mt-5 font-display text-[34px] leading-[1.08] font-extrabold tracking-[-0.025em] text-balance text-ink sm:text-[52px]">
+              <h1 dir="auto" className="mt-5 font-display text-[34px] leading-[1.08] font-extrabold tracking-[-0.025em] text-balance text-ink sm:text-[52px]">
                 {post.title}
               </h1>
-              <p className="lead mx-auto mt-5 max-w-[640px] sm:text-[18px]">
+              <p dir="auto" className="lead mx-auto mt-5 max-w-[640px] sm:text-[18px]">
                 {post.excerpt}
               </p>
               <p className="mt-7 inline-flex items-center gap-3 text-[14px] text-ink">
                 <BrandMark className="h-9 w-auto shrink-0" />
-                <span className="font-semibold">{post.author}</span>
+                <bdi className="font-semibold">{post.author}</bdi>
               </p>
             </div>
           </header>
@@ -185,13 +198,12 @@ export default async function ArticlePage({
                   id="article-subscribe"
                   className="font-display text-[24px] leading-tight font-bold tracking-[-0.015em] sm:text-[28px]"
                 >
-                  Enjoyed this issue?
+                  {t.subscribeHeading}
                 </h2>
                 <p className="mt-2 mb-6 text-[15px] leading-[1.6] text-white/70">
-                  Get The Founder Brief every other Thursday. Free, and a
-                  5-minute read.
+                  {t.subscribeLead}
                 </p>
-                <SubscribeForm source={`article:${post.slug}`} tone="dark" />
+                <SubscribeForm source={`article:${post.slug}`} tone="dark" t={newsletter.subscribe} />
               </aside>
             </div>
           </div>
@@ -205,13 +217,15 @@ export default async function ArticlePage({
             <div className="mx-auto max-w-[1720px] lg:px-6">
               <div className="flex items-end justify-between gap-6">
                 <h2 id="more-title" className="title-section">
-                  More from <span className="text-brand-strong">the Brief</span>
+                  {rich(t.more, {
+                    accent: <span className="text-brand-strong">{t.moreAccent}</span>,
+                  })}
                 </h2>
                 <Link
                   href="/newsletter#latest"
                   className="group hidden items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] whitespace-nowrap text-ink uppercase transition-colors duration-200 hover:text-brand-strong sm:inline-flex"
                 >
-                  All issues
+                  {t.allIssues}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </div>

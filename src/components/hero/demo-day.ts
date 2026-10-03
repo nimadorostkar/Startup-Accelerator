@@ -1,5 +1,5 @@
 import type { StartupCardData } from "@/lib/application/directory";
-import { sectorLabel } from "./founders";
+import { sectorLabel, type CardWords } from "./founders";
 
 /**
  * The startups in the hero's Demo Day band: the three most recently accepted
@@ -20,7 +20,7 @@ const STAGE_PHOTOS = [
   "/images/demo-day/relay.webp",
 ];
 
-export function pitches(all: StartupCardData[]): Pitch[] {
+export function pitches(all: StartupCardData[], sectors?: CardWords["sectors"]): Pitch[] {
   return all
     .filter((s) => s.status === "cohort")
     .toSorted((a, b) => (b.appliedAt ?? "").localeCompare(a.appliedAt ?? ""))
@@ -28,7 +28,7 @@ export function pitches(all: StartupCardData[]): Pitch[] {
     .map((s, i) => ({
       slug: s.slug,
       name: s.name,
-      sector: sectorLabel(s.industry),
+      sector: sectorLabel(s.industry, sectors),
       blurb: s.tagline,
       photo: STAGE_PHOTOS[i],
     }));

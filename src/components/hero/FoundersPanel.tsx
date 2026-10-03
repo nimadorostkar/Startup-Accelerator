@@ -1,5 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import { initials } from "../dashboard/initials";
 import { Arrow } from "./Arrow";
 import { panelRows, type PanelFounder } from "./founders";
@@ -53,8 +54,10 @@ function FounderCard({ f, copy }: { f: PanelFounder; copy: boolean }) {
 
 export default function FoundersPanel({
   founders,
+  t,
 }: {
   founders: PanelFounder[];
+  t: Messages["landing"]["founders"];
 }) {
   const rows = panelRows(founders);
 
@@ -68,19 +71,17 @@ export default function FoundersPanel({
         <div className={s.panelIntro}>
           <p className={`${s.label} ${s.panelLabel}`}>
             <span className={s.dot} aria-hidden="true" />
-            Featured founders
+            {t.label}
           </p>
           <h2 id="founders-title" className={s.panelTitle}>
-            Meet our portfolio <span>founders &amp; startups.</span>
+            {t.title} <span>{t.titleAccent}</span>
           </h2>
           <p className={s.panelTag}>
-            {rows.length > 0
-              ? "Talented founders. Innovative ideas. Real impact."
-              : "The first founders are applying now. Yours could be the first card here."}
+            {rows.length > 0 ? t.tag : t.empty}
           </p>
         </div>
         <Link href="/startups" className={`${s.btn} ${s.ghost}`}>
-          All startups
+          {t.allStartups}
           <Arrow />
         </Link>
       </div>

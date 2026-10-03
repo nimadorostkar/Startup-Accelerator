@@ -1,55 +1,62 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useId } from "react";
 import { register, type AuthFormState } from "@/app/[lang]/(auth)/actions";
+import { LocalLink as Link, useLocale } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import Field from "./Field";
+import { rich } from "@/i18n/rich";
 import FormBanner from "./FormBanner";
 import SubmitButton from "./SubmitButton";
 
-export default function RegisterForm() {
+type Strings = Messages["auth"]["fields"] & Messages["auth"]["register"]["form"];
+
+export default function RegisterForm({ t }: { t: Strings }) {
+  const locale = useLocale();
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     register,
     {},
   );
   const termsError = useId();
+  const legalLink = "font-semibold text-brand-strong underline-offset-2 hover:underline";
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5">
       {state.message && <FormBanner>{state.message}</FormBanner>}
+      <input type="hidden" name="lang" value={locale} />
 
       <Field
-        label="Full name"
+        label={t.name}
         name="name"
         autoComplete="name"
-        placeholder="Ada Lovelace"
+        placeholder={t.namePlaceholder}
         defaultValue={state.values?.name}
         error={state.errors?.name}
       />
 
       <Field
-        label="Email"
+        label={t.email}
         name="email"
         type="email"
         inputMode="email"
         autoComplete="email"
-        placeholder="you@company.com"
+        placeholder={t.emailPlaceholder}
         defaultValue={state.values?.email}
         error={state.errors?.email}
       />
 
       <Field
-        label="Password"
+        label={t.password}
         name="password"
         type="password"
         autoComplete="new-password"
-        placeholder="At least 8 characters"
+        placeholder={t.passwordPlaceholder}
+        showPasswordLabel={t.showPassword}
+        hidePasswordLabel={t.hidePassword}
         error={state.errors?.password}
       />
       {!state.errors?.password && (
-        <p className="-mt-3 text-[13px] text-muted">
-          At least 8 characters, with a letter and a number.
-        </p>
+        <p className="-mt-3 text-[13px] text-muted">{t.passwordHint}</p>
       )}
 
       <div>
@@ -63,21 +70,18 @@ export default function RegisterForm() {
             className="field-check mt-0.5 shrink-0"
           />
           <span>
-            I agree to the{" "}
-            <Link
-              href="/terms"
-              className="font-semibold text-brand-strong underline-offset-2 hover:underline"
-            >
-              Terms of Use
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/privacy"
-              className="font-semibold text-brand-strong underline-offset-2 hover:underline"
-            >
-              Privacy Policy
-            </Link>
-            .
+            {rich(t.terms, {
+              terms: (
+                <Link href="/terms" className={legalLink}>
+                  {t.termsLink}
+                </Link>
+              ),
+              privacy: (
+                <Link href="/privacy" className={legalLink}>
+                  {t.privacyLink}
+                </Link>
+              ),
+            })}
           </span>
         </label>
         {state.errors?.terms && (
@@ -87,8 +91,8 @@ export default function RegisterForm() {
         )}
       </div>
 
-      <SubmitButton pending={pending} pendingLabel="Creating account…">
-        Create account
+      <SubmitButton pending={pending} pendingLabel={t.pending}>
+        {t.submit}
       </SubmitButton>
     </form>
   );

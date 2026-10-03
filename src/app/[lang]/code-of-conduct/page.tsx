@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
-import LegalArticle, { type LegalSection } from "@/components/LegalArticle";
+import LegalArticle, {
+  legalMetadata,
+  type LegalSection,
+} from "@/components/LegalArticle";
 
-export const metadata: Metadata = {
-  title: "Code of conduct — Fundup Club",
-  description:
-    "How we expect everyone to behave at Fundup Club events and in the founder community.",
-};
+export function generateMetadata() {
+  return legalMetadata("conduct");
+}
 
-/* DRAFT — confirm the reporting route (a named contact or email) before launch. */
+/* The document is in English on every language's page (LegalArticle).
+   DRAFT — confirm the reporting route (a named contact or email) before launch. */
 const SECTIONS: LegalSection[] = [
   {
     title: "Why this exists",
@@ -57,13 +58,6 @@ const SECTIONS: LegalSection[] = [
 
 export default function CodeOfConductPage() {
   return (
-    <LegalArticle
-      eyebrow="Legal"
-      title="Code of conduct"
-      updated="2026-09-25"
-      current="/code-of-conduct"
-      intro="How we expect everyone to behave at our events and in the founder community, and what to do if someone doesn't."
-      sections={SECTIONS}
-    />
+    <LegalArticle doc="conduct" updated="2026-09-25" sections={SECTIONS} />
   );
 }

@@ -21,6 +21,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { api, BackendUnavailable, SESSION_COOKIE, UNAVAILABLE, type ApiResult } from "./api";
 import { areaOf, RETURN_TO_HEADER, safeReturnTo, signInHref } from "./session";
+import type { Locale } from "@/i18n/config";
 import { SITE_URL } from "./site";
 
 export { SESSION_COOKIE };
@@ -63,6 +64,8 @@ const COOKIE_SECURE = process.env.COOKIE_SECURE?.trim()
 export const OAUTH_STATE_COOKIE = "vcs_oauth_state";
 /** Where to go after Google sign-in (the `next` the sign-in page was opened with). */
 export const OAUTH_RETURN_COOKIE = "vcs_oauth_next";
+/** The language of the page Google sign-in started on, so a failure comes back to it. */
+export const OAUTH_LOCALE_COOKIE = "vcs_oauth_lang";
 export const GOOGLE_CALLBACK_PATH = "/api/auth/callback/google";
 
 /**
@@ -216,7 +219,7 @@ export async function resendVerification(): Promise<{ ok: boolean; message?: str
  * GOOGLE_CALLBACK_PATH (app/api/auth/callback/google), which checks the
  * state and hands the code to the API.
  */
-export async function startGoogleOAuth(returnTo?: string | null): Promise<AuthResult> {
+export async function startGoogleOAuth(returnTo?: string | null, locale: Locale = "en"): Promise<AuthResult> {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
     return {
@@ -233,6 +236,15 @@ export async function startGoogleOAuth(returnTo?: string | null): Promise<AuthRe
     path: GOOGLE_CALLBACK_PATH,
     maxAge: 600,
   });
+  if (locale !== "en") {
+    (await cookies()).set(OAUTH_LOCALE_COOKIE, locale, {
+      httpOnly: true,
+      secure: COOKIE_SECURE,
+      sameSite: "lax",
+      path: GOOGLE_CALLBACK_PATH,
+      maxAge: 600,
+    });
+  }
   const next = safeReturnTo(returnTo);
   if (next) {
     (await cookies()).set(OAUTH_RETURN_COOKIE, next, {

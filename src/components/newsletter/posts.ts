@@ -3,6 +3,8 @@
    are written in the back office (/backoffice/ → Posts). The launch set is
    loaded by `python manage.py seed_content`. */
 
+import { LOCALE_INFO, type Locale } from "@/i18n/config";
+
 export const CATEGORIES = [
   "Fundraising",
   "Building",
@@ -38,8 +40,9 @@ export type Post = {
 /** An issue as listed: everything but the text. */
 export type PostSummary = Omit<Post, "body">;
 
-export function formatDate(iso: string) {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
+/** An issue's date in the page's language ("Oct 2, 2026"; the Persian calendar in Persian). */
+export function formatDate(iso: string, locale: Locale = "en") {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString(LOCALE_INFO[locale].intl, {
     month: "short",
     day: "numeric",
     year: "numeric",

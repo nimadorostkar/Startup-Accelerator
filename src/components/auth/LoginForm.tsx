@@ -1,15 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useState } from "react";
 import { login, type AuthFormState } from "@/app/[lang]/(auth)/actions";
+import { LocalLink as Link, useLocale } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import Field from "./Field";
 import FormBanner from "./FormBanner";
 import SubmitButton from "./SubmitButton";
 
+type Strings = Messages["auth"]["fields"] & Messages["auth"]["login"]["form"];
+
 /** `notice` is shown in the banner before the first submit (e.g. a failed Google sign-in);
     `next` is where to go once signed in (checked on the server). */
-export default function LoginForm({ notice, next }: { notice?: string; next?: string }) {
+export default function LoginForm({ t, notice, next }: { t: Strings; notice?: string; next?: string }) {
+  const locale = useLocale();
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     login,
     notice ? { message: notice } : {},
@@ -23,33 +27,36 @@ export default function LoginForm({ notice, next }: { notice?: string; next?: st
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5">
       {state.message && <FormBanner>{state.message}</FormBanner>}
+      <input type="hidden" name="lang" value={locale} />
       {next && <input type="hidden" name="next" value={next} />}
 
       <Field
-        label="Email"
+        label={t.email}
         name="email"
         type="email"
         inputMode="email"
         autoComplete="email"
-        placeholder="you@company.com"
+        placeholder={t.emailPlaceholder}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         error={state.errors?.email}
       />
 
       <Field
-        label="Password"
+        label={t.password}
         name="password"
         type="password"
         autoComplete="current-password"
-        placeholder="Your password"
+        placeholder={t.passwordPlaceholder}
+        showPasswordLabel={t.showPassword}
+        hidePasswordLabel={t.hidePassword}
         error={state.errors?.password}
         action={
           <Link
             href={resetHref}
             className="text-[13px] font-semibold text-brand-strong transition-colors duration-200 hover:text-ink"
           >
-            Forgot password?
+            {t.forgot}
           </Link>
         }
       />
@@ -61,11 +68,11 @@ export default function LoginForm({ notice, next }: { notice?: string; next?: st
           defaultChecked={state.values?.remember === "on"}
           className="field-check"
         />
-        Keep me signed in
+        {t.remember}
       </label>
 
-      <SubmitButton pending={pending} pendingLabel="Signing in…">
-        Sign in
+      <SubmitButton pending={pending} pendingLabel={t.pending}>
+        {t.submit}
       </SubmitButton>
     </form>
   );

@@ -23,7 +23,7 @@ export default function Accordion({ items }: { items: QA[] }) {
                 aria-expanded={isOpen}
                 aria-controls={panel}
                 onClick={() => setOpen(isOpen ? null : i)}
-                className="group flex w-full items-center justify-between gap-6 px-6 py-5 text-left transition-colors duration-200 hover:bg-cream/60"
+                className="group flex w-full items-center justify-between gap-6 px-6 py-5 text-start transition-colors duration-200 hover:bg-cream/60"
               >
                 <span className="text-[16px] font-semibold text-ink sm:text-[17px]">
                   {q}

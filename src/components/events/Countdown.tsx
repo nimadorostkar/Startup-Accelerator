@@ -1,6 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useLocale } from "@/i18n/client";
+import { formatNumber } from "@/i18n/format";
+import type { Messages } from "@/i18n/messages";
 
 function subscribe(onTick: () => void) {
   const id = setInterval(onTick, 1000);
@@ -11,23 +14,28 @@ const nowInSeconds = () => Math.floor(Date.now() / 1000);
 const noTimeOnServer = () => null;
 
 /* Days / hours / minutes / seconds until `to`. Decorative: the date is
-   always shown in text next to it, so it's hidden from screen readers. */
+   always shown in text next to it, so it's hidden from screen readers.
+   Units read in the page's direction (days first). */
 export default function Countdown({
   to,
   tone = "dark",
+  t,
 }: {
   to: string;
   tone?: "dark" | "light";
+  /** The unit labels, in the page's language. */
+  t: Messages["events"]["countdown"];
 }) {
+  const locale = useLocale();
   const now = useSyncExternalStore(subscribe, nowInSeconds, noTimeOnServer);
   const left =
     now === null ? null : Math.max(0, Math.floor(Date.parse(to) / 1000) - now);
 
   const units: [string, number | null][] = [
-    ["Days", left === null ? null : Math.floor(left / 86400)],
-    ["Hours", left === null ? null : Math.floor((left % 86400) / 3600)],
-    ["Min", left === null ? null : Math.floor((left % 3600) / 60)],
-    ["Sec", left === null ? null : left % 60],
+    [t.days, left === null ? null : Math.floor(left / 86400)],
+    [t.hours, left === null ? null : Math.floor((left % 86400) / 3600)],
+    [t.min, left === null ? null : Math.floor((left % 3600) / 60)],
+    [t.sec, left === null ? null : left % 60],
   ];
 
   return (
@@ -46,7 +54,7 @@ export default function Countdown({
               tone === "dark" ? "text-white" : "text-ink"
             }`}
           >
-            {n === null ? "--" : String(n).padStart(2, "0")}
+            {n === null ? "--" : formatNumber(locale, n, { minimumIntegerDigits: 2, useGrouping: false })}
           </span>
           <span
             className={`mt-1.5 block font-display text-[10px] font-semibold tracking-[0.14em] uppercase ${

@@ -1,7 +1,9 @@
-/** The hero handoff's long arrow (16×12), drawn in currentColor. */
+/** The hero handoff's long arrow (16×12), drawn in currentColor. It points
+    forward, so it turns around on right-to-left pages (data-flip, globals.css). */
 export function Arrow({ className }: { className?: string }) {
   return (
     <svg
+      data-flip=""
       viewBox="0 0 16 12"
       fill="none"
       stroke="currentColor"

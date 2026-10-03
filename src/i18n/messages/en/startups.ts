@@ -1,3 +1,194 @@
-const startups = {};
+/* The startup directory (/startups), a startup's page (/startups/<slug>) and
+   the landing page's startup list (#startups). Founders' own answers (names,
+   pitches, countries…) come from the API and are shown as written. */
+const startups = {
+  /* Display labels for the stored option values (keyed by the value the API
+     sends: filters and addresses keep using those, ?status=cohort etc.). */
+  options: {
+    statuses: {
+      cohort: "In the cohort",
+      review: "In review",
+      applied: "Applied",
+      passed: "Not selected",
+    },
+    stages: {
+      idea: "Discover",
+      mvp: "Build MVP",
+      validation: "Validate",
+      traction: "Traction",
+      fundraising: "Fundraise",
+      scaling: "Scale",
+    },
+    industries: {
+      "AI & machine learning": "AI & machine learning",
+      "B2B software / SaaS": "B2B software / SaaS",
+      "Climate & energy": "Climate & energy",
+      Consumer: "Consumer",
+      "Deep tech & hardware": "Deep tech & hardware",
+      "E-commerce & retail": "E-commerce & retail",
+      Education: "Education",
+      Fintech: "Fintech",
+      "Health & biotech": "Health & biotech",
+      Marketplaces: "Marketplaces",
+      "Mobility & logistics": "Mobility & logistics",
+      Other: "Other",
+    },
+    businessModels: {
+      "Subscription (B2B)": "Subscription (B2B)",
+      "Subscription (B2C)": "Subscription (B2C)",
+      "Marketplace / take rate": "Marketplace / take rate",
+      "Transactional / usage-based": "Transactional / usage-based",
+      "Hardware sales": "Hardware sales",
+      Advertising: "Advertising",
+      Licensing: "Licensing",
+      "Not decided yet": "Not decided yet",
+    },
+    commitments: {
+      "full-time": "Full-time",
+      "part-time": "Part-time",
+    },
+    workedTogether: {
+      "Less than 6 months": "Less than 6 months",
+      "6–12 months": "6–12 months",
+      "1–3 years": "1–3 years",
+      "More than 3 years": "More than 3 years",
+      "Solo founder": "Solo founder",
+    },
+    /* The milestones on a startup's page, as the API titles them. */
+    timeline: {
+      "Application submitted for review": "Application submitted for review",
+      "Application resubmitted": "Application resubmitted",
+      "Review started": "Review started",
+      "Changes requested": "Changes requested",
+      "Application accepted": "Application accepted",
+      "Application not selected": "Application not selected",
+      "Review reopened": "Review reopened",
+    },
+  },
+
+  directory: {
+    metaTitle: "Startups — Fundup Club",
+    metaDescription:
+      "Every startup that has applied to the Fundup Club program, from first idea to funded, with where each one is in the process.",
+    eyebrow: "Startup directory",
+    titleStart: "The startups",
+    titleAccent: "building with us",
+    lead: "Every company that has applied to the program, from first idea to funded, with where each one is in the process. Open a startup to meet the team and read what they’re building.",
+    statStartups: { one: "Startup", other: "Startups" },
+    statCohort: "In the cohort",
+    statIndustries: { one: "Industry", other: "Industries" },
+    statCountries: { one: "Country", other: "Countries" },
+    listLabel: "All startups",
+    emptyTitle: "No startups yet",
+    emptyBody: "The first applications for the next cohort will appear here.",
+  },
+
+  /* The directory's search, filters and sorting (client). */
+  filters: {
+    searchLabel: "Search startups",
+    searchPlaceholder: "Search startups, founders, countries",
+    status: "Status",
+    industry: "Industry",
+    stage: "Stage",
+    all: "All",
+    allIndustries: "All industries",
+    allStages: "All stages",
+    clearAll: "Clear all filters",
+    clear: "Clear filters",
+    /* {count} is shown in bold */
+    count: { one: "{count} startup", other: "{count} startups" },
+    sort: "Sort",
+    sortNewest: "Newest first",
+    sortCohort: "Cohort first",
+    sortName: "Name A–Z",
+    noMatchTitle: "No startups match",
+    noMatchBody: "Try another word, or clear the filters to see everything.",
+    showAll: "Show all startups",
+  },
+
+  /* A startup's card in the directory and under "More startups". */
+  card: {
+    pitchSoon: "One-line pitch coming soon.",
+    founded: "Founded {date}",
+    users: "{count} users",
+    customers: "{count} customers",
+    foundersSoon: "Founders to be announced",
+    applied: "Applied {date}",
+  },
+
+  page: {
+    metaTitle: "{name} — Startups · Fundup Club",
+    metaDescription: "{name} on Fundup Club.",
+    back: "All startups",
+    demo: "Product demo",
+    video: "Video",
+    factStage: "Stage",
+    factIndustry: "Industry",
+    factHeadquarters: "Headquarters",
+    factFounded: "Founded",
+    factBusinessModel: "Business model",
+    factIncorporated: "Incorporated",
+    factTeam: "Team",
+    factApplied: "Applied",
+    yes: "Yes",
+    notYet: "Not yet",
+    people: { one: "{count} person", other: "{count} people" },
+    activeUsers: "Active users",
+    payingCustomers: "Paying customers",
+    problem: "The problem",
+    solution: "The solution",
+    customer: "Who it's for",
+    market: "Market",
+    edge: "Competition and edge",
+    usedToday: "What people use today",
+    whyWins: "Why this team wins",
+    metric: "Headline metric",
+    teamStory: "The team",
+    workedTogether: "Worked together",
+    hiring: "Hiring",
+    aboutFounder: "About the founder",
+    experience: { one: "{count} year of experience", other: "{count} years of experience" },
+    linkedin: "LinkedIn",
+    team: "Founders and team",
+    founderBadge: "Founder",
+    onLinkedIn: "{name} on LinkedIn",
+    journey: "Journey",
+    moreStart: "More",
+    moreAccent: "startups",
+    fullDirectory: "Full directory",
+  },
+
+  /* The landing page's list: "Building with us right now". */
+  list: {
+    eyebrow: "Our startups",
+    titleStart: "Building with us",
+    titleAccent: "right now",
+    /* Counts above one only: a single startup gets summaryOne. */
+    summaryOne: "{count} startup so far, and the list is growing.",
+    summaryBoth: "{startups} startups across {industries} industries and {countries} countries, from first idea to funded.",
+    summaryIndustries: "{startups} startups across {industries} industries, from first idea to funded.",
+    summaryCountries: "{startups} startups across {countries} countries, from first idea to funded.",
+    summaryPlain: "{startups} startups, from first idea to funded.",
+    explore: "Explore startups",
+    emptyTitle: "The first startups are applying now",
+    emptyBody: "Submitted applications appear here and in the directory.",
+  },
+
+  /* The landing list's filters, rows and paging (client). */
+  browser: {
+    filterLabel: "Filter startups",
+    all: "All",
+    new: "New",
+    pitchSoon: "One-line pitch coming soon.",
+    users: "users",
+    empty: "No startups here yet.",
+    /* {shown} is shown in bold */
+    showing: { one: "Showing {shown} of {total} startup", other: "Showing {shown} of {total} startups" },
+    loadMore: "Load more",
+    loadMoreCount: "{next} of {left}",
+    everyone: "That's everyone. Search the directory",
+    searchAll: "Search the full directory",
+  },
+};
 
 export default startups;

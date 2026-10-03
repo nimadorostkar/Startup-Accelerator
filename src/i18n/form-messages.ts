@@ -1,4 +1,5 @@
 import { isLocale, type Locale } from "./config";
+import { formatNumber } from "./format";
 import { MESSAGES } from "./messages";
 
 /* The forms' messages in the visitor's language. lib/validation.ts and the API
@@ -27,7 +28,8 @@ export function translateMessage(locale: Locale, message: string | undefined) {
   const numbers = message.match(/\d+/g);
   if (numbers?.length === 1) {
     const translated = table[message.replace(/\d+/, "{n}")];
-    if (translated) return translated.replace("{n}", numbers[0]);
+    // The number written the language's way: ۱۵ in Persian, 2.000 in Turkish.
+    if (translated) return translated.replace("{n}", formatNumber(locale, Number(numbers[0])));
   }
   return message;
 }

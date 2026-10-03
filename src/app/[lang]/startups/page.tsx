@@ -7,14 +7,15 @@ import Directory, {
 } from "@/components/startups/Directory";
 import Eyebrow from "@/components/ui/Eyebrow";
 import UnicornCta from "@/components/UnicornCta";
+import { formatNumber, plural } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
 import { distinctCount } from "@/lib/application/directory";
 import { listPublicStartups } from "@/lib/application/public";
 
-export const metadata: Metadata = {
-  title: "Startups — Fundup Club",
-  description:
-    "Every startup that has applied to the Fundup Club program, from first idea to funded, with where each one is in the process.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDictionary()).startups.directory;
+  return { title: t.metaTitle, description: t.metaDescription };
+}
 
 // Rendered per request (the filters come from the URL); the directory data
 // itself is cached for a minute and refreshed as soon as it changes.
@@ -33,15 +34,20 @@ export default async function StartupsPage({
     sort: str(sp.sort),
   };
 
-  const all = await listPublicStartups();
+  const [all, { startups: dict }, locale] = await Promise.all([
+    listPublicStartups(),
+    getDictionary(),
+    getLocale(),
+  ]);
+  const t = dict.directory;
   const cohort = all.filter((s) => s.status === "cohort").length;
   const industries = distinctCount(all.map((s) => s.industry));
   const countries = distinctCount(all.map((s) => s.country));
   const stats = [
-    { value: all.length, label: all.length === 1 ? "Startup" : "Startups" },
-    { value: cohort, label: "In the cohort" },
-    { value: industries, label: industries === 1 ? "Industry" : "Industries" },
-    { value: countries, label: countries === 1 ? "Country" : "Countries" },
+    { value: all.length, label: plural(locale, all.length, t.statStartups) },
+    { value: cohort, label: t.statCohort },
+    { value: industries, label: plural(locale, industries, t.statIndustries) },
+    { value: countries, label: plural(locale, countries, t.statCountries) },
   ];
 
   return (
@@ -55,27 +61,24 @@ export default async function StartupsPage({
           />
           <div
             aria-hidden="true"
-            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.2),transparent)]"
+            className="absolute -top-40 -end-[10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.2),transparent)]"
           />
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-[760px]">
                 <Reveal>
-                  <Eyebrow>Startup directory</Eyebrow>
+                  <Eyebrow>{t.eyebrow}</Eyebrow>
                 </Reveal>
                 <Reveal delay={90}>
                   <h1 className="mt-5 font-display text-[40px] leading-[1.02] font-extrabold tracking-[-0.025em] text-ink uppercase sm:text-[60px] xl:text-[72px]">
-                    The startups
+                    {t.titleStart}
                     <br />
-                    <span className="text-brand-strong">building with us</span>
+                    <span className="text-brand-strong">{t.titleAccent}</span>
                   </h1>
                 </Reveal>
                 <Reveal delay={180}>
                   <p className="lead mt-6 max-w-[600px] sm:text-[17px]">
-                    Every company that has applied to the program, from first
-                    idea to funded, with where each one is in the process. Open
-                    a startup to meet the team and read what they&rsquo;re
-                    building.
+                    {t.lead}
                   </p>
                 </Reveal>
               </div>
@@ -90,7 +93,7 @@ export default async function StartupsPage({
                         {s.label}
                       </dt>
                       <dd className="font-display text-[28px] leading-none font-extrabold tracking-[-0.02em] text-ink">
-                        {s.value}
+                        {formatNumber(locale, s.value)}
                       </dd>
                     </div>
                   ))}
@@ -101,19 +104,27 @@ export default async function StartupsPage({
         </section>
 
         <section
-          aria-label="All startups"
+          aria-label={t.listLabel}
           className="px-4 py-10 sm:px-8 sm:py-14"
         >
           <div className="mx-auto max-w-[1720px] lg:px-6">
             {all.length > 0 ? (
-              <Directory startups={all} initial={initial} />
+              <Directory
+                startups={all}
+                initial={initial}
+                t={{
+                  filters: dict.filters,
+                  card: dict.card,
+                  options: dict.options,
+                }}
+              />
             ) : (
               <div className="rounded-[18px] border border-dashed border-line px-6 py-16 text-center">
                 <p className="font-display text-[20px] font-bold text-ink">
-                  No startups yet
+                  {t.emptyTitle}
                 </p>
                 <p className="mt-2 text-[14px] text-muted">
-                  The first applications for the next cohort will appear here.
+                  {t.emptyBody}
                 </p>
               </div>
             )}

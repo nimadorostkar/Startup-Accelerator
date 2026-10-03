@@ -1,5 +1,6 @@
 import type React from "react";
 import Image from "next/image";
+import { getDictionary } from "@/i18n/server";
 import Flag from "./Flag";
 import { BrandBadge } from "./brands";
 import type { Testimonial } from "./data";
@@ -27,18 +28,19 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export default function TestimonialCard({
+export default async function TestimonialCard({
   t,
   className = "",
 }: {
   t: Testimonial;
   className?: string;
 }) {
+  const words = (await getDictionary()).landing.results;
   return (
     <figure
-      className={`relative flex flex-col rounded-2xl border border-line bg-[linear-gradient(140deg,#fff4ec_0%,#fff_42%)] px-5 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(20,26,34,0.04),0_14px_34px_-12px_rgba(20,26,34,0.14)] transition-[rotate,scale,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:border-brand/40 hover:shadow-[0_2px_4px_rgba(20,26,34,0.05),0_26px_50px_-16px_rgba(20,26,34,0.24)] xl:hover:rotate-0 ${className}`}
+      className={`relative flex flex-col rounded-2xl border border-line bg-[linear-gradient(140deg,#fff4ec_0%,#fff_42%)] rtl:bg-[linear-gradient(220deg,#fff4ec_0%,#fff_42%)] px-5 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(20,26,34,0.04),0_14px_34px_-12px_rgba(20,26,34,0.14)] transition-[rotate,scale,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:border-brand/40 hover:shadow-[0_2px_4px_rgba(20,26,34,0.05),0_26px_50px_-16px_rgba(20,26,34,0.24)] xl:hover:rotate-0 ${className}`}
     >
-      <QuoteMark className="pop absolute -top-[9px] left-5 h-4 w-6 origin-bottom-left text-brand" />
+      <QuoteMark className="pop absolute -top-[9px] start-5 h-4 w-6 origin-bottom-left text-brand rtl:origin-bottom-right" />
 
       <blockquote className="text-[15px] leading-[1.5] text-ink-soft">
         <p>{t.quote}</p>
@@ -65,7 +67,8 @@ export default function TestimonialCard({
           {t.country && (
             <Flag
               code={t.country}
-              className="absolute -right-1 -bottom-1 h-4 w-4 rounded-full ring-2 ring-white"
+              label={words.countries[t.country]}
+              className="absolute -end-1 -bottom-1 h-4 w-4 rounded-full ring-2 ring-white"
             />
           )}
         </span>
@@ -85,14 +88,14 @@ export default function TestimonialCard({
         </span>
 
         {t.brand && (
-          <span className="ml-auto shrink-0 self-center [&>*]:max-h-5">
+          <span className="ms-auto shrink-0 self-center [&>*]:max-h-5">
             <BrandBadge brand={t.brand} />
           </span>
         )}
       </figcaption>
 
       {t.outcomes && (
-        <ul className="mt-2.5 flex flex-wrap gap-1.5" aria-label="Outcomes">
+        <ul className="mt-2.5 flex flex-wrap gap-1.5" aria-label={words.outcomes}>
           {t.outcomes.map((o, i) => (
             <li
               key={o}

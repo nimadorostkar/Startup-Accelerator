@@ -32,12 +32,21 @@ export function proxy(request: NextRequest) {
   }
 
   if (pathname === "/en" || pathname.startsWith("/en/")) {
+    // Our own rewrite below comes back through here in production: serve it.
+    if (request.headers.get(REWRITTEN) === "1") return NextResponse.next();
     return NextResponse.redirect(new URL((pathname.slice(3) || "/") + search, request.url), 308);
   }
   if (/^\/(tr|fa)(\/|$)/.test(pathname) || isUnlocalized(pathname)) return NextResponse.next();
 
-  return NextResponse.rewrite(new URL(`/en${pathname === "/" ? "" : pathname}${search}`, request.url));
+  const headers = new Headers(request.headers);
+  headers.set(REWRITTEN, "1");
+  return NextResponse.rewrite(new URL(`/en${pathname === "/" ? "" : pathname}${search}`, request.url), {
+    request: { headers },
+  });
 }
+
+/** Marks the internal /en rewrite, so it isn't taken for a visitor asking for /en/… */
+const REWRITTEN = "x-fundup-locale-rewrite";
 
 export const config = {
   // Not for Next's own files, the API's routes on this server, or files in public/.

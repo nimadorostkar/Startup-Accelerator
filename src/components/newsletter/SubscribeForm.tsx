@@ -2,6 +2,9 @@
 
 import { useActionState, useId } from "react";
 import { subscribe, type SubscribeState } from "@/app/[lang]/newsletter/actions";
+import { useLocale } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
+import { rich } from "@/i18n/rich";
 import { ArrowRight, CheckIcon } from "../icons";
 
 /* Inline email + button pill. `tone="dark"` for dark bands. */
@@ -9,12 +12,16 @@ export default function SubscribeForm({
   source,
   tone = "light",
   className = "",
+  t,
 }: {
   /** Where on the site the sign-up happened, stored with the address. */
   source: string;
   tone?: "light" | "dark";
   className?: string;
+  /** The form's words, in the page's language. */
+  t: Messages["newsletter"]["subscribe"];
 }) {
+  const locale = useLocale();
   const [state, formAction, pending] = useActionState<SubscribeState, FormData>(
     subscribe,
     {},
@@ -36,23 +43,22 @@ export default function SubscribeForm({
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-white">
           <CheckIcon className="h-4 w-4" />
         </span>
-        {state.done === "new" ? (
-          <span>
-            You&rsquo;re in. The next issue goes to{" "}
-            <strong className="font-semibold">{state.email}</strong>.
-          </span>
-        ) : (
-          <span>
-            <strong className="font-semibold">{state.email}</strong> is already
-            on the list.
-          </span>
-        )}
+        <span>
+          {rich(state.done === "new" ? t.doneNew : t.doneExisting, {
+            email: (
+              <bdi>
+                <strong className="font-semibold">{state.email}</strong>
+              </bdi>
+            ),
+          })}
+        </span>
       </p>
     );
   }
 
   return (
     <form action={formAction} noValidate className={className}>
+      <input type="hidden" name="lang" value={locale} />
       <input type="hidden" name="source" value={source} />
       <div
         className={`flex flex-col gap-2 rounded-[28px] p-1.5 sm:flex-row sm:items-center sm:rounded-full ${
@@ -62,7 +68,7 @@ export default function SubscribeForm({
         } transition-shadow duration-200`}
       >
         <label htmlFor={`${id}-email`} className="sr-only">
-          Email address
+          {t.label}
         </label>
         <input
           id={`${id}-email`}
@@ -70,7 +76,7 @@ export default function SubscribeForm({
           type="email"
           inputMode="email"
           autoComplete="email"
-          placeholder="you@company.com"
+          placeholder={t.placeholder}
           defaultValue={state.email}
           aria-invalid={state.error ? true : undefined}
           aria-describedby={state.error ? `${id}-error` : undefined}
@@ -86,7 +92,7 @@ export default function SubscribeForm({
           className="btn-shine group flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-full bg-brand-strong px-6 shadow-[0_12px_28px_-14px_rgba(194,71,10,0.9)] transition-[filter,opacity] duration-200 hover:brightness-105 disabled:opacity-70"
         >
           <span className="font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase">
-            {pending ? "Subscribing…" : "Subscribe"}
+            {pending ? t.pending : t.submit}
           </span>
           {!pending && (
             <ArrowRight className="h-4 w-4 text-white transition-transform duration-200 group-hover:translate-x-1" />
@@ -96,7 +102,7 @@ export default function SubscribeForm({
       {/* Honeypot — off-screen and skipped by keyboard and screen readers */}
       <div
         aria-hidden="true"
-        className="absolute -left-[9999px] h-px w-px overflow-hidden"
+        className="absolute -start-[9999px] h-px w-px overflow-hidden"
       >
         <input type="text" name="website" tabIndex={-1} autoComplete="off" />
       </div>

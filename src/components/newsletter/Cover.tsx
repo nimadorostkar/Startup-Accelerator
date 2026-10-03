@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import type { Category, PostSummary } from "./posts";
 
 /* Drawn covers: no image downloads, crisp at any size. One motif and
-   palette per category; the issue number keeps each one distinct. */
+   palette per category; the issue number keeps each one distinct.
+   An illustration, so it isn't mirrored on right-to-left pages; its text is
+   set left to right there too (it would otherwise run off the left edge). */
 
 type Palette = {
   from: string;
@@ -220,6 +222,7 @@ export default function Cover({
     <svg
       viewBox="0 0 800 500"
       preserveAspectRatio="xMidYMid slice"
+      direction="ltr"
       className={className}
       aria-hidden="true"
     >

@@ -1,50 +1,50 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import GoogleButton from "@/components/auth/GoogleButton";
 import RegisterForm from "@/components/auth/RegisterForm";
 import Eyebrow from "@/components/ui/Eyebrow";
+import { LocalLink as Link } from "@/i18n/client";
+import { getDictionary } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Create your account — Fundup Club",
-  description:
-    "Create a Fundup Club account to apply to the accelerator and join the founder network.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { title, description } = (await getDictionary()).auth.register;
+  return { title, description, robots: { index: false, follow: false } };
+}
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const { auth } = await getDictionary();
+  const t = auth.register;
+
   return (
     <>
-      <Eyebrow>Applications open</Eyebrow>
+      <Eyebrow>{t.eyebrow}</Eyebrow>
       <h1 className="mt-4 font-display text-[32px] leading-[1.08] font-bold tracking-[-0.02em] text-ink sm:text-[36px]">
-        Create your
+        {t.headingStart}
         <br />
-        <span className="text-brand-strong">founder account</span>
+        <span className="text-brand-strong">{t.headingAccent}</span>
       </h1>
-      <p className="lead mt-3">
-        One account for your application, the cohort programme and Demo Day.
-      </p>
+      <p className="lead mt-3">{t.lead}</p>
 
       <div className="mt-8">
-        <GoogleButton label="Sign up with Google" />
+        <GoogleButton label={t.google} pendingLabel={auth.googlePending} />
       </div>
 
       <div className="my-7 flex items-center gap-4">
         <span className="h-px flex-1 bg-line" />
         <span className="type-wide text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
-          or with email
+          {auth.orWithEmail}
         </span>
         <span className="h-px flex-1 bg-line" />
       </div>
 
-      <RegisterForm />
+      <RegisterForm t={{ ...auth.fields, ...t.form }} />
 
       <p className="mt-8 text-center text-[14px] text-muted">
-        Already have an account?{" "}
+        {t.haveAccount}{" "}
         <Link
           href="/login"
           className="font-semibold text-brand-strong transition-colors duration-200 hover:text-ink"
         >
-          Sign in
+          {t.signIn}
         </Link>
       </p>
     </>

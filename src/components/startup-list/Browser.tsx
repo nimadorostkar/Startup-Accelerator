@@ -1,20 +1,23 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  compact,
-  PUBLIC_STATUSES,
-  type PublicStatus,
-} from "@/lib/application/directory";
+import { LocalLink as Link, useLocale } from "@/i18n/client";
+import { format, formatNumber } from "@/i18n/format";
+import type { Messages } from "@/i18n/messages";
+import type { PublicStatus } from "@/lib/application/directory";
 import { ArrowRight } from "../icons";
 import Reveal from "../motion/Reveal";
+import { compactIn, pluralForm, rich } from "../startups/i18n";
 import Monogram from "../startups/Monogram";
 
 /* The landing page's startup list: status filters, a ranked two-column list
    that grows with "Load more", and a link through to the full directory.
    Data comes from StartupList (server). */
 
+type Text = Messages["startups"]["browser"];
+type Statuses = Messages["startups"]["options"]["statuses"];
+
+/** Industry and stage arrive as labels in the page's language ("" if not set). */
 export type ListItem = {
   slug: string;
   name: string;
@@ -30,12 +33,7 @@ export type ListItem = {
 };
 
 const PAGE = 8;
-const FILTERS: { id: PublicStatus | "all"; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "cohort", label: PUBLIC_STATUSES.cohort.label },
-  { id: "review", label: PUBLIC_STATUSES.review.label },
-  { id: "applied", label: PUBLIC_STATUSES.applied.label },
-];
+const FILTERS: (PublicStatus | "all")[] = ["all", "cohort", "review", "applied"];
 
 function TagIcon({ className = "" }: { className?: string }) {
   return (
@@ -54,7 +52,7 @@ function TagIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function Pill({ s }: { s: ListItem }) {
+function Pill({ s, t, statuses }: { s: ListItem; t: Text; statuses: Statuses }) {
   if (s.status === "cohort")
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-green-light/70 px-2 py-[3px] text-[11px] leading-none font-semibold text-green-deep">
@@ -62,30 +60,41 @@ function Pill({ s }: { s: ListItem }) {
           <span className="motion-only absolute inset-0 animate-ping rounded-full bg-green opacity-60" />
           <span className="relative h-1.5 w-1.5 rounded-full bg-green" />
         </span>
-        In the cohort
+        {statuses.cohort}
       </span>
     );
   if (s.status === "review")
     return (
       <span className="inline-flex items-center rounded-full bg-chip px-2 py-[3px] text-[11px] leading-none font-semibold text-brand-strong">
-        In review
+        {statuses.review}
       </span>
     );
   // Not for a startup that wasn't selected, however recently it applied
   if (s.isNew && s.status !== "passed")
     return (
       <span className="inline-flex items-center rounded-full bg-ink px-2 py-[3px] text-[11px] leading-none font-semibold text-white">
-        New
+        {t.new}
       </span>
     );
   return null;
 }
 
-function Row({ s, rank }: { s: ListItem; rank: number }) {
+function Row({
+  s,
+  rank,
+  t,
+  statuses,
+}: {
+  s: ListItem;
+  rank: number;
+  t: Text;
+  statuses: Statuses;
+}) {
+  const locale = useLocale();
   // Country only from sm up: on phones it would wrap onto a line of its own
   const tags = [
     { text: s.industry, wide: false },
-    { text: s.stageLabel !== "Not set" ? s.stageLabel : "", wide: false },
+    { text: s.stageLabel, wide: false },
     { text: s.country, wide: true },
   ].filter((t) => t.text);
 
@@ -94,21 +103,21 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
       {/* Accent bar that grows on hover */}
       <span
         aria-hidden="true"
-        className="absolute top-1/2 left-0 h-0 w-[3px] -translate-y-1/2 rounded-full bg-brand transition-[height] duration-300 ease-out group-hover:h-10"
+        className="absolute start-0 top-1/2 h-0 w-[3px] -translate-y-1/2 rounded-full bg-brand transition-[height] duration-300 ease-out group-hover:h-10"
       />
 
       <span className="relative mt-0.5 shrink-0">
         <Monogram
           name={s.name}
           logo={s.logo}
-          className="relative h-12 w-12 overflow-hidden rounded-[14px] text-[16px] transition-transform duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] group-hover:scale-[1.06] group-hover:-rotate-6 sm:h-14 sm:w-14 sm:text-[18px]"
+          className="relative h-12 w-12 overflow-hidden rounded-[14px] text-[16px] transition-transform duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] group-hover:scale-[1.06] group-hover:-rotate-6 rtl:group-hover:rotate-6 sm:h-14 sm:w-14 sm:text-[18px]"
         />
         {/* Light sweep across the tile on hover */}
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-[14px]"
         >
-          <span className="absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/45 to-transparent transition-[left] duration-700 ease-out group-hover:left-[130%]" />
+          <span className="absolute inset-y-0 -start-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/45 to-transparent transition-[inset-inline-start] duration-700 ease-out group-hover:start-[130%] rtl:skew-x-12" />
         </span>
       </span>
 
@@ -120,18 +129,18 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
               className="transition-colors duration-200 group-hover:text-brand-strong after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none!"
             >
               <span className="text-ink/35 tabular-nums transition-colors duration-200 group-hover:text-brand">
-                {rank}.
+                {formatNumber(locale, rank)}.
               </span>{" "}
               <bdi>{s.name}</bdi>
             </Link>
           </h3>
-          <Pill s={s} />
+          <Pill s={s} t={t} statuses={statuses} />
         </div>
         <p
           dir="auto"
           className="mt-1 line-clamp-2 text-[14px] leading-snug wrap-anywhere text-ink-soft/80 sm:text-[15px]"
         >
-          {s.tagline || "One-line pitch coming soon."}
+          {s.tagline || t.pitchSoon}
         </p>
         {tags.length > 0 && (
           <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-ink-soft/85 sm:text-[13.5px]">
@@ -157,16 +166,16 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
       {/* Traction, swapped for an arrow on hover */}
       <span className="relative hidden h-9 shrink-0 items-center self-center sm:flex">
         {s.users !== null && (
-          <span className="text-right text-[12px] leading-tight text-muted transition-opacity duration-300 group-hover:opacity-0">
+          <span className="text-end text-[12px] leading-tight text-muted transition-opacity duration-300 group-hover:opacity-0">
             <span className="block font-display text-[15px] font-bold text-ink tabular-nums">
-              {compact(s.users)}
+              {compactIn(locale, s.users)}
             </span>
-            users
+            {t.users}
           </span>
         )}
         <span
           aria-hidden="true"
-          className="absolute right-0 flex h-9 w-9 -translate-x-2 items-center justify-center rounded-full border border-brand bg-white text-brand-strong opacity-0 transition-[opacity,translate] duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+          className="absolute end-0 flex h-9 w-9 -translate-x-2 items-center justify-center rounded-full border border-brand bg-white text-brand-strong opacity-0 transition-[opacity,translate] duration-300 group-hover:translate-x-0 group-hover:opacity-100 rtl:translate-x-2 rtl:group-hover:translate-x-0"
         >
           <ArrowRight className="h-4 w-4" />
         </span>
@@ -175,7 +184,17 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
   );
 }
 
-export default function Browser({ items }: { items: ListItem[] }) {
+export default function Browser({
+  items,
+  t,
+  statuses,
+}: {
+  items: ListItem[];
+  t: Text;
+  /** Status labels in the page's language. */
+  statuses: Statuses;
+}) {
+  const locale = useLocale();
   const [filter, setFilter] = useState<PublicStatus | "all">("all");
   const [shown, setShown] = useState(PAGE);
   const firstNew = useRef<number | null>(null);
@@ -209,18 +228,18 @@ export default function Browser({ items }: { items: ListItem[] }) {
       {/* Filters */}
       <div
         role="group"
-        aria-label="Filter startups"
+        aria-label={t.filterLabel}
         className="snap-row gap-2 pb-1 [--bleed:16px] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
       >
-        {FILTERS.filter((f) => f.id === "all" || counts[f.id]).map((f) => {
-          const on = filter === f.id;
+        {FILTERS.filter((id) => id === "all" || counts[id]).map((id) => {
+          const on = filter === id;
           return (
             <button
-              key={f.id}
+              key={id}
               type="button"
               aria-pressed={on}
               onClick={() => {
-                setFilter(f.id);
+                setFilter(id);
                 setShown(PAGE);
               }}
               className={`inline-flex h-10 items-center gap-2 rounded-full border px-4 text-[14px] font-semibold whitespace-nowrap transition-[background-color,border-color,color] duration-200 ${
@@ -229,13 +248,13 @@ export default function Browser({ items }: { items: ListItem[] }) {
                   : "border-line bg-white text-ink-soft hover:border-brand hover:text-brand-strong"
               }`}
             >
-              {f.label}
+              {id === "all" ? t.all : statuses[id]}
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[11px] leading-none tabular-nums ${
                   on ? "bg-white/15 text-white" : "bg-cream text-muted"
                 }`}
               >
-                {counts[f.id]}
+                {formatNumber(locale, counts[id])}
               </span>
             </button>
           );
@@ -264,14 +283,14 @@ export default function Browser({ items }: { items: ListItem[] }) {
                   y={18}
                 >
                   <div data-row={i} className="h-full">
-                    <Row s={s} rank={i + 1} />
+                    <Row s={s} rank={i + 1} t={t} statuses={statuses} />
                   </div>
                 </Reveal>
               ))}
             </ol>
           ) : (
             <p className="px-6 py-12 text-center text-[15px] text-ink-soft/75">
-              No startups here yet.
+              {t.empty}
             </p>
           )}
 
@@ -283,12 +302,14 @@ export default function Browser({ items }: { items: ListItem[] }) {
                   aria-live="polite"
                   className="text-[13px] text-muted tabular-nums"
                 >
-                  Showing{" "}
-                  <span className="font-semibold text-ink">
-                    {visible.length}
-                  </span>{" "}
-                  of {list.length}{" "}
-                  {list.length === 1 ? "startup" : "startups"}
+                  {rich(pluralForm(locale, list.length, t.showing), {
+                    shown: (
+                      <span className="font-semibold text-ink">
+                        {formatNumber(locale, visible.length)}
+                      </span>
+                    ),
+                    total: formatNumber(locale, list.length),
+                  })}
                 </p>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-cream">
                   <div
@@ -307,9 +328,12 @@ export default function Browser({ items }: { items: ListItem[] }) {
                   }}
                   className="group inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-full border border-line bg-white px-6 text-[14px] font-semibold text-ink transition-[border-color,color,translate] duration-200 hover:-translate-y-0.5 hover:border-brand hover:text-brand-strong sm:w-auto"
                 >
-                  Load more
+                  {t.loadMore}
                   <span className="rounded-full bg-cream px-2 py-0.5 text-[12px] text-muted tabular-nums transition-colors duration-200 group-hover:bg-chip group-hover:text-brand-strong">
-                    {Math.min(PAGE, left)} of {left}
+                    {format(t.loadMoreCount, {
+                      next: formatNumber(locale, Math.min(PAGE, left)),
+                      left: formatNumber(locale, left),
+                    })}
                   </span>
                   <svg
                     viewBox="0 0 24 24"
@@ -329,9 +353,7 @@ export default function Browser({ items }: { items: ListItem[] }) {
                   href={browseHref}
                   className="group inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-full border border-line bg-white px-6 text-[14px] font-semibold text-ink transition-[border-color,color,translate] duration-200 hover:-translate-y-0.5 hover:border-brand hover:text-brand-strong sm:w-auto"
                 >
-                  {list.length > PAGE
-                    ? "That's everyone. Search the directory"
-                    : "Search the full directory"}
+                  {list.length > PAGE ? t.everyone : t.searchAll}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               )}

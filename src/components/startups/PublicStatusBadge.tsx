@@ -9,14 +9,17 @@ const TONES = {
   green: "bg-green-light/70 text-green-deep ring-green/25",
 } as const;
 
+/* `label` is the status in the page's language (startups.options.statuses). */
 export default function PublicStatusBadge({
   status,
+  label,
   className = "",
 }: {
   status: PublicStatus;
+  label: string;
   className?: string;
 }) {
-  const { label, tone } = PUBLIC_STATUSES[status];
+  const { tone } = PUBLIC_STATUSES[status];
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] leading-none font-semibold whitespace-nowrap ring-1 ring-inset ${TONES[tone]} ${className}`}

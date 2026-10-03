@@ -1,5 +1,72 @@
 import type en from "../en/newsletter";
 
-const newsletter: typeof en = {};
+const newsletter: typeof en = {
+  categories: {
+    Fundraising: "Yatırım Toplama",
+    Building: "Ürün Geliştirme",
+    AI: "Yapay Zekâ",
+    "Founder Stories": "Kurucu Hikâyeleri",
+    "Program News": "Program Haberleri",
+  },
+  minRead: "{count} dk okuma",
+  issue: "Sayı {issue}",
+  page: {
+    metaTitle: "Bülten — The Founder Brief · Fundup Club",
+    metaDescription:
+      "Fundup Club ağından yatırım toplama rehberleri, yapay zekâyla ürün geliştirme kılavuzları ve kurucu hikâyeleri. İki haftada bir perşembe, ücretsiz.",
+    eyebrow: "The Founder Brief · Bülten",
+    heading: "{accent}\nkurucular için\nsaha notları",
+    headingAccent: "İddialı",
+    lead: "Fundup Club ağından yatırım toplama rehberleri, yapay zekâyla ürün geliştirme kılavuzları ve kurucu hikâyeleri, doğrudan gelen kutuna.",
+    perks: ["İki haftada bir perşembe", "5 dakikalık okuma", "Her zaman ücretsiz"],
+    inboxTo: "sana · Sayı {issue}",
+    inboxNew: "Yeni",
+    readThis: "Bu sayıyı oku",
+    featured: "Öne çıkan",
+    by: "Yazan: {author}",
+    readIssue: "Sayıyı oku",
+    archiveEyebrow: "Arşivden",
+    latest: "Son {accent}",
+    latestAccent: "sayılar",
+    filterLabel: "Konuya göre filtrele",
+    allTopics: "Tüm konular",
+    noun: { one: "yazı", other: "yazı" },
+    emptyTopic: "Bu konuda henüz yazı yok.",
+    bandEyebrow: "Hiçbir sayıyı kaçırma",
+    bandHeading: "Kurucularımızın kullandığı rehberler, gelen kutunda.",
+  },
+  article: {
+    metaTitle: "{title} — The Founder Brief",
+    allIssues: "Tüm sayılar",
+    subscribeHeading: "Bu sayıyı beğendin mi?",
+    subscribeLead: "The Founder Brief iki haftada bir perşembe gelen kutunda olsun. Ücretsiz ve 5 dakikalık bir okuma.",
+    more: "{accent} daha fazlası",
+    moreAccent: "Brief’ten",
+  },
+  subscribe: {
+    label: "E-posta adresi",
+    placeholder: "sen@sirketin.com",
+    submit: "Abone ol",
+    pending: "Abone olunuyor…",
+    doneNew: "Listedesin. Bir sonraki sayı {email} adresine gelecek.",
+    doneExisting: "{email} zaten listede.",
+    failed: "Aboneliğini şu an başlatamadık. Lütfen tekrar dene.",
+  },
+  unsubscribe: {
+    metaTitle: "Abonelikten çık — The Founder Brief · Fundup Club",
+    eyebrow: "The Founder Brief",
+    heading: "Bülten aboneliğinden çık",
+    lead: "İki haftada bir perşembe gelen sayıları artık almayacaksın. Başvurunla ya da kayıt olduğun bir etkinlikle ilgili e-postalar gelmeye devam eder.",
+    incomplete: "Bu abonelikten çıkma bağlantısı eksik. Son e-postandaki bağlantıyı yeniden kullan ya da {link}.",
+    incompleteLink: "bülten sayfasına git",
+    done: "Abonelikten çıktın",
+    doneLead: "{email} artık The Founder Brief almayacak.",
+    changedMind: "Fikrini mi değiştirdin? İstediğin zaman {link}.",
+    signUpAgain: "yeniden abone olabilirsin",
+    submit: "Abonelikten çık",
+    pending: "Çıkış yapılıyor…",
+    failed: "Bu bağlantı işe yaramadı.",
+  },
+};
 
 export default newsletter;

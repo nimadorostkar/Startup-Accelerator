@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { formLocale, translateErrors, translateMessage } from "@/i18n/form-messages";
 import {
   createAccount,
   requestPasswordReset,
@@ -18,6 +19,10 @@ import {
   type FieldErrors,
 } from "@/lib/validation";
 
+/* Every form here sends its language in a hidden `lang` field; what the
+   actions answer with (theirs, lib/validation.ts's and the API's words) is
+   passed through translateMessage/translateErrors (i18n/form-messages.ts). */
+
 export type AuthFormState = {
   /** Shown in the banner above the form. */
   message?: string;
@@ -30,6 +35,7 @@ export async function login(
   _prev: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
+  const locale = formLocale(form);
   const email = readString(form, "email");
   const password = readString(form, "password");
   const remember = form.get("remember") === "on";
@@ -40,15 +46,15 @@ export async function login(
     ["email", checkEmail(email)],
     ["password", password ? null : "Enter your password."],
   ]);
-  if (errors) return { errors, values };
+  if (errors) return { errors: translateErrors(locale, errors), values };
 
   // `next`: the page they were on (e.g. a link in an email); checked in lib/auth.ts.
   const result = await signInWithPassword({ email, password, remember }, readString(form, "next"));
   if (result.ok) redirect(result.redirectTo);
 
   return {
-    message: result.message,
-    errors: result.fieldErrors,
+    message: translateMessage(locale, result.message),
+    errors: translateErrors(locale, result.fieldErrors),
     values,
   };
 }
@@ -57,6 +63,7 @@ export async function register(
   _prev: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
+  const locale = formLocale(form);
   const name = readString(form, "name");
   const email = readString(form, "email");
   const password = readString(form, "password");
@@ -72,14 +79,14 @@ export async function register(
       terms ? null : "Please accept the terms to continue.",
     ],
   ]);
-  if (errors) return { errors, values };
+  if (errors) return { errors: translateErrors(locale, errors), values };
 
   const result = await createAccount({ name, email, password });
   if (result.ok) redirect(result.redirectTo);
 
   return {
-    message: result.message,
-    errors: result.fieldErrors,
+    message: translateMessage(locale, result.message),
+    errors: translateErrors(locale, result.fieldErrors),
     values,
   };
 }
@@ -95,26 +102,27 @@ export async function requestReset(
   _prev: ResetFormState,
   form: FormData,
 ): Promise<ResetFormState> {
+  const locale = formLocale(form);
   const email = readString(form, "email");
 
   const errors = collect([["email", checkEmail(email)]]);
-  if (errors) return { errors, values: { email } };
+  if (errors) return { errors: translateErrors(locale, errors), values: { email } };
 
   const result = await requestPasswordReset({ email });
   if (result.ok) return { sent: true, email };
 
   return {
-    message: result.message,
-    errors: result.fieldErrors,
+    message: translateMessage(locale, result.message),
+    errors: translateErrors(locale, result.fieldErrors),
     values: { email },
   };
 }
 
 export async function continueWithGoogle(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
-  const result = await startGoogleOAuth(readString(form, "next"));
+  const result = await startGoogleOAuth(readString(form, "next"), formLocale(form));
   if (result.ok) redirect(result.redirectTo);
 
-  return { message: result.message };
+  return { message: translateMessage(formLocale(form), result.message) };
 }
 
 /** Sets the new password from the emailed link; success signs the user in. */
@@ -122,17 +130,21 @@ export async function chooseNewPassword(
   _prev: AuthFormState,
   form: FormData,
 ): Promise<AuthFormState> {
+  const locale = formLocale(form);
   const token = readString(form, "token");
   const password = readString(form, "password");
 
   const errors = collect([["password", checkNewPassword(password)]]);
-  if (errors) return { errors };
+  if (errors) return { errors: translateErrors(locale, errors) };
   if (!token)
-    return { message: "This reset link is incomplete. Request a new one below." };
+    return { message: translateMessage(locale, "This reset link is incomplete. Request a new one below.") };
 
   const result = await resetPassword({ token, password });
   if (result.ok) redirect(result.redirectTo);
-  return { message: result.message, errors: result.fieldErrors };
+  return {
+    message: translateMessage(locale, result.message),
+    errors: translateErrors(locale, result.fieldErrors),
+  };
 }
 
 export type VerifyState = { ok?: boolean; message?: string };
@@ -146,5 +158,5 @@ export async function confirmEmail(
   const result = await verifyEmail(readString(form, "token"));
   return result.ok
     ? { ok: true }
-    : { ok: false, message: result.message ?? "That link didn't work." };
+    : { ok: false, message: translateMessage(formLocale(form), result.message ?? "That link didn't work.") };
 }

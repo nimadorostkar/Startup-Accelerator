@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, plural } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
 import Countdown from "@/components/events/Countdown";
 import EventTicket, { FormatBadge } from "@/components/events/EventTicket";
 import { EVENT_TYPES, eventDate } from "@/components/events/events";
+import { rich } from "@/i18n/rich";
 import Footer from "@/components/Footer";
 import { ArrowRight, CheckIcon } from "@/components/icons";
 import Reveal from "@/components/motion/Reveal";
@@ -12,27 +15,25 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import FilterList from "@/components/ui/FilterList";
 import { pastEvents, upcomingEvents } from "@/lib/events";
 
-export const metadata: Metadata = {
-  title: "Events — Fundup Club",
-  description:
-    "Demo Days, workshops, office hours and founder meetups, online and in cities around the world. Free to attend.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDictionary()).events.list;
+  return { title: t.metaTitle, description: t.metaDescription };
+}
 
 // Static, refreshed every minute and as soon as the API reports a change
 // (cache tags). The data comes from the API, see lib/api.ts (BUILDING).
 export const revalidate = 60;
 
 export default async function EventsPage() {
+  const [{ events, newsletter }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = events.list;
   const [upcoming, past] = await Promise.all([upcomingEvents(), pastEvents().then((p) => p.slice(0, 3))]);
   const featured = upcoming.find((e) => e.type === "Demo Day") ?? upcoming[0];
   const cities = new Set(
     upcoming.filter((e) => e.format === "In person").map((e) => e.city),
   );
-  const perks = [
-    "Free to attend",
-    "Online and in person",
-    `${cities.size} ${cities.size === 1 ? "city" : "cities"} this season`,
-  ];
+  const perks = [t.perkFree, t.perkFormats, plural(locale, cities.size, t.perkCities)];
+  const featuredDate = featured && eventDate(featured, locale);
 
   return (
     <>
@@ -46,28 +47,24 @@ export default async function EventsPage() {
           />
           <div
             aria-hidden="true"
-            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.22),transparent)]"
+            className="absolute -top-40 -end-[10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.22),transparent)]"
           />
 
           <div className="mx-auto grid max-w-[1720px] items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-6">
             <div>
               <Reveal>
-                <Eyebrow>Events · Online and worldwide</Eyebrow>
+                <Eyebrow>{t.eyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h1 className="mt-5 font-display text-[44px] leading-[0.98] font-extrabold tracking-[-0.03em] text-ink uppercase sm:text-[68px] xl:text-[84px]">
-                  Meet the
-                  <br />
-                  <span className="text-brand-strong">network</span>
-                  <br />
-                  in person
+                  {rich(t.heading, {
+                    accent: <span className="text-brand-strong">{t.headingAccent}</span>,
+                  })}
                 </h1>
               </Reveal>
               <Reveal delay={180}>
                 <p className="lead mt-6 max-w-[520px] sm:text-[17px]">
-                  Demo Days, hands-on workshops, investor office hours and
-                  founder meetups. Come to learn, pitch, or just meet the people
-                  building next to you.
+                  {t.lead}
                 </p>
               </Reveal>
               <Reveal delay={260}>
@@ -77,9 +74,9 @@ export default async function EventsPage() {
                     className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-brand-strong px-7 shadow-[0_16px_38px_-16px_rgba(194,71,10,0.85)] transition-[filter] duration-200 hover:brightness-105"
                   >
                     <span className="font-display text-[12px] font-bold tracking-[0.06em] text-white uppercase">
-                      Browse events
+                      {t.browse}
                     </span>
-                    <ArrowRight className="h-[18px] w-[18px] rotate-90 text-white" />
+                    <ArrowRight className="h-[18px] w-[18px] rotate-90 text-white rtl:-rotate-90" />
                   </a>
                 </div>
                 <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted">
@@ -107,7 +104,7 @@ export default async function EventsPage() {
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 400 400"
-                    className="absolute -top-24 -right-24 -z-10 h-[340px] w-[340px] opacity-70 transition-transform duration-[1.5s] ease-out group-hover:rotate-12"
+                    className="absolute -end-24 -top-24 -z-10 h-[340px] w-[340px] opacity-70 transition-transform duration-[1.5s] ease-out group-hover:rotate-12"
                     fill="none"
                   >
                     {[190, 140, 90].map((r) => (
@@ -134,29 +131,29 @@ export default async function EventsPage() {
                   </svg>
                   <div
                     aria-hidden="true"
-                    className="absolute -bottom-32 -left-24 -z-10 h-[300px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.28),transparent)]"
+                    className="absolute -start-24 -bottom-32 -z-10 h-[300px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.28),transparent)]"
                   />
 
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-brand px-3 py-1.5 text-[12px] leading-none font-bold text-white">
-                      Featured
+                      {t.featured}
                     </span>
                     <span className="rounded-full bg-white/10 px-3 py-1.5 text-[12px] leading-none font-semibold text-white/85">
-                      {featured.type}
+                      {events.types[featured.type] ?? featured.type}
                     </span>
                     <FormatBadge e={featured} dark />
                   </div>
                   <h2 className="mt-6 max-w-[400px] font-display text-[30px] leading-[1.08] font-bold tracking-[-0.02em] sm:text-[38px]">
-                    {featured.title}
+                    <bdi>{featured.title}</bdi>
                   </h2>
                   <p className="mt-3 text-[14px] text-white/70">
-                    {eventDate(featured).long} · {eventDate(featured).time}
+                    {featuredDate && format(events.dateTime, { date: featuredDate.long, time: featuredDate.time })}
                   </p>
                   <div className="mt-7">
-                    <Countdown to={featured.start} />
+                    <Countdown to={featured.start} t={events.countdown} />
                   </div>
                   <span className="mt-7 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand uppercase">
-                    Reserve your spot
+                    {t.reserve}
                     <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </span>
                 </Link>
@@ -173,21 +170,24 @@ export default async function EventsPage() {
         >
           <div className="mx-auto max-w-[1200px] lg:px-6">
             <Reveal>
-              <Eyebrow>Calendar</Eyebrow>
+              <Eyebrow>{t.calendarEyebrow}</Eyebrow>
             </Reveal>
             <Reveal delay={90}>
               <h2 id="upcoming-title" className="title-section mt-4">
-                Upcoming <span className="text-brand-strong">events</span>
+                {rich(t.upcoming, {
+                  accent: <span className="text-brand-strong">{t.upcomingAccent}</span>,
+                })}
               </h2>
             </Reveal>
             {upcoming.length ? (
               <FilterList
-                label="Filter by event type"
-                allLabel="All events"
-                noun={["event", "events"]}
-                emptyText="Nothing of this type on the calendar right now. Check back soon."
+                label={t.filterLabel}
+                allLabel={t.allEvents}
+                noun={[t.noun.one, t.noun.other]}
+                emptyText={t.emptyType}
                 listClassName="mt-10 grid gap-4"
                 categories={EVENT_TYPES}
+                categoryLabels={events.types}
                 items={upcoming.map((e) => ({
                   key: e.slug,
                   category: e.type,
@@ -196,7 +196,7 @@ export default async function EventsPage() {
               />
             ) : (
               <p className="lead mt-8">
-                New events are being scheduled. Subscribe below to hear first.
+                {t.empty}
               </p>
             )}
           </div>
@@ -213,11 +213,11 @@ export default async function EventsPage() {
                 id="past-title"
                 className="font-display text-[26px] font-bold tracking-[-0.015em] text-ink sm:text-[30px]"
               >
-                Recently
+                {t.recently}
               </h2>
               <ul className="mt-8 grid gap-4 sm:grid-cols-3">
                 {past.map((e) => {
-                  const d = eventDate(e);
+                  const d = eventDate(e, locale);
                   return (
                     <li key={e.slug}>
                       <Link
@@ -226,17 +226,18 @@ export default async function EventsPage() {
                       >
                         <span className="flex items-center justify-between text-[12px] text-muted">
                           <span className="font-semibold tracking-[0.08em] uppercase">
-                            {d.month} {d.day}
+                            {d.monthDay}
                           </span>
                           <span className="rounded-full bg-cream px-2.5 py-1 font-semibold">
-                            Ended
+                            {events.ended}
                           </span>
                         </span>
                         <span className="mt-3 block text-[17px] leading-snug font-bold text-ink">
-                          {e.title}
+                          <bdi>{e.title}</bdi>
                         </span>
                         <span className="mt-2 block text-[13px] text-muted">
-                          {e.type} · {e.format === "Online" ? "Online" : e.city}
+                          {events.types[e.type] ?? e.type} ·{" "}
+                          {e.format === "Online" ? events.online : <bdi>{e.city}</bdi>}
                         </span>
                       </Link>
                     </li>
@@ -258,31 +259,31 @@ export default async function EventsPage() {
           />
           <div
             aria-hidden="true"
-            className="cta-glow absolute -bottom-40 -left-32 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.5),transparent)] [--glow-dir:-1]"
+            className="cta-glow absolute -start-32 -bottom-40 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.5),transparent)] [--glow-dir:-1] rtl:[--glow-dir:1]"
           />
           <div className="mx-auto flex max-w-[1720px] flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:px-6">
             <div className="max-w-[560px]">
               <Reveal>
-                <Eyebrow tone="dark">Don&rsquo;t miss the next one</Eyebrow>
+                <Eyebrow tone="dark">{t.subscribeEyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h2
                   id="events-subscribe"
                   className="mt-5 font-display text-[36px] leading-[1.05] font-bold tracking-[-0.025em] text-white sm:text-[48px]"
                 >
-                  New events land in the newsletter first.
+                  {t.subscribeHeading}
                 </h2>
               </Reveal>
             </div>
             <Reveal delay={180} className="w-full lg:max-w-[520px]">
-              <SubscribeForm source="events" tone="dark" />
+              <SubscribeForm source="events" tone="dark" t={newsletter.subscribe} />
               <p className="mt-4 px-5 text-[13px] text-white/60">
-                The Founder Brief, every other Thursday.{" "}
+                {t.subscribeNote}{" "}
                 <Link
                   href="/newsletter"
                   className="text-brand underline-offset-4 hover:underline"
                 >
-                  See past issues
+                  {t.pastIssues}
                 </Link>
               </p>
             </Reveal>

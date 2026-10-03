@@ -24,16 +24,17 @@ const LOGOS = [
 ];
 
 /**
- * Endless right-to-left logo strip. The track holds two identical sets and
+ * Endless logo strip, moving toward the start of the line (globals.css
+ * turns it around on right-to-left pages). The track holds two identical sets and
  * slides by exactly one set width (-50%), so the loop is seamless. Each set
  * repeats the logos twice so it is always wider than the visible window.
  */
-export default function LogoMarquee() {
+export default function LogoMarquee({ label }: { label: string }) {
   const set = [...LOGOS, ...LOGOS];
   return (
     <div
       role="region"
-      aria-label="Alumni companies"
+      aria-label={label}
       className="marquee relative overflow-hidden py-1 [mask-image:linear-gradient(90deg,transparent,#000_14%,#000_86%,transparent)]"
     >
       <div className="marquee-track flex w-max">
@@ -41,7 +42,7 @@ export default function LogoMarquee() {
           <ul
             key={copy}
             aria-hidden={copy === 1 || undefined}
-            className="flex shrink-0 items-center gap-11 pr-11"
+            className="flex shrink-0 items-center gap-11 pe-11"
           >
             {set.map((logo, i) => (
               <li

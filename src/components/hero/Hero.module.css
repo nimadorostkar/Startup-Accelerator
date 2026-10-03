@@ -207,7 +207,7 @@
   box-shadow: 0 2px 6px rgba(20, 26, 34, 0.12);
 }
 .faces img + img {
-  margin-left: -10px;
+  margin-inline-start: -10px;
 }
 
 /* ----------------------------------------------------------- showcase */
@@ -355,6 +355,13 @@
   animation-duration: 52s;
   animation-direction: reverse;
 }
+/* A right-to-left row starts at the right edge, so it runs the other way
+   (scrolling it left would open a gap at its start) */
+@media (prefers-reduced-motion: no-preference) {
+  :global([dir="rtl"]) .track {
+    animation-name: marqueeRtl;
+  }
+}
 .marquee:hover .track,
 .marquee:focus-within .track {
   animation-play-state: paused;
@@ -367,7 +374,7 @@
   align-items: center;
   gap: 12px;
   width: 224px;
-  margin-right: 10px;
+  margin-inline-end: 10px;
   padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.13);
@@ -516,8 +523,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-left: 22px;
-  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  padding-inline-start: 22px;
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.18);
 }
 .edition svg {
   width: 22px;
@@ -588,7 +595,7 @@
 .pitchPhoto {
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   z-index: -1;
   width: 58%;
   height: 100%;
@@ -651,6 +658,67 @@
   }
 }
 
+/* ======================================================= right-to-left */
+
+/* Persian: Archivo has no Arabic-script letters, so the hero's display face
+   becomes Vazirmatn, like the rest of the site (globals.css). */
+:global(html[lang="fa"]) .hero {
+  --display: var(--font-vazirmatn), system-ui, sans-serif;
+}
+/* The corner glows follow the copy to the other side */
+/* The design's one-line headline is sized for the English words; a
+   translation that runs longer wraps instead of sliding under the panel */
+:global(html:not([lang="en"])) .title {
+  white-space: normal;
+}
+:global(html:not([lang="en"])) .bandTitle {
+  white-space: normal;
+}
+:global([dir="rtl"]) .intro {
+  background:
+    radial-gradient(
+      ellipse 60% 55% at 100% 0%,
+      color-mix(in srgb, var(--brand) 9%, transparent),
+      transparent 70%
+    ),
+    #fff;
+}
+:global([dir="rtl"]) .introGlow {
+  mask-image: radial-gradient(ellipse 70% 80% at 80% 15%, #000, transparent 75%);
+}
+:global([dir="rtl"]) .panel {
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 0% 0%,
+      color-mix(in srgb, var(--brand) 20%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(255, 255, 255, 0.05), transparent 70%),
+    #141210;
+}
+:global([dir="rtl"]) .bandGlow {
+  background:
+    radial-gradient(
+      ellipse 45% 70% at 25% 100%,
+      color-mix(in srgb, var(--brand) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 35% 60% at 100% 0%, rgba(255, 255, 255, 0.05), transparent 70%);
+}
+/* The startup's tagline comes from the API as written (often English): it
+   takes its direction from its own text, so its punctuation and the "…" of
+   the clamp land on the right side, and keeps to the card's right edge */
+.pitchBlurb {
+  unicode-bidi: plaintext;
+}
+:global([dir="rtl"]) .pitchBlurb {
+  text-align: right;
+}
+/* The stage photo sits at the card's end and fades in from its start */
+:global([dir="rtl"]) .pitchPhoto {
+  mask-image: linear-gradient(270deg, transparent, #000 42%);
+}
+
 /* ============================================================== motion */
 
 .rise {
@@ -682,6 +750,11 @@
     transform: translateX(-50%);
   }
 }
+@keyframes marqueeRtl {
+  to {
+    transform: translateX(50%);
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .rise,
@@ -707,8 +780,8 @@
     flex: 1 1 100%;
   }
   .edition {
-    padding-left: 0;
-    border-left: 0;
+    padding-inline-start: 0;
+    border-inline-start: 0;
   }
   .card {
     width: 212px;
@@ -794,7 +867,7 @@
     height: max(28px, calc(36 * var(--u)));
   }
   .faces img + img {
-    margin-left: calc(-10 * var(--u));
+    margin-inline-start: calc(-10 * var(--u));
   }
 
   .panel {
@@ -832,7 +905,7 @@
   }
   .card {
     width: max(212px, calc(226 * var(--u)));
-    margin-right: calc(10 * var(--u));
+    margin-inline-end: calc(10 * var(--u));
     gap: calc(12 * var(--u));
     padding: max(9px, calc(10 * var(--u))) max(11px, calc(12 * var(--u)));
   }
@@ -880,7 +953,7 @@
   }
   .edition {
     gap: calc(12 * var(--u));
-    padding-left: calc(22 * var(--u));
+    padding-inline-start: calc(22 * var(--u));
   }
   .edition svg {
     width: calc(22 * var(--u));

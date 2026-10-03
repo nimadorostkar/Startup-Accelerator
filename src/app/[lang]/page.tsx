@@ -17,10 +17,11 @@ import UnicornCta from "@/components/UnicornCta";
 export const revalidate = 60;
 
 /* Display face of the hero (hero/Hero.module.css). Loaded here rather than in
-   the root layout so other routes don't preload it. */
+   the root layout so other routes don't preload it. latin-ext carries Turkish
+   letters (ş, ğ, İ, ı); Persian pages set the hero in Vazirmatn instead. */
 const archivo = Archivo({
   variable: "--font-archivo",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 

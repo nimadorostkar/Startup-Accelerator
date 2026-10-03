@@ -33,6 +33,7 @@ flowchart LR
 | [backend/apps/content/](../backend/apps/content/) | Events and registrations, newsletter issues and subscribers, contact messages; `seed_content` loads the launch content |
 | [backend/apps/core/](../backend/apps/core/) | Error format, rate limits, client IP, request ids, JSON logs, health checks, email queue, page-refresh hook |
 | [src/lib/api.ts](../src/lib/api.ts) | The website's only door to the API |
+| [src/proxy.ts](../src/proxy.ts), [src/i18n/](../src/i18n/) | Every request's language (English at the bare paths, `/tr`, `/fa`), and the sign-in shortcut for the dashboard and review panel. The API stays English; the website translates the messages it shows ([form-messages.ts](../src/i18n/form-messages.ts)) |
 | [src/lib/auth.ts](../src/lib/auth.ts) | Sign-in, sign-up, sessions, password reset, email verification, Google sign-in |
 | [src/lib/application/dal.ts](../src/lib/application/dal.ts), [review.ts](../src/lib/application/review.ts), [public.ts](../src/lib/application/public.ts) | Founder, reviewer and public reads |
 | [src/lib/events.ts](../src/lib/events.ts), [newsletter.ts](../src/lib/newsletter.ts), [contact.ts](../src/lib/contact.ts) | Events, the newsletter and the contact form |
@@ -222,7 +223,7 @@ The website reads `BACKEND_URL` (where the API is; `http://backend:8000` in Dock
 
 ## Tests
 
-`cd backend && pytest` runs 248 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections, and `npm run test:e2e` runs 69 end-to-end tests against a running stack: every endpoint over HTTP, and the website in a browser. Details: [testing.md](testing.md). The list that was checked by hand before the backend existed is now automated:
+`cd backend && pytest` runs 248 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections, and `npm run test:e2e` runs 73 end-to-end tests against a running stack: every endpoint over HTTP, and the website in a browser. Details: [testing.md](testing.md). The list that was checked by hand before the backend existed is now automated:
 
 - [x] A founder can't read or change another founder's application.
 - [x] No founder payload contains scorecards, notes, assignee or `review`.

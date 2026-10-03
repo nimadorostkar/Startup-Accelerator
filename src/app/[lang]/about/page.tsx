@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { formatNumber } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
 import Footer from "@/components/Footer";
 import { ArrowRight } from "@/components/icons";
-import { STAGES } from "@/components/Journey";
+import { stagesIn } from "@/components/Journey";
 import {
   ChartIcon,
   TargetIcon,
@@ -15,62 +17,46 @@ import PageHeader from "@/components/PageHeader";
 import Eyebrow from "@/components/ui/Eyebrow";
 import UnicornCta from "@/components/UnicornCta";
 
-export const metadata: Metadata = {
-  title: "About — Fundup Club",
-  description:
-    "Fundup Club brings together top investors, founders and decision makers, and runs an accelerator for ambitious founders from 65+ markets.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { about } = await getDictionary();
+  return { title: about.meta.title, description: about.meta.description };
+}
 
-/* PLACEHOLDER values, same as the landing page — replace with real numbers before launch. */
+/* PLACEHOLDER values, same as the landing page — replace with real numbers before launch.
+   The capital figure is written out in the dictionary; the others are formatted here. */
 const NUMBERS = [
-  { value: "$420B+", label: "Capital represented" },
-  { value: "180+", label: "Investment firms" },
-  { value: "65+", label: "Markets" },
-  { value: "1,200+", label: "Startups built" },
-  { value: "3,500+", label: "Mentors & investors" },
-  { value: "120+", label: "Company exits" },
-];
+  { label: "capital", value: null },
+  { label: "firms", value: 180 },
+  { label: "markets", value: 65 },
+  { label: "startups", value: 1200 },
+  { label: "mentors", value: 3500 },
+  { label: "exits", value: 120 },
+] as const;
 
 const VALUES = [
-  {
-    Icon: TargetIcon,
-    title: "Founders first",
-    body: "Mentorship, resources and funding go to the people building. Every part of the program is judged by whether it helps a founder ship.",
-  },
-  {
-    Icon: UsersIcon,
-    title: "Global by default",
-    body: "Our founders come from 65+ markets, and 30% of them from emerging markets. Great companies start everywhere.",
-  },
-  {
-    Icon: RocketIcon,
-    title: "Structure that ships",
-    body: "Weekly deadlines turn plans into a shipped product, a deck and a data room, well before Demo Day.",
-  },
-  {
-    Icon: ChartIcon,
-    title: "Access to capital",
-    body: "A network of 180+ investment firms, representing $420B+, meets our founders when they are ready to raise.",
-  },
-];
+  { Icon: TargetIcon, key: "founders" },
+  { Icon: UsersIcon, key: "global" },
+  { Icon: RocketIcon, key: "structure" },
+  { Icon: ChartIcon, key: "capital" },
+] as const;
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [{ about: t, landing }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const stages = stagesIn(landing);
   return (
     <>
       <Navbar />
       <main id="main">
         <PageHeader
-          eyebrow="About Fundup Club"
+          eyebrow={t.header.eyebrow}
           title={
             <>
-              Where ideas <span className="text-brand-strong">meet capital</span>
+              {t.header.title}{" "}
+              <span className="text-brand-strong">{t.header.titleAccent}</span>
             </>
           }
         >
-          Fundup Club brings together the world&rsquo;s top investors, founders
-          and decision makers. Our accelerator helps ambitious founders validate
-          ideas, ship products and raise, from first idea to Demo Day and
-          beyond.
+          {t.header.lead}
         </PageHeader>
 
         {/* Mission + numbers */}
@@ -81,26 +67,17 @@ export default function AboutPage() {
           <div className="mx-auto grid max-w-[1720px] gap-12 lg:grid-cols-2 lg:gap-20 lg:px-6">
             <div>
               <Reveal>
-                <Eyebrow>Our mission</Eyebrow>
+                <Eyebrow>{t.mission.eyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h2 id="mission-title" className="title-section mt-4">
-                  Back ambitious founders,{" "}
-                  <span className="text-brand-strong">wherever they start</span>
+                  {t.mission.title}{" "}
+                  <span className="text-brand-strong">{t.mission.titleAccent}</span>
                 </h2>
               </Reveal>
               <Reveal delay={180}>
-                <p className="lead mt-6 max-w-[560px]">
-                  We&rsquo;re building the next generation of global startups.
-                  Founders join with an idea and leave with a product, real
-                  users and a room full of investors who have already seen their
-                  numbers.
-                </p>
-                <p className="lead mt-4 max-w-[560px]">
-                  AI rewrote the rules of building a company. You bring the
-                  vision, and we bring the mentors, the structure and the
-                  capital network to make it real.
-                </p>
+                <p className="lead mt-6 max-w-[560px]">{t.mission.body1}</p>
+                <p className="lead mt-4 max-w-[560px]">{t.mission.body2}</p>
               </Reveal>
             </div>
 
@@ -112,10 +89,12 @@ export default function AboutPage() {
                     className="flex flex-col-reverse justify-end bg-white px-5 py-7 sm:px-7 sm:py-9"
                   >
                     <dt className="mt-3 font-display text-[11px] font-semibold tracking-[0.14em] text-muted uppercase">
-                      {n.label}
+                      {t.numbers[n.label]}
                     </dt>
                     <dd className="font-display text-[28px] leading-none font-extrabold tracking-[-0.01em] text-ink sm:text-[34px]">
-                      {n.value}
+                      {n.value === null
+                        ? t.numbers.capitalValue
+                        : `${formatNumber(locale, n.value)}+`}
                     </dd>
                   </div>
                 ))}
@@ -131,18 +110,19 @@ export default function AboutPage() {
         >
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <Reveal>
-              <Eyebrow>What we believe</Eyebrow>
+              <Eyebrow>{t.values.eyebrow}</Eyebrow>
             </Reveal>
             <Reveal delay={90}>
               <h2 id="values-title" className="title-section mt-4">
-                How we <span className="text-brand-strong">work</span>
+                {t.values.title}{" "}
+                <span className="text-brand-strong">{t.values.titleAccent}</span>
               </h2>
             </Reveal>
             <ul className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {VALUES.map(({ Icon, title, body }, i) => (
+              {VALUES.map(({ Icon, key }, i) => (
                 <Reveal
                   as="li"
-                  key={title}
+                  key={key}
                   delay={i * 80}
                   className="card p-6 sm:p-7"
                 >
@@ -150,10 +130,10 @@ export default function AboutPage() {
                     <Icon className="h-5 w-5 text-brand-strong" />
                   </span>
                   <h3 className="mt-5 text-[18px] font-bold text-ink">
-                    {title}
+                    {t.values[key].title}
                   </h3>
                   <p className="mt-2.5 text-[14px] leading-[1.65] text-muted">
-                    {body}
+                    {t.values[key].body}
                   </p>
                 </Reveal>
               ))}
@@ -170,12 +150,12 @@ export default function AboutPage() {
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <Reveal>
-                  <Eyebrow>The program</Eyebrow>
+                  <Eyebrow>{t.program.eyebrow}</Eyebrow>
                 </Reveal>
                 <Reveal delay={90}>
                   <h2 id="journey-title" className="title-section mt-4">
-                    Six stages,{" "}
-                    <span className="text-brand-strong">one journey</span>
+                    {t.program.title}{" "}
+                    <span className="text-brand-strong">{t.program.titleAccent}</span>
                   </h2>
                 </Reveal>
               </div>
@@ -184,7 +164,7 @@ export default function AboutPage() {
                   href="/#program"
                   className="group inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 hover:text-brand-strong"
                 >
-                  See the full program
+                  {t.program.seeAll}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </Reveal>
@@ -192,10 +172,10 @@ export default function AboutPage() {
 
             <Reveal delay={120}>
               <ol className="mt-10 grid gap-px overflow-hidden rounded-[18px] border border-line-soft bg-line-soft sm:grid-cols-2 lg:grid-cols-3">
-                {STAGES.map(({ id, title, body, Icon }, i) => (
+                {stages.map(({ id, title, body, Icon }, i) => (
                   <li key={id} className="flex gap-4 bg-white p-6 sm:p-7">
                     <span className="font-display text-[13px] font-bold text-brand-strong tabular-nums">
-                      {String(i + 1).padStart(2, "0")}
+                      {formatNumber(locale, i + 1, { minimumIntegerDigits: 2 })}
                     </span>
                     <div>
                       <h3 className="flex items-center gap-2.5 text-[17px] font-bold text-ink">

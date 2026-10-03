@@ -1,23 +1,45 @@
-import Link from "next/link";
-import {
-  compact,
-  formatDay,
-  formatMonth,
-  type StartupCardData,
-} from "@/lib/application/directory";
+import type { Locale } from "@/i18n/config";
+import { LocalLink as Link } from "@/i18n/client";
+import { format } from "@/i18n/format";
+import type { Messages } from "@/i18n/messages";
+import type { StartupCardData } from "@/lib/application/directory";
 import { ArrowRight } from "../icons";
+import {
+  compactIn,
+  dayIn,
+  monthIn,
+  optionLabel,
+  stageName,
+} from "./i18n";
 import Monogram, { FounderDot } from "./Monogram";
 import PublicStatusBadge from "./PublicStatusBadge";
 
-export default function StartupCard({ s }: { s: StartupCardData }) {
+export type StartupCardText = {
+  card: Messages["startups"]["card"];
+  options: Messages["startups"]["options"];
+};
+
+/* Used by the directory (client) and the startup page (server): the language
+   and strings come in as props. */
+export default function StartupCard({
+  s,
+  t,
+  locale,
+}: {
+  s: StartupCardData;
+  t: StartupCardText;
+  locale: Locale;
+}) {
+  const founded = monthIn(locale, s.foundedOn);
   const facts = [
-    s.stageLabel !== "Not set" && s.stageLabel,
+    stageName(t.options, s.stage),
     s.country,
-    formatMonth(s.foundedOn) && `Founded ${formatMonth(s.foundedOn)}`,
+    founded && format(t.card.founded, { date: founded }),
   ].filter(Boolean) as string[];
   const traction = [
-    s.users !== null && `${compact(s.users)} users`,
-    s.customers !== null && `${compact(s.customers)} customers`,
+    s.users !== null && format(t.card.users, { count: compactIn(locale, s.users) }),
+    s.customers !== null &&
+      format(t.card.customers, { count: compactIn(locale, s.customers) }),
   ].filter(Boolean) as string[];
 
   return (
@@ -37,11 +59,14 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
                 {s.name}
               </Link>
             </h3>
-            <PublicStatusBadge status={s.status} />
+            <PublicStatusBadge
+              status={s.status}
+              label={t.options.statuses[s.status]}
+            />
           </div>
           {s.industry && (
             <p className="mt-1 text-[12px] font-semibold tracking-[0.06em] text-brand-strong uppercase">
-              {s.industry}
+              {optionLabel(t.options.industries, s.industry)}
             </p>
           )}
         </div>
@@ -51,7 +76,7 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
         dir="auto"
         className="mt-4 line-clamp-2 text-[15px] leading-[1.55] wrap-anywhere text-ink-soft/85"
       >
-        {s.tagline || "One-line pitch coming soon."}
+        {s.tagline || t.card.pitchSoon}
       </p>
 
       {facts.length > 0 && (
@@ -91,19 +116,19 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
                 key={i}
                 name={f}
                 photo={f === s.founder.name ? s.founder.photo : undefined}
-                className={`h-7 w-7 text-[10px] ${i > 0 ? "-ml-2" : ""}`}
+                className={`h-7 w-7 text-[10px] ${i > 0 ? "-ms-2" : ""}`}
               />
             ))}
             <span
               dir="auto"
-              className="ml-2.5 truncate text-[13px] font-medium text-ink"
+              className="ms-2.5 truncate text-[13px] font-medium text-ink"
             >
-              {s.founders.join(", ") || "Founders to be announced"}
+              {s.founders.join(", ") || t.card.foundersSoon}
             </span>
           </div>
           {s.appliedAt && (
             <p className="mt-1.5 text-[12px] text-muted">
-              Applied {formatDay(s.appliedAt)}
+              {format(t.card.applied, { date: dayIn(locale, s.appliedAt) })}
             </p>
           )}
         </div>

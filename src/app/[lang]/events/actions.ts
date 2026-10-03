@@ -1,6 +1,8 @@
 "use server";
 
 import { unstable_rethrow } from "next/navigation";
+import { formLocale, translateErrors, translateMessage } from "@/i18n/form-messages";
+import { MESSAGES } from "@/i18n/messages";
 import { addRegistration } from "@/lib/events";
 import {
   checkEmail,
@@ -24,6 +26,9 @@ export async function registerForEvent(
   _prev: RegisterState,
   form: FormData,
 ): Promise<RegisterState> {
+  // Shown in the form's language (its hidden `lang` field).
+  const locale = formLocale(form);
+  const t = MESSAGES[locale].events.register;
   const slug = readString(form, "event");
   const name = readString(form, "name");
   const email = readString(form, "email");
@@ -41,17 +46,17 @@ export async function registerForEvent(
     ["email", checkEmail(email)],
     ["company", maxLength(company, 120)],
   ]);
-  if (errors) return { errors, values };
+  if (errors) return { errors: translateErrors(locale, errors), values };
 
   try {
     const result = await addRegistration({ event: slug, name, email, company });
     if (!result.ok && result.closed)
-      return { closed: result.message ?? "Registration for this event has closed." };
+      return { closed: translateMessage(locale, result.message) ?? t.closedFallback };
     if (!result.ok)
       return {
         // A refusal without a message of its own (an HTML 400 from a proxy) still says something
-        message: result.errors ? undefined : (result.message ?? "We couldn't send that just now. Please try again."),
-        errors: result.errors,
+        message: result.errors ? undefined : (translateMessage(locale, result.message) ?? t.failed),
+        errors: translateErrors(locale, result.errors),
         values,
       };
     return { done: { name, email, existing: result.existing } };
@@ -59,7 +64,7 @@ export async function registerForEvent(
     unstable_rethrow(err);
     console.error(err);
     return {
-      message: "We couldn't save your registration just now. Please try again.",
+      message: t.saveFailed,
       values,
     };
   }

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LocalLink as Link } from "@/i18n/client";
+import { format, formatNumber } from "@/i18n/format";
+import { getDictionary, getLocale } from "@/i18n/server";
+import { rich } from "@/i18n/rich";
 import Footer from "@/components/Footer";
 import { ArrowRight, CheckIcon } from "@/components/icons";
 import { BrandMark } from "@/components/Logo";
@@ -13,19 +16,18 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import FilterList from "@/components/ui/FilterList";
 import { listPosts } from "@/lib/newsletter";
 
-export const metadata: Metadata = {
-  title: "Newsletter — The Founder Brief · Fundup Club",
-  description:
-    "Fundraising playbooks, AI build guides and founder stories from the Fundup Club network. Every other Thursday, free.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDictionary()).newsletter.page;
+  return { title: t.metaTitle, description: t.metaDescription };
+}
 
 // Static, refreshed every minute and as soon as the API reports a change
 // (cache tags). The data comes from the API, see lib/api.ts (BUILDING).
 export const revalidate = 60;
 
-const PERKS = ["Every other Thursday", "A 5-minute read", "Free, always"];
-
 export default async function NewsletterPage() {
+  const [{ newsletter }, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = newsletter.page;
   const posts = await listPosts();
   const featured = posts[0]; // newest first; undefined until the first issue is published
 
@@ -41,36 +43,34 @@ export default async function NewsletterPage() {
           />
           <div
             aria-hidden="true"
-            className="absolute -top-40 right-[-10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.22),transparent)]"
+            className="absolute -top-40 -end-[10%] -z-10 h-[520px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.22),transparent)]"
           />
 
           <div className="mx-auto grid max-w-[1720px] items-center gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:px-6">
             <div>
               <Reveal>
-                <Eyebrow>The Founder Brief · Newsletter</Eyebrow>
+                <Eyebrow>{t.eyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h1 className="mt-5 font-display text-[44px] leading-[0.98] font-extrabold tracking-[-0.03em] text-ink uppercase sm:text-[68px] xl:text-[84px]">
-                  Build notes
-                  <br />
-                  for <span className="text-brand-strong">ambitious</span>
-                  <br />
-                  founders
+                  {rich(t.heading, {
+                    accent: <span className="text-brand-strong">{t.headingAccent}</span>,
+                  })}
                 </h1>
               </Reveal>
               <Reveal delay={180}>
                 <p className="lead mt-6 max-w-[520px] sm:text-[17px]">
-                  Fundraising playbooks, AI build guides and founder stories
-                  from the Fundup Club network, straight to your inbox.
+                  {t.lead}
                 </p>
               </Reveal>
               <Reveal delay={260}>
                 <SubscribeForm
                   source="newsletter-hero"
                   className="mt-8 max-w-[520px]"
+                  t={newsletter.subscribe}
                 />
                 <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted">
-                  {PERKS.map((p) => (
+                  {t.perks.map((p) => (
                     <li key={p} className="flex items-center gap-1.5">
                       <CheckIcon className="h-3.5 w-3.5 text-brand-strong" />
                       {p}
@@ -106,15 +106,15 @@ export default async function NewsletterPage() {
                       The Founder Brief
                     </span>
                     <span className="block truncate text-[12px] text-muted">
-                      to you · Issue Nº{featured.issue}
+                      {format(t.inboxTo, { issue: formatNumber(locale, featured.issue, { useGrouping: false }) })}
                     </span>
                   </span>
                   <span className="rounded-full bg-chip px-2.5 py-1 text-[11px] font-semibold text-brand-strong ring-1 ring-chip-line">
-                    New
+                    {t.inboxNew}
                   </span>
                 </div>
                 <p className="mt-4 text-[17px] leading-snug font-bold text-ink">
-                  {featured.title}
+                  <bdi>{featured.title}</bdi>
                 </p>
                 <div className="mt-4 overflow-hidden rounded-[14px]">
                   <Cover
@@ -123,11 +123,11 @@ export default async function NewsletterPage() {
                     className="aspect-[16/9] w-full transition-transform duration-700 group-hover:scale-[1.03]"
                   />
                 </div>
-                <p className="mt-4 line-clamp-2 text-[13px] leading-[1.6] text-muted">
+                <p dir="auto" className="mt-4 line-clamp-2 text-[13px] leading-[1.6] text-muted">
                   {featured.excerpt}
                 </p>
                 <span className="mt-4 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-brand-strong uppercase">
-                  Read this issue
+                  {t.readThis}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </span>
               </Link>
@@ -155,12 +155,12 @@ export default async function NewsletterPage() {
                 <div className="flex flex-col justify-center p-6 sm:p-10 xl:p-14">
                   <div className="flex flex-wrap items-center gap-3 text-[12px] text-muted">
                     <span className="rounded-full bg-ink px-3 py-1.5 font-semibold text-white">
-                      Featured
+                      {t.featured}
                     </span>
-                    <span className="chip">{featured.category}</span>
-                    <span>{formatDate(featured.date)}</span>
+                    <span className="chip">{newsletter.categories[featured.category] ?? featured.category}</span>
+                    <span>{formatDate(featured.date, locale)}</span>
                     <span aria-hidden="true">·</span>
-                    <span>{featured.minutes} min read</span>
+                    <span>{format(newsletter.minRead, { count: formatNumber(locale, featured.minutes) })}</span>
                   </div>
                   <h2
                     id="featured-title"
@@ -168,17 +168,18 @@ export default async function NewsletterPage() {
                   >
                     <Link
                       href={`/newsletter/${featured.slug}`}
+                      dir="auto"
                       className="after:absolute after:inset-0 after:content-['']"
                     >
                       {featured.title}
                     </Link>
                   </h2>
-                  <p className="lead mt-4">{featured.excerpt}</p>
+                  <p dir="auto" className="lead mt-4">{featured.excerpt}</p>
                   <p className="mt-6 text-[13px] text-muted">
-                    By {featured.author}
+                    {rich(t.by, { author: <bdi>{featured.author}</bdi> })}
                   </p>
                   <span className="mt-6 inline-flex items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 group-hover:text-brand-strong">
-                    Read the issue
+                    {t.readIssue}
                     <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </span>
                 </div>
@@ -196,20 +197,23 @@ export default async function NewsletterPage() {
         >
           <div className="mx-auto max-w-[1720px] lg:px-6">
             <Reveal>
-              <Eyebrow>From the archive</Eyebrow>
+              <Eyebrow>{t.archiveEyebrow}</Eyebrow>
             </Reveal>
             <Reveal delay={90}>
               <h2 id="latest-title" className="title-section mt-4">
-                Latest <span className="text-brand-strong">issues</span>
+                {rich(t.latest, {
+                  accent: <span className="text-brand-strong">{t.latestAccent}</span>,
+                })}
               </h2>
             </Reveal>
             <FilterList
-              label="Filter by topic"
-              allLabel="All topics"
-              noun={["article", "articles"]}
-              emptyText="No articles in this topic yet."
+              label={t.filterLabel}
+              allLabel={t.allTopics}
+              noun={[t.noun.one, t.noun.other]}
+              emptyText={t.emptyTopic}
               listClassName="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
               categories={CATEGORIES}
+              categoryLabels={newsletter.categories}
               hideOnAll={featured?.slug}
               items={posts.map((post) => ({
                 key: post.slug,
@@ -231,26 +235,26 @@ export default async function NewsletterPage() {
           />
           <div
             aria-hidden="true"
-            className="cta-glow absolute -top-40 -right-24 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)]"
+            className="cta-glow absolute -end-24 -top-40 -z-10 h-[340px] w-[720px] rounded-full bg-[radial-gradient(closest-side,rgba(239,111,35,0.35),transparent)]"
           />
           <div className="mx-auto flex max-w-[1720px] flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:px-6">
             <div className="max-w-[560px]">
               <Reveal>
-                <Eyebrow tone="dark">Never miss an issue</Eyebrow>
+                <Eyebrow tone="dark">{t.bandEyebrow}</Eyebrow>
               </Reveal>
               <Reveal delay={90}>
                 <h2
                   id="subscribe-title"
                   className="mt-5 font-display text-[36px] leading-[1.05] font-bold tracking-[-0.025em] text-white sm:text-[48px]"
                 >
-                  The playbooks our founders use, in your inbox.
+                  {t.bandHeading}
                 </h2>
               </Reveal>
             </div>
             <Reveal delay={180} className="w-full lg:max-w-[520px]">
-              <SubscribeForm source="newsletter-band" tone="dark" />
+              <SubscribeForm source="newsletter-band" tone="dark" t={newsletter.subscribe} />
               <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-white/65">
-                {PERKS.map((p) => (
+                {t.perks.map((p) => (
                   <li key={p} className="flex items-center gap-1.5">
                     <CheckIcon className="h-3.5 w-3.5 text-brand" />
                     {p}

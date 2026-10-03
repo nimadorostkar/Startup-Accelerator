@@ -44,9 +44,9 @@ export async function addSubscriber(
   return { ok: false, message: result.error.errors?.email ?? result.error.message };
 }
 
-export async function unsubscribe(token: string): Promise<{ ok: true; email: string } | { ok: false; message: string }> {
+/** A refusal comes back with the API's message, if it gave one (the action
+    falls back to "That link didn't work." in the visitor's language). */
+export async function unsubscribe(token: string): Promise<{ ok: true; email: string } | { ok: false; message?: string }> {
   const result = await api<{ email: string }>("/newsletter/unsubscribe", { method: "POST", body: { token } });
-  return result.ok
-    ? { ok: true, email: result.data.email }
-    : { ok: false, message: result.error.message ?? "That link didn't work." };
+  return result.ok ? { ok: true, email: result.data.email } : { ok: false, message: result.error.message };
 }

@@ -1,15 +1,26 @@
 import type { CSSProperties } from "react";
-import Link from "next/link";
+import type { Locale } from "@/i18n/config";
+import { LocalLink as Link } from "@/i18n/client";
+import { formatNumber } from "@/i18n/format";
+import type { Messages } from "@/i18n/messages";
 import { ArrowRight } from "../icons";
-import { STAGES } from "../Journey";
+import type { stagesIn } from "../Journey";
 import Reveal from "../motion/Reveal";
 
-const N = STAGES.length;
-const HERE = STAGES.findIndex((s) => s.id === "demo-day");
+type Stages = ReturnType<typeof stagesIn>;
+
+/* Always the program's six stages; Demo Day is the fifth. */
+const N = 6;
+const HERE = 4;
+
+type T = Messages["demoDay"]["roadmap"];
 
 /* Road geometry in a 600×200 box that stretches to the container: node i sits
    at x = 50 + 100i, alternating high (even) and low (odd). Cards sit above the
-   high nodes and below the low ones. */
+   high nodes and below the low ones.
+   Right to left, the road runs the other way, like the reading order: the
+   card grids mirror by themselves, the road is drawn mirrored and the nodes
+   are placed from the start edge. */
 const X = (i: number) => 50 + i * 100;
 const Y = (i: number) => (i % 2 === 0 ? 50 : 150);
 const bend = (i: number, j: number) =>
@@ -25,8 +36,7 @@ const AFTER_ROAD =
   ).join(" ") +
   ` L 600 ${Y(N - 1)}`;
 
-function StageCard({ i }: { i: number }) {
-  const s = STAGES[i];
+function StageCard({ s, i, t }: { s: Stages[number]; i: number; t: T }) {
   const here = i === HERE;
   const after = i > HERE;
   return (
@@ -40,8 +50,8 @@ function StageCard({ i }: { i: number }) {
       }`}
     >
       {here && (
-        <span className="absolute -top-3 left-4 rounded-full bg-brand px-2.5 py-1 font-display text-[10px] font-bold tracking-[0.12em] text-white uppercase xl:left-5">
-          The milestone
+        <span className="absolute start-4 -top-3 rounded-full bg-brand px-2.5 py-1 font-display text-[10px] font-bold tracking-[0.12em] text-white uppercase xl:start-5">
+          {t.milestone}
         </span>
       )}
       <div className="flex items-center justify-between gap-2">
@@ -54,7 +64,7 @@ function StageCard({ i }: { i: number }) {
         {s.title}
       </p>
       <p className="mt-2 text-[13px] leading-[1.55] text-muted">
-        <span className="font-semibold text-ink-soft">Focus: </span>
+        <span className="font-semibold text-ink-soft">{t.focus}</span>
         {s.focus}
       </p>
       {here && (
@@ -62,15 +72,15 @@ function StageCard({ i }: { i: number }) {
           href="#what"
           className="group mt-3 inline-flex items-center gap-1.5 font-display text-[11px] font-bold tracking-[0.06em] text-brand-strong uppercase"
         >
-          How it works
-          <ArrowRight className="h-3.5 w-3.5 rotate-90 transition-transform duration-200 group-hover:translate-y-0.5" />
+          {t.howItWorks}
+          <ArrowRight className="h-3.5 w-3.5 rotate-90 transition-transform duration-200 group-hover:translate-y-0.5 rtl:-rotate-90" />
         </Link>
       )}
     </div>
   );
 }
 
-function Node({ i, className = "" }: { i: number; className?: string }) {
+function Node({ i, locale, className = "" }: { i: number; locale: Locale; className?: string }) {
   const here = i === HERE;
   return (
     <span
@@ -89,20 +99,21 @@ function Node({ i, className = "" }: { i: number; className?: string }) {
           className="road-ping absolute inset-0 rounded-full bg-brand/60"
         />
       )}
-      <span className="relative">{String(i + 1).padStart(2, "0")}</span>
+      <span className="relative">{formatNumber(locale, i + 1, { minimumIntegerDigits: 2 })}</span>
     </span>
   );
 }
 
-export default function Roadmap() {
+/** `stages`: stagesIn(landing), the stages with their words in the page's language. */
+export default function Roadmap({ stages, t, locale }: { stages: Stages; t: T; locale: Locale }) {
   return (
     <Reveal y={20}>
       {/* Desktop: the winding road */}
       <div className="hidden lg:block">
         <div className="grid grid-cols-6 items-end">
-          {STAGES.map((s, i) => (
+          {stages.map((s, i) => (
             <div key={s.id} className="px-2 xl:px-3">
-              {i % 2 === 0 && <StageCard i={i} />}
+              {i % 2 === 0 && <StageCard s={s} i={i} t={t} />}
             </div>
           ))}
         </div>
@@ -111,7 +122,7 @@ export default function Roadmap() {
           <svg
             viewBox="0 0 600 200"
             preserveAspectRatio="none"
-            className="absolute inset-0 h-full w-full overflow-visible"
+            className="absolute inset-0 h-full w-full overflow-visible rtl:-scale-x-100"
             fill="none"
             aria-hidden="true"
           >
@@ -152,7 +163,7 @@ export default function Roadmap() {
             />
           </svg>
 
-          {STAGES.map((s, i) => {
+          {stages.map((s, i) => {
             const high = i % 2 === 0;
             const left = `${((i + 0.5) * 100) / N}%`;
             return (
@@ -160,16 +171,16 @@ export default function Roadmap() {
                 {/* Stem from the node to its card */}
                 <span
                   aria-hidden="true"
-                  className={`absolute h-1/4 w-px border-l-2 border-dashed border-line ${
+                  className={`absolute h-1/4 w-px border-s-2 border-dashed border-line ${
                     high ? "top-0" : "bottom-0"
                   }`}
-                  style={{ left }}
+                  style={{ insetInlineStart: left }}
                 />
                 <div
-                  className="absolute -translate-x-1/2 -translate-y-1/2"
-                  style={{ left, top: high ? "25%" : "75%" }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2"
+                  style={{ insetInlineStart: left, top: high ? "25%" : "75%" }}
                 >
-                  <Node i={i} />
+                  <Node i={i} locale={locale} />
                 </div>
               </div>
             );
@@ -177,28 +188,29 @@ export default function Roadmap() {
         </div>
 
         <div className="grid grid-cols-6 items-start">
-          {STAGES.map((s, i) => (
+          {stages.map((s, i) => (
             <div key={s.id} className="px-2 xl:px-3">
-              {i % 2 === 1 && <StageCard i={i} />}
+              {i % 2 === 1 && <StageCard s={s} i={i} t={t} />}
             </div>
           ))}
         </div>
       </div>
 
       {/* Phones and tablets: a vertical timeline */}
-      <ol className="relative ml-5 border-l-2 border-dashed border-line pl-9 lg:hidden">
-        {STAGES.map((s, i) => (
+      <ol className="relative ms-5 border-s-2 border-dashed border-line ps-9 lg:hidden">
+        {stages.map((s, i) => (
           <li key={s.id} className="relative pb-6 last:pb-0">
             <div
-              className="absolute top-3 -translate-x-1/2"
-              style={{ left: "calc(-2.25rem - 1px)" }}
+              className="absolute top-3 -translate-x-1/2 rtl:translate-x-1/2"
+              style={{ insetInlineStart: "calc(-2.25rem - 1px)" }}
             >
               <Node
                 i={i}
+                locale={locale}
                 className={i === HERE ? "!h-11 !w-11 !text-[13px]" : ""}
               />
             </div>
-            <StageCard i={i} />
+            <StageCard s={s} i={i} t={t} />
           </li>
         ))}
       </ol>
