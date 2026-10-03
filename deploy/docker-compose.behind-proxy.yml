@@ -1,0 +1,27 @@
+# Production on a server shared with other sites, where another reverse proxy
+# (e.g. a Caddy from another project) already owns ports 80/443 and gets the
+# HTTPS certificates. Enable it in the server's .env:
+#
+#   COMPOSE_FILE=docker-compose.yml:deploy/docker-compose.behind-proxy.yml
+#   SITE_ADDRESS=:80
+#   CADDY_BIND=172.18.0.1:8081      # host address:port the front proxy can reach
+#
+# and point the front proxy's site at it, e.g. in its Caddyfile:
+#
+#   fundupclub.com {
+#   	reverse_proxy 172.18.0.1:8081 {
+#   		flush_interval -1
+#   	}
+#   }
+#
+# Bind CADDY_BIND to a Docker bridge address (not 0.0.0.0), so the plain-HTTP
+# port isn't open to the internet. Paths here are relative to the project
+# directory (where docker-compose.yml is).
+
+services:
+  caddy:
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile.behind-proxy", "--adapter", "caddyfile"]
+    ports: !override
+      - "${CADDY_BIND:?set CADDY_BIND in .env, e.g. 172.18.0.1:8081}:80"
+    volumes:
+      - ./deploy/Caddyfile.behind-proxy:/etc/caddy/Caddyfile.behind-proxy:ro

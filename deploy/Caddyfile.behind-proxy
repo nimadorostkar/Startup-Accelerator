@@ -1,0 +1,18 @@
+# The production Caddyfile, for a server where another reverse proxy already
+# owns ports 80/443 and terminates HTTPS (deploy/docker-compose.behind-proxy.yml).
+#
+# That proxy forwards the site's traffic here over plain HTTP, on an address only
+# the host's Docker networks can reach. Set SITE_ADDRESS=:80 in .env.
+#
+# Trusting the private ranges keeps the visitor's address (X-Forwarded-For) and
+# the original scheme (X-Forwarded-Proto: https) that the front proxy sets, so
+# the API's rate limits count real visitors and its cookies and links stay
+# HTTPS. Requests from anywhere else can't reach this port.
+
+{
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+import Caddyfile

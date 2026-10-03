@@ -324,8 +324,8 @@ STORAGES = {
 # serves it too (apps/core/views.media), which is what local development uses.
 MEDIA_ROOT = Path(env("MEDIA_ROOT", str(BASE_DIR / "media")))
 MEDIA_URL = "/api/v1/media/"
-# A multipart upload's fields besides the file; the file itself is capped in images.py.
-DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
+# The file itself is capped in images.py; DATA_UPLOAD_MAX_MEMORY_SIZE (below,
+# 1 MB) only counts a request's other data, never an uploaded file.
 
 # ---------------------------------------------------------------- i18n
 
