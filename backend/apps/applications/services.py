@@ -223,15 +223,21 @@ def withdraw(user: User) -> Application:
 # ---------------------------------------------------------------- reviewer side
 
 
-def _review_change(app_id, change: Callable[[Application], None]) -> Application:
-    """Atomic change to any application by a reviewer. Never creates one."""
+def _review_change(
+    app_id, change: Callable[[Application], None], *, fields: list[str] | None = None
+) -> Application:
+    """Atomic change to any application by a reviewer. Never creates one.
+
+    `fields`: the columns `change` touches, for changes the public never sees
+    (assignment, scores, notes), so they don't refresh the public directory.
+    """
     with transaction.atomic():
         app = Application.objects.select_for_update().filter(pk=app_id).first()
         if app is None:
             raise NotFound("That application no longer exists.")
         change(app)
         app.updated_at = now()
-        app.save()
+        app.save(update_fields=[*fields, "updated_at"] if fields is not None else None)
     return app
 
 
@@ -270,14 +276,14 @@ def assign(app_id, reviewer: User) -> Application:
     def change(app):
         app.assignee = reviewer
 
-    return _review_change(app_id, change)
+    return _review_change(app_id, change, fields=["assignee"])
 
 
 def unassign(app_id) -> Application:
     def change(app):
         app.assignee = None
 
-    return _review_change(app_id, change)
+    return _review_change(app_id, change, fields=["assignee"])
 
 
 def _read_scores(data: dict) -> tuple[dict, dict]:
@@ -323,7 +329,7 @@ def save_scorecard(app_id, reviewer: User, data: dict) -> Application:
         )
         app.team_score = team_average(app)
 
-    return _review_change(app_id, change)
+    return _review_change(app_id, change, fields=["team_score"])
 
 
 def team_average(app: Application) -> float | None:
@@ -344,4 +350,4 @@ def add_note(app_id, reviewer: User, data: dict) -> Application:
     def change(app):
         InternalNote.objects.create(application=app, author=reviewer, body=body, at=now())
 
-    return _review_change(app_id, change)
+    return _review_change(app_id, change, fields=[])

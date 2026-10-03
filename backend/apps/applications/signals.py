@@ -5,10 +5,16 @@ from . import directory, rules
 from .models import Application, Scorecard
 
 
+# Columns the public directory never shows: saving only these leaves it as it is.
+REVIEW_ONLY = {"assignee", "team_score", "updated_at"}
+
+
 @receiver(post_save, sender=Application)
-def application_saved(sender, instance: Application, **kwargs):
+def application_saved(sender, instance: Application, update_fields=None, **kwargs):
     # Drafts aren't public, so saving one changes nothing in the directory.
     # (Withdrawing — public to draft — invalidates in services.withdraw.)
+    if update_fields is not None and set(update_fields) <= REVIEW_ONLY:
+        return  # an assignment, a scorecard or a note: nothing public changed
     if instance.status in rules.PUBLIC_VISIBLE:
         directory.invalidate()
 
