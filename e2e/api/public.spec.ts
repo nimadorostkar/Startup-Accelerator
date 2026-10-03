@@ -87,6 +87,7 @@ test.describe("events", () => {
         "title",
         "type",
         "tz",
+        "updated",
       ].sort(),
     );
     expect(event.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/); // local offset

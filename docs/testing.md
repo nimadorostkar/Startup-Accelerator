@@ -4,7 +4,7 @@ As of 2026-10-03. Three layers, from fastest to most complete:
 
 | Layer | Where | What it proves | Run it |
 | --- | --- | --- | --- |
-| API tests | `backend/tests/` (pytest, 154 tests) | Every rule, against a real PostgreSQL, including requests racing on separate connections | `cd backend && pytest` |
+| API tests | `backend/tests/` (pytest, 248 tests) | Every rule, against a real PostgreSQL, including requests racing on separate connections | `cd backend && pytest` |
 | End-to-end: API | `e2e/api/` (Playwright, 43 tests) | Every endpoint over real HTTP against a running stack: Postgres, Redis, the Celery worker, real emails (read back from Mailpit), rate limits, cache refresh | `npm run test:e2e:api` |
 | End-to-end: website | `e2e/web/` (Playwright, 26 tests) | The site in a real browser: public pages fed by the API, sign-up to sign-out, returning to the page asked for after signing in, account settings, every form, and a whole application lifecycle with a founder and a reviewer side by side | `npm run test:e2e` (runs both) |
 
@@ -62,7 +62,7 @@ The API tests give each test its own visitor address (`X-Forwarded-For`, which t
 
 On 2026-10-03 all 61 tests passed against the dev stack (twice in a row) and against the production setup: the production Next.js build behind Caddy, Gunicorn with `DJANGO_DEBUG=false`, the worker sending real SMTP. After the integration review later that day, all 66 passed against the dev stack, and the production build was checked by hand for the proxy's sign-in redirect, the start-up wait for the API, and public pages staying up (serving their last copy) when the API is down.
 
-Later still, the whole suite was run against the production build with the test overlay, which found two problems that never show on the dev stack: Caddy reusing connections the website had just closed (an occasional 502 on a form post), and optimised images not being cached at all (each request re-encoded its image, stalling the website for seconds under load). Both are fixed ([deployment.md](deployment.md#what-runs), [backend-integration.md](backend-integration.md#caching-and-refresh)); with the fixes, all 66 passed four times in a row against the production build, with no 502 in Caddy's log. After logos and founder photos were added (uploads through the website, files served by Caddy from the `media` volume), all 69 passed twice in a row there, with the 50 sample startups loaded.
+Later still, the whole suite was run against the production build with the test overlay, which found two problems that never show on the dev stack: Caddy reusing connections the website had just closed (an occasional 502 on a form post), and optimised images not being cached at all (each request re-encoded its image, stalling the website for seconds under load). Both are fixed ([deployment.md](deployment.md#what-runs), [backend-integration.md](backend-integration.md#caching-and-refresh)); with the fixes, all 66 passed four times in a row against the production build, with no 502 in Caddy's log. After logos and founder photos were added (uploads through the website, files served by Caddy from the `media` volume), all 69 passed twice in a row there, with the 50 sample startups loaded. After the second integration review (emails, the back office, public forms, a production deployment to fundupclub.com), all 69 passed against the dev stack with 248 API tests, and CI runs the API tests and the website checks on every push ([deployment.md](deployment.md#continuous-deployment)).
 
 ## What the end-to-end suite covers
 

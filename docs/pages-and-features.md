@@ -98,14 +98,15 @@ Code: [src/app/contact/page.tsx](../src/app/contact/page.tsx), form in [src/comp
 
 | Field | Form name | Type | Rule |
 | --- | --- | --- | --- |
-| Full name | `name` | text | Required; 2–80 characters |
-| Email | `email` | email | Required; valid format |
-| Company | `company` | text | Optional; max 120 characters |
-| What's this about? | `topic` | select | Required; one of: Applying to the program, Investing or partnerships, Mentoring, Press, Something else |
+| Full name | `name` | text | Required; 2–80 characters, one line |
+| Email | `email` | email | Required; valid format (no spaces or `, ; : < > ( ) " [ ] \`); max 254 |
+| Company | `company` | text | Optional; max 120 characters, one line |
+| What's this about? | `topic` | select | Required; one of: Applying to the program, Investing or partnerships, Mentoring, Press, Something else (also in `GET /api/v1/options` as `contactTopics`) |
 | Message | `message` | textarea | Required; 10–2000 characters |
 
 - A hidden `website` field catches bots: if it's filled in, the form shows success but saves nothing.
 - On success the form is replaced by **Message sent** (with the sender's email) and a **Send another message** button. A refused message keeps what was typed, including the chosen topic.
+- **Focus and announcements (contact, event registration and unsubscribe forms):** the submit button stays focusable while sending (`aria-disabled`), and the answer moves focus: to the success heading, else to the first field with an error, else to the error message, which sits in an alert region that's always on the page so screen readers announce it ([useResponseFocus.ts](../src/components/auth/useResponseFocus.ts), `FormAlert`). Inputs have `maxLength` matching the limits, so an enormous paste can't make the page fail. Length errors read "Keep this to N characters or fewer."
 - Messages are stored by the API ([src/lib/contact.ts](../src/lib/contact.ts) → `POST /api/v1/contact`) and emailed to the support team (`SUPPORT_EMAILS`, or every reviewer) with the sender as reply-to. They're also listed in the back office, where they can be marked handled. Limited to 10 per hour per address.
 - Beside the form: shortcut cards to apply (`/dashboard`), the FAQ (`/#faq`) and sign in (`/login`).
 
@@ -120,7 +121,7 @@ Code: [src/app/contact/page.tsx](../src/app/contact/page.tsx), form in [src/comp
 | Latest issues | Topic chips (All, Fundraising, Building, AI, Founder Stories, Program News) over a 3-column grid. "All" leaves out the featured article; a topic shows every article in it |
 | Sign-up band | Dark band with a second sign-up form |
 
-- **Articles come from the API** ([src/lib/newsletter.ts](../src/lib/newsletter.ts)) and are written in the back office (Posts): title, issue number, topic, author, date, excerpt and the text, in a simple format (blank lines between paragraphs, `## ` headings, `- ` lists, `> ` quotes with a last `> — Name` line for the credit). Read time is estimated if left at 0. The launch set (the site's original placeholder issues) is loaded by `seed_content`; replace it with real issues before launch. With no published issue, the page shows just the sign-up and an empty archive.
+- **Articles come from the API** ([src/lib/newsletter.ts](../src/lib/newsletter.ts)) and are written in the back office (Posts): title, issue number, topic, author, date, excerpt and the text, in a simple format (blank lines between paragraphs, `## ` or `### ` headings, `- ` lists, `1. ` numbered lists, `> ` quotes with a last `> — Name` line for the credit; a list or quote can follow a heading or sentence on the very next line). Text is always shown as text: HTML in it is never run. Read time is estimated if left at 0 or empty. An issue dated in the future stays hidden (from the list, its page and the sitemap) until that day (UTC). The launch set (the site's original placeholder issues) is loaded by `seed_content`, once per database; replace it with real issues before launch (deleting the placeholders is safe: they don't come back on the next restart). With no published issue, the page shows just the sign-up and an empty archive.
 - The page is static and refreshed every minute, or as soon as an issue is saved in the back office.
 - **Covers are drawn in SVG** ([Cover.tsx](../src/components/newsletter/Cover.tsx)): one motif and colour scheme per topic plus the issue number, so the pages load no images.
 - Only the topic filter and the sign-up forms run JavaScript; the cards are server-rendered. The filter is the shared [src/components/ui/FilterList.tsx](../src/components/ui/FilterList.tsx), also used by `/events`.
@@ -148,7 +149,7 @@ Code: [src/app/newsletter/[slug]/page.tsx](<../src/app/newsletter/[slug]/page.ts
 
 ### Unsubscribe (`/newsletter/unsubscribe?token=…`)
 
-The link in every newsletter email. The page explains what stops and asks the subscriber to press **Unsubscribe** (a button rather than the link itself, so mail scanners that open every link can't unsubscribe anyone). The token names the subscriber by id, never by address. Hidden from search engines.
+The link in every newsletter email. The page explains what stops and asks the subscriber to press **Unsubscribe** (a button rather than the link itself, so mail scanners that open every link can't unsubscribe anyone). The token names the subscriber by id, never by address. Opened with no token (or an empty or doubled one), the page says the link is incomplete and links to `/newsletter` instead of showing a button. Success shows **You're unsubscribed**. Hidden from search engines.
 
 ## Events (`/events`)
 
@@ -161,9 +162,9 @@ Code: [src/app/events/page.tsx](../src/app/events/page.tsx), pieces in [src/comp
 | Recently | The 3 most recent past events, marked Ended |
 | Sign-up band | Newsletter sign-up (`source: events`), linking to `/newsletter` |
 
-- **Events come from the API** ([src/lib/events.ts](../src/lib/events.ts)) and are managed in the back office (Events): title, type, format, city, start and end (entered and shown in the event's own time zone), time zone, capacity, summary, about (paragraphs), what you'll get (one per line), the agenda, who it's for, and the private venue or joining link, which is only ever emailed to registered guests. Unpublished events are hidden. The launch set (the site's original placeholder events) is loaded by `seed_content`; replace it with the real calendar before launch.
+- **Events come from the API** ([src/lib/events.ts](../src/lib/events.ts)) and are managed in the back office (Events): title, type, format, city, start and end (entered and shown in the event's own time zone), time zone (chosen from a list of region/city zones, plus UTC), capacity (at least 1), summary, about (paragraphs), what you'll get (one per line), the agenda, who it's for, and the private venue or joining link, which is only ever emailed to registered guests. Unpublished events are hidden. The launch set (the site's original placeholder events) is loaded by `seed_content`; replace it with the real calendar before launch.
 - An event moves from Upcoming to Recently once its end time passes. The pages are static, refreshed every minute and as soon as an event is saved in the back office.
-- Times are shown in each event's own time zone (e.g. `4:00 PM – 8:00 PM PDT`).
+- Times are shown in each event's own time zone (e.g. `4:00 PM – 8:00 PM PDT`), with both dates when an event runs over more than one day.
 - The countdown shows dashes until the page loads in the browser, then ticks every second. It is hidden from screen readers because the date is always shown as text.
 
 ### Event page (`/events/[slug]`)
@@ -183,6 +184,8 @@ Code: [src/app/events/[slug]/page.tsx](<../src/app/events/[slug]/page.tsx>). Unk
 
 - Server action: [src/app/events/actions.ts](../src/app/events/actions.ts). The API rejects unknown events, events that have ended and full events (capacity), whatever the page shows.
 - Success: **You're registered** (or **You're already registered** if that email, in any capitalisation, already signed up for this event), plus an **Add to Google Calendar** link with the event's times.
+- If the event has ended or is full by the time the form is sent, the form is replaced by **Registration is closed**, the reason, and a link to upcoming events.
+- Sections with nothing in them (what you'll get, agenda, who it's for) are left out. An event whose time zone the browser doesn't know is shown in UTC rather than failing.
 - Same hidden `website` bot trap as the other forms.
 - Registrations are stored by the API (one per email per event; 30 per hour per address) and listed, with a CSV export, in the back office. The guest gets a confirmation email with the venue or joining link and a calendar invite (`invite.ics`), and, if they registered more than a day ahead, a reminder the day before.
 
@@ -208,7 +211,7 @@ Code: [src/app/demo-day/page.tsx](../src/app/demo-day/page.tsx); the roadmap is 
 
 ## Startup directory (`/startups`)
 
-Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the API's public directory (`GET /api/v1/startups`): **every application that has been submitted appears; drafts never do.** A submission, withdrawal or decision made on the website shows up on the next page anyone opens; a change made elsewhere (the back office) within seconds: the next visitor may still get the previous copy while a fresh one renders, and if the API is unreachable at that moment the previous copy keeps being served rather than an error.
+Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the API's public directory (`GET /api/v1/startups`): **every application that has been submitted appears; drafts never do, and neither do startups of accounts deactivated in the back office.** Each shows its answers as last submitted: while a founder is making requested changes, the public page keeps the submitted version until they resubmit (the status, logo and photo are always current). "Applied" is the date of the first submission, so a resubmission doesn't count as new. A submission, withdrawal or decision made on the website shows up on the next page anyone opens; a change made elsewhere (the back office) within seconds: the next visitor may still get the previous copy while a fresh one renders, and if the API is unreachable at that moment the previous copy keeps being served rather than an error.
 
 | Section | Content |
 | --- | --- |
@@ -229,6 +232,8 @@ Code: [src/app/startups/[slug]/page.tsx](<../src/app/startups/[slug]/page.tsx>).
 - Main column: active users and paying customers (when given), The problem, The solution, Who it's for, Market, Competition and edge, Headline metric, The team (why this team, worked together, hiring) and About the founder (photo, title, location, years of experience, bio, LinkedIn). Sections with no content are left out.
 - Sidebar (sticky on desktop): facts (stage, industry, HQ, founded, business model, incorporated, team size, applied), founders and team (name, role, commitment, Founder badge, LinkedIn), and a Journey timeline.
 - "More startups": three others, same industry first.
+
+Long words and links wrap instead of widening the page, text in right-to-left scripts keeps its order (`dir="auto"`), multi-line answers keep their line breaks, initials skip emoji, and filters in a shared link (`?status=`, `?industry=`, `?stage=`, `?sort=`) are matched without regard to capitals, unknown values being dropped. Countries are counted without regard to capitals or spaces.
 
 ### What is public, and what is not
 
@@ -671,6 +676,8 @@ Every rule is enforced by the API, inside each request, not just by hiding butto
 | Safe spreadsheet export | Formula cells neutralised, cells escaped |
 | Other sites can't act with a visitor's cookie | Cookie-authenticated changes must come from the site's own origin |
 | Brute force | Rate limits on sign-in, sign-up, password reset and the public forms |
+
+**Changing someone's email in the back office** makes the address unconfirmed again: the old emailed links stop working, a confirmation goes to the new address, and a reviewer can't open the panel until it's confirmed. **Deleting a reviewer's account** keeps their internal notes, shown as by "Former reviewer".
 
 **Who counts as a reviewer:** a user with the *reviewer* role **and** an email address they confirmed themselves with the emailed link. Set the role in the back office (Users → *Make reviewer*, which sends a fresh link to anyone unconfirmed); the back office can't confirm an address on someone's behalf. Back-office superusers created with `createsuperuser` are reviewers too.
 

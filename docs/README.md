@@ -19,4 +19,4 @@ Start here before changing the app, the API or how it's deployed.
 - **Areas:** landing page `/` · public pages (`/startups`, `/events`, `/newsletter`, `/demo-day`…) · sign-in `/login` `/register` `/forgot-password` `/reset-password` `/verify-email` · founder dashboard `/dashboard/*` · review panel `/admin/*` · back office (Django admin) `/backoffice/`.
 - **Run it locally:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`, then `npm run dev`. Details, test accounts and sample data: [deployment.md → Local development](deployment.md#local-development).
 - **Production:** `docker compose up -d --build` behind Caddy with automatic HTTPS: [deployment.md](deployment.md).
-- **Tests:** `cd backend && pytest` (154 tests, real Postgres) · `npm run test:e2e` (69 end-to-end tests: every API endpoint, and the website in a browser) · `npx tsc --noEmit && npm run lint`. See [testing.md](testing.md).
+- **Tests:** `cd backend && pytest` (248 tests, real Postgres) · `npm run test:e2e` (69 end-to-end tests: every API endpoint, and the website in a browser) · `npx tsc --noEmit && npm run lint`. See [testing.md](testing.md).

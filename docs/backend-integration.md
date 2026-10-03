@@ -113,7 +113,7 @@ Always the signed-in founder's own; no endpoint takes a user id. Responses carry
 | POST | `/newsletter/subscribers` | `{ email, source }` → 201 `{ status: "new" }` or 200 `{ status: "existing" }`; welcome email with an unsubscribe link |
 | POST | `/newsletter/unsubscribe` | `{ token }` from that link (it names the subscriber by id, never by address) |
 | POST | `/contact` | `{ name, email, company, topic, message }` → 201; emailed to `SUPPORT_EMAILS` with the sender as reply-to |
-| GET | `/options` | Every option list the forms use |
+| GET | `/options` | Every option list the forms use, the contact form's topics (`contactTopics`) included |
 | GET | `/health`, `/health/ready` | Liveness; readiness checks the database and Redis |
 
 The public forms take the same hidden `website` field as the website's forms: if a bot fills it in, the API answers as if it worked and stores nothing.
@@ -127,18 +127,21 @@ PostgreSQL, created by Django migrations (`backend/apps/*/migrations/`).
 | `accounts_user` | Email (unique, stored lower-case), name, Argon2 password hash (none for Google-only accounts), role (`founder`/`reviewer`), Google id, `email_verified_at`, `terms_accepted_at`, back-office flags | **Reviewer access needs the role *and* an address the user confirmed themselves** (the back office can set the role, never the confirmation) |
 | `accounts_authsession` | SHA-256 of the session token, expiry, revoked-at, last used, IP, user agent | Purged 30 days after expiry |
 | `accounts_usertoken` | SHA-256 of emailed tokens (password reset, email verification), expiry, used-at | Single use; a new one cancels the old |
-| `applications_application` | Status, `profile` / `startup` / `team` (JSON, read and written as whole sections), assignee, public `slug`, timestamps | Copies of `startup_name`, `stage`, `industry`, `founder_name`, `tagline` and `team_score` are kept in columns for the queue's filters and sorting |
+| `applications_application` | Status, `profile` / `startup` / `team` (JSON, read and written as whole sections), assignee, public `slug` (and `slug_source`, the name it was made from), `public_snapshot` (the sections as last submitted), timestamps, including `first_submitted_at` | Copies of `startup_name`, `stage`, `industry`, `founder_name`, `tagline` and `team_score` are kept in columns for the queue's filters and sorting |
 | *(files)* `media/startups/`, `media/founders/` | Logos and founder photos, named by `applications_application.logo` / `.photo` | The `media` Docker volume. A replaced or removed image, and those of a deleted account, are deleted from it |
 | `applications_applicationevent` | The founder-visible timeline: who (`founder`/`support`), kind, title, message | `actor` is audit-only and never sent to founders |
 | `applications_scorecard` | One per reviewer per application: five 1–5 scores, recommendation, summary | Database constraints enforce both |
-| `applications_internalnote` | Reviewer-only notes | |
+| `applications_internalnote` | Reviewer-only notes | Kept when their author's account is deleted (shown as "Former reviewer") |
 | `content_event`, `content_agendaitem`, `content_eventregistration` | Events (edited in the back office), their agenda, registrations | One registration per email per event; capacity enforced |
-| `content_post` | Newsletter issues; the text is written in a simple format (blank lines between paragraphs, `## ` headings, `- ` lists, `> ` quotes) | |
+| `content_post` | Newsletter issues; the text is written in a simple format (blank lines between paragraphs, `## ` or `### ` headings, `- ` or `* ` lists, `1. ` numbered lists, `> ` quotes whose last line is the credit only when it starts with `—`, `--` or `- `), read line by line, so a list or quote may follow a heading or a sentence directly | An issue dated in the future stays hidden until that date (UTC) |
+| `content_seedrecord` | That the launch content was loaded | `seed_content --if-empty` loads it once per database, never again, even if every placeholder is later deleted |
 | `content_subscriber`, `content_contactmessage` | Subscribers (with unsubscribe date), contact messages (with a "handled" date) | |
 
 `profile.email` is never stored in the application: it always comes from the account. The old option value `"VC Summit event"` is shown as `"Fundup Club event"`.
 
-**Public addresses:** a startup's slug is fixed the first time it's submitted (`ledgerly`; a second startup of the same name gets `ledgerly-2`), and only re-made if the startup is renamed and resubmitted, so shared links keep working.
+**Public addresses:** a startup's slug is fixed the first time it's submitted (`ledgerly`; a second startup of the same name gets `ledgerly-2`), and only re-made if the startup is renamed and resubmitted, so shared links keep working. An address fixed by hand in the back office is kept the same way, until the next rename. Accented letters are folded (`Café Ölmo` → `cafe-olmo`); a name with no Latin letters at all (Arabic, Chinese, emoji…) gets `startup-` and 8 characters of the application's id. The website's copy of the rule is `slugify` in [src/lib/application/directory.ts](../src/lib/application/directory.ts).
+
+**What the directory shows:** the answers as last submitted (`public_snapshot`, taken at every submission), so a founder rewriting their application after "changes requested" doesn't publish a half-finished draft; the status, dates, logo and photo are always current. The "Applied" date and the newest-first order use the first submission, so a resubmission doesn't look new. Startups of deactivated accounts are left out.
 
 ## Rules the backend enforces
 
@@ -163,27 +166,32 @@ Each has an automated test (`backend/tests/`).
 
 ## Notifications
 
-All sent by the Celery worker after the change commits; failed sends are retried with back-off for about 30 minutes. Templates: [backend/templates/emails/](../backend/templates/emails/) (plain text, wrapped in one HTML layout).
+All sent by the Celery worker after the change commits; a failed send is retried 6 times, after 30 s, 1, 2, 4, 8 and 16 minutes (about 31 minutes in all), then logged and dropped. Without `EMAIL_HOST` they're written to the worker's log instead (`docker compose logs worker`). Templates: [backend/templates/emails/](../backend/templates/emails/) (plain text, wrapped in one HTML layout that never turns the text into links: names and messages typed by founders or the public stay plain text, and only the email's own buttons and listed links are clickable). Subjects are always one line, and single-line fields (names, companies, startup name, tagline…) refuse line breaks ("Use a single line."), so no email can be dropped by a header the mail library refuses.
 
 | Trigger | To | Email |
 | --- | --- | --- |
 | Account created | Founder | Confirm your email (link to `/verify-email`) |
+| Made a reviewer in the back office (address not yet confirmed) | The new reviewer | Confirm your email to review, in reviewer wording |
+| Address changed in the back office | Account holder, at the new address | Confirm your new email; until then the account counts as unconfirmed (no review panel), and any emailed links to the old address stop working |
 | Password reset requested | Account holder, if the account exists | Single-use link to `/reset-password` (30 minutes) |
-| Password reset or changed | Account holder | "Your password was changed" |
+| Password reset or changed | Account holder | "Your password was changed", with a button to reset it if that wasn't them |
 | Application submitted or resubmitted | Founder | Confirmation; review starts within 5 working days |
 | Application submitted or resubmitted | Each reviewer (one email each) | New item, with a link to it in the panel |
-| Any decision | Founder | What happened, the reviewer's message, a link to the dashboard |
-| Daily at 08:00 UTC | Each reviewer | Applications waiting 5+ days |
-| Contact form | `SUPPORT_EMAILS` (or every reviewer) | The message, reply-to the sender |
+| Any decision | Founder | What happened, the reviewer's message, a link to the dashboard. Replies go to the first `SUPPORT_EMAILS` address |
+| Daily at 08:00 UTC | Each reviewer | Applications waiting 5+ days: the count of all of them, the 50 longest-waiting listed with links |
+| Contact form | `SUPPORT_EMAILS` (or, if empty, each reviewer separately) | The message, reply-to the sender |
 | Newsletter sign-up | Subscriber | Welcome, with an unsubscribe link |
-| Event registration | Guest | Confirmation with the venue or joining link and a calendar invite (`invite.ics`) |
-| The day before an event | Guests who registered more than a day ahead | Reminder (checked hourly) |
+| Event registration | Guest | Confirmation with the venue or joining link and a calendar invite (`invite.ics`, `METHOD:PUBLISH`, with the joining link for online events). It promises a reminder only to guests who registered 24 hours or more ahead |
+| Joining link (online) or venue (in person) filled in after people registered | Every guest of that upcoming event, once | The link or the venue |
+| The day before an event | Guests who registered 24 hours or more ahead | Reminder with the joining details, saying "Today" or "Tomorrow" in the event's time zone (checked hourly) |
+
+Times in emails are shown in the event's time zone, with the end date when an event runs past midnight; zones without a name show as an offset ("UTC−03:00").
 
 ## Caching and refresh
 
 - **The API** caches the startup directory, events and articles in Redis for 5 minutes, and drops them the moment one changes. Only things that exist are cached by address: a made-up slug is looked up each time (the website caches its 404 for a minute), so random addresses can't fill Redis and push out the rate-limit counters.
 - **The website** caches its reads of that public data for a minute (`fetch` tags `startups`, `events`, `newsletter`), and its public pages are static (ISR, `revalidate = 60`).
-- **On change**, the API's worker calls the website's [`/api/revalidate`](../src/app/api/revalidate/route.ts) with the tag (authorised by `REVALIDATE_SECRET`), so an event edited in the back office or a decided application shows within seconds. Founder submissions and withdrawals, and reviewer decisions, refresh the `startups` tag themselves; assignments, scorecards and notes don't touch it (on either side: the API's directory cache ignores saves of review-only columns, `REVIEW_ONLY` in `applications/signals.py`).
+- **On change**, once per database transaction whatever it changed (an event and its agenda rows are one refresh), the API's worker calls the website's [`/api/revalidate`](../src/app/api/revalidate/route.ts) with the tag (authorised by `REVALIDATE_SECRET`), so an event edited in the back office or a decided application shows within seconds. Founder submissions and withdrawals, and reviewer decisions, refresh the `startups` tag themselves; assignments, scorecards and notes don't touch it (on either side: the API's directory cache ignores saves of review-only columns, `REVIEW_ONLY` in `applications/signals.py`).
 - **The API's refreshes are stale-while-revalidate** (`revalidateTag(tag, "max")` in the route): the tag's pages are marked out of date; the next visitor gets the old copy while a new one renders, and everyone after sees the change. If the API can't be reached for that render (a deploy, a restart), the old copy stays. (Expiring tags outright, `{ expire: 0 }`, made those pages answer 500 for as long as the API was down.) **The website's own actions** (a founder submitting or withdrawing, a reviewer deciding) use `updateTag("startups")`, which expires at once so the person sees their own change on the next page they open; the API has just answered them, so it's up to render it.
 - **Pages rendered after the build stay in memory** (`experimental.isrFlushToDisk: false` in `next.config.ts`; an LRU of `cacheMaxMemorySize`, 50 MB by default), so requests for endless made-up addresses can't fill the website container's disk. A restart starts from the build's copies again.
 - **Uploaded logos and photos** aren't optimised by the website at all: the API already made them small WebP files, so pages point straight at `/api/v1/media/…` (`unoptimized` on the `<Image>`). In development, where there is no Caddy, `next.config.ts` passes that path on to the API.
@@ -214,7 +222,7 @@ The website reads `BACKEND_URL` (where the API is; `http://backend:8000` in Dock
 
 ## Tests
 
-`cd backend && pytest` runs 154 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections, and `npm run test:e2e` runs 69 end-to-end tests against a running stack: every endpoint over HTTP, and the website in a browser. Details: [testing.md](testing.md). The list that was checked by hand before the backend existed is now automated:
+`cd backend && pytest` runs 248 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections, and `npm run test:e2e` runs 69 end-to-end tests against a running stack: every endpoint over HTTP, and the website in a browser. Details: [testing.md](testing.md). The list that was checked by hand before the backend existed is now automated:
 
 - [x] A founder can't read or change another founder's application.
 - [x] No founder payload contains scorecards, notes, assignee or `review`.

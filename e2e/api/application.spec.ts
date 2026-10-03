@@ -84,7 +84,7 @@ test.describe("founder application", () => {
     const team = await founder.api.patch("/me/application/team", { workedTogether: "Forever", whyUs: "x".repeat(1201) });
     expect((await json(team)).errors).toEqual({
       workedTogether: "Pick an option.",
-      whyUs: "Keep this under 1200 characters.",
+      whyUs: "Keep this to 1200 characters or fewer.",
     });
     await founder.api.dispose();
   });

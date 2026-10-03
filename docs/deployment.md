@@ -36,6 +36,14 @@ To grow: raise `WEB_CONCURRENCY` to `2 × CPUs + 1` on a bigger server; move Pos
 
 ## First deploy
 
+[deploy/bootstrap.sh](../deploy/bootstrap.sh) does steps 1–3 on a Debian or Ubuntu server, and is safe to run again: it installs Docker if missing, adds swap on small machines, clones the repository to `/opt/fundup`, writes `/opt/fundup/.env` with secrets generated on the server (they never leave it), and schedules the nightly backup. It leaves the firewall alone unless run with `FIREWALL=1`.
+
+```bash
+ssh root@<server> 'sh -s' < deploy/bootstrap.sh your-domain
+```
+
+Then fill in the email settings in `/opt/fundup/.env` and deploy with `/opt/fundup/deploy/deploy.sh`. By hand:
+
 1. **Server:** install Docker Engine with the Compose plugin. Open ports 80 and 443. Point your domain's DNS (A/AAAA) at the server.
 2. **Code:** `git clone` the repository onto the server.
 3. **Settings:** `cp .env.example .env`, then set at least:
@@ -56,12 +64,68 @@ Any SMTP provider works (Postmark, Resend, Amazon SES, Mailgun…): set `EMAIL_H
 
 ## Updating
 
+Every push to `main` deploys itself once its tests pass (see *Continuous deployment*). By hand, on the server:
+
 ```bash
-git pull
-docker compose up -d --build
+/opt/fundup/deploy/deploy.sh            # the latest main
+/opt/fundup/deploy/deploy.sh <commit>   # a given commit, e.g. to roll back
 ```
 
+[deploy/deploy.sh](../deploy/deploy.sh) checks out the commit, builds the images on the server, restarts what changed, and waits up to 5 minutes for the site to answer through its public address, printing the logs and the command to roll back if it doesn't. One deploy runs at a time.
+
 The API applies new migrations as it starts (under a database lock, so it's safe if several start at once). Both images build without contacting the API; public pages fill in from the API on their first visit after the deploy (which is why the website waits for the API on start: after a host reboot, Docker restarts containers without regard to `depends_on`). There is a few seconds' gap while containers are replaced; for zero-downtime deploys, run two website and API containers behind Caddy and replace them one at a time.
+
+## Continuous deployment
+
+[.github/workflows/ci-deploy.yml](../.github/workflows/ci-deploy.yml) runs on every push and pull request:
+
+| Job | What it checks |
+| --- | --- |
+| API tests | `ruff`, that no model change lacks a migration, and the whole pytest suite against a PostgreSQL service |
+| Website checks | `next typegen` + `tsc`, ESLint, and the production build |
+| Deploy to production | Only for `main`, once both pass: connects to the server and runs `deploy/deploy.sh <commit>`, then checks the live site answers. Deploys queue one behind another, never cancel each other |
+
+The end-to-end suite isn't in CI (it needs the whole stack); run it before merging anything that changes behaviour ([testing.md](testing.md)).
+
+**Repository secrets** (GitHub → Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+| --- | --- |
+| `DEPLOY_HOST` | The server's address |
+| `DEPLOY_SSH_KEY` | The private half of a key used only for deploys |
+| `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan <server>` output, so CI only ever talks to the real server |
+
+The deploy key is installed on the server with a forced command, [deploy/ci-ssh.sh](../deploy/ci-ssh.sh), in root's `~/.ssh/authorized_keys`:
+
+```
+command="/opt/fundup/deploy/ci-ssh.sh",restrict ssh-ed25519 AAAA… github-actions-deploy@fundupclub
+```
+
+so whoever holds it can only ask for `deploy <commit id>`: never a shell, a file transfer or a tunnel. The site's own secrets stay in the server's `.env`; nothing secret is in the repository (it is public).
+
+## Production: fundupclub.com
+
+| | |
+| --- | --- |
+| Server | `217.65.145.161`, Ubuntu 24.04, 2 vCPUs, 8 GB, shared with two other projects (`/opt/tradeplatform`, `/root/financebot`) |
+| Code and settings | `/opt/fundup` (a checkout of `main`), `/opt/fundup/.env` |
+| Backups | `/opt/fundup/backups/`, nightly at 02:30 UTC (`/etc/cron.d/fundup-backup`), 14 days |
+| HTTPS | The server's ports 80/443 belong to the `financebot` project's Caddy, which gets the certificates for every site on the machine. Its Caddyfile (`/root/financebot/Caddyfile`) forwards `fundupclub.com` to Fundup's own Caddy |
+
+Because another proxy owns 80/443, Fundup runs in *behind-proxy* mode ([deploy/docker-compose.behind-proxy.yml](../deploy/docker-compose.behind-proxy.yml), switched on by `COMPOSE_FILE` in the server's `.env`): its Caddy keeps all of Fundup's routing (website, API, back office, uploaded images) but listens on plain HTTP at `172.18.0.1:8081`, the host's address on the front proxy's Docker network, which the internet can't reach. It trusts the forwarding headers only from private addresses ([deploy/Caddyfile.behind-proxy](../deploy/Caddyfile.behind-proxy)), so rate limits still count each visitor. The front proxy's block for the site:
+
+```
+fundupclub.com {
+	reverse_proxy 172.18.0.1:8081 {
+		flush_interval -1
+		transport http {
+			keepalive 30s
+		}
+	}
+}
+```
+
+To serve `www.fundupclub.com` too, point its DNS at the server and add `www.fundupclub.com { redir https://fundupclub.com{uri} 308 }` to the front proxy. On a server of its own, leave `COMPOSE_FILE`, `SITE_ADDRESS=:80` and `CADDY_BIND` out of `.env`, set `SITE_ADDRESS=fundupclub.com`, and Fundup's Caddy takes ports 80/443 itself.
 
 ## Backups
 

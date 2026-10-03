@@ -65,7 +65,8 @@ test("startups: a new submission shows up within seconds, with only public detai
     await page.goto("/startups");
     await page.getByRole("searchbox").fill(founder.startup);
     await expect(page.getByRole("link", { name: founder.startup }).first()).toBeVisible({ timeout: 1000 });
-  }).toPass({ timeout: 15_000 });
+    // ~1.5 s on an idle dev stack; the dev server under the whole suite's load can take far longer.
+  }).toPass({ timeout: 30_000 });
 
   await page.goto(`/startups/${slug}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(founder.startup);

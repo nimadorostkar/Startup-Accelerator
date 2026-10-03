@@ -176,7 +176,7 @@ test.describe("review panel", () => {
       "score-problem": "Score from 1 to 5.",
       "score-market": "Score from 1 to 5.",
       recommendation: "Pick a recommendation.",
-      summary: "Keep this under 2000 characters.",
+      summary: "Keep this to 2000 characters or fewer.",
     });
 
     // The form's flat fields and the nested shape both work; each save replaces your card.
@@ -209,7 +209,8 @@ test.describe("review panel", () => {
     const founder = await newFounder();
     const api = founder.api;
     await fillApplication(api, `=HYPERLINK("evil") ${tag}`);
-    await api.patch("/me/application/startup", { tagline: '+1 more, with "quotes"\nand a line break' });
+    // A multi-line answer (one-line fields like the tagline refuse line breaks).
+    await api.patch("/me/application/startup", { problem: '+1 more, with "quotes"\nand a line break, which is long enough to count as an answer to the problem question.' });
     await api.post("/me/application/submit", { confirm: true });
 
     const r = await reviewer();
@@ -224,7 +225,9 @@ test.describe("review panel", () => {
     const header = text.split("\r\n")[0].split(",");
     expect(header).toHaveLength(33);
     expect(text).toContain(`"'=HYPERLINK(""evil"") ${tag}"`); // a formula, defused and escaped
-    expect(text).toContain(`"'+1 more, with ""quotes""\nand a line break"`);
+    expect(text).toContain(
+      `"'+1 more, with ""quotes""\nand a line break, which is long enough to count as an answer to the problem question."`,
+    );
     expect(text).toContain(founder.email);
     await Promise.all([r.dispose(), api.dispose()]);
   });
