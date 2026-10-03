@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "seed:demo": "node scripts/seed-demo.mts"
+    "lint": "eslint"
   },
   "dependencies": {
     "next": "16.3.6",

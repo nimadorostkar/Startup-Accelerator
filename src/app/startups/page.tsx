@@ -7,7 +7,6 @@ import Directory, {
 } from "@/components/startups/Directory";
 import Eyebrow from "@/components/ui/Eyebrow";
 import UnicornCta from "@/components/UnicornCta";
-import { toCard } from "@/lib/application/directory";
 import { listPublicStartups } from "@/lib/application/public";
 
 export const metadata: Metadata = {
@@ -16,8 +15,8 @@ export const metadata: Metadata = {
     "Every startup that has applied to the Fundup Club program, from first idea to funded, with where each one is in the process.",
 };
 
-// Reads the live application store on every request.
-export const dynamic = "force-dynamic";
+// Rendered per request from the API's directory (cached for a minute and
+// refreshed the moment an application is submitted or decided).
 
 export default async function StartupsPage({
   searchParams,
@@ -106,7 +105,7 @@ export default async function StartupsPage({
         >
           <div className="mx-auto max-w-[1720px] lg:px-6">
             {all.length > 0 ? (
-              <Directory startups={all.map(toCard)} initial={initial} />
+              <Directory startups={all} initial={initial} />
             ) : (
               <div className="rounded-[18px] border border-dashed border-line px-6 py-16 text-center">
                 <p className="font-display text-[20px] font-bold text-ink">

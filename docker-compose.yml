@@ -1,0 +1,137 @@
+# Fundup Club — production stack.
+#
+#   cp .env.example .env    # then fill it in
+#   docker compose up -d --build
+#
+# Caddy is the only service with public ports. It serves the website (Next.js)
+# and routes /api/v1/* and /backoffice/* to the API (Django), with automatic
+# HTTPS for SITE_ADDRESS. The database, Redis and the API stay on the private
+# network. Local development: see docker-compose.dev.yml.
+
+name: fundup
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-backend: &backend
+  build:
+    context: ./backend
+  image: fundup-backend:latest
+  env_file:
+    - path: .env
+      required: false
+  environment: &backend-env
+    DATABASE_URL: postgres://${POSTGRES_USER:-fundup}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-fundup}
+    REDIS_URL: redis://redis:6379/1
+    CELERY_BROKER_URL: redis://redis:6379/0
+    FRONTEND_INTERNAL_URL: http://frontend:3000
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+  logging: *logging
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fundup}
+      POSTGRES_USER: ${POSTGRES_USER:-fundup}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    command: >
+      postgres -c max_connections=100 -c shared_buffers=256MB -c effective_cache_size=768MB
+      -c work_mem=8MB -c maintenance_work_mem=64MB -c log_min_duration_statement=500
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    shm_size: 256mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    logging: *logging
+
+  redis:
+    image: redis:7.4-alpine
+    # Cache keys all expire, queued jobs don't: evicting only keys with a TTL
+    # means a full cache can never drop a queued email.
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy volatile-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    logging: *logging
+
+  backend:
+    <<: *backend
+    command: web
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "1"
+
+  worker:
+    <<: *backend
+    command: worker
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping -d celery@$$HOSTNAME --timeout 5 >/dev/null || exit 1"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+
+  beat:
+    <<: *backend
+    command: beat
+    healthcheck:
+      disable: true
+
+  frontend:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SITE_URL: ${SITE_URL:?set SITE_URL in .env}
+    image: fundup-frontend:latest
+    environment:
+      BACKEND_URL: http://backend:8000
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *logging
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  pgdata:
+  redisdata:
+  caddy_data:
+  caddy_config:

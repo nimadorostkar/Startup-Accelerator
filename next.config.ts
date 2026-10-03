@@ -11,6 +11,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // A self-contained server (.next/standalone) for the Docker image.
+  output: "standalone",
   poweredByHeader: false,
   images: {
     // Serve AVIF where supported, WebP otherwise.

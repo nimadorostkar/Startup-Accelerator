@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Countdown from "@/components/events/Countdown";
 import EventTicket, { FormatBadge } from "@/components/events/EventTicket";
-import {
-  EVENT_TYPES,
-  eventDate,
-  pastEvents,
-  upcomingEvents,
-} from "@/components/events/events";
+import { EVENT_TYPES, eventDate } from "@/components/events/events";
 import Footer from "@/components/Footer";
 import { ArrowRight, CheckIcon } from "@/components/icons";
 import Reveal from "@/components/motion/Reveal";
@@ -15,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import SubscribeForm from "@/components/newsletter/SubscribeForm";
 import Eyebrow from "@/components/ui/Eyebrow";
 import FilterList from "@/components/ui/FilterList";
+import { pastEvents, upcomingEvents } from "@/lib/events";
 
 export const metadata: Metadata = {
   title: "Events — Fundup Club",
@@ -22,12 +18,10 @@ export const metadata: Metadata = {
     "Demo Days, workshops, office hours and founder meetups, online and in cities around the world. Free to attend.",
 };
 
-// Upcoming vs past is decided when the page renders, so refresh hourly.
-export const revalidate = 3600;
-
-export default function EventsPage() {
-  const upcoming = upcomingEvents();
-  const past = pastEvents().slice(0, 3);
+// Events come from the API at request time (cached for a minute), and
+// upcoming vs past is decided as the page renders.
+export default async function EventsPage() {
+  const [upcoming, past] = await Promise.all([upcomingEvents(), pastEvents().then((p) => p.slice(0, 3))]);
   const featured = upcoming.find((e) => e.type === "Demo Day") ?? upcoming[0];
   const cities = new Set(
     upcoming.filter((e) => e.format === "In person").map((e) => e.city),

@@ -1,0 +1,131 @@
+import json
+
+from django.conf import settings
+from django.contrib import admin
+from django.utils.html import format_html
+
+from .models import Application, ApplicationEvent, InternalNote, Scorecard
+
+
+def pretty(data) -> str:
+    return format_html(
+        '<pre style="white-space:pre-wrap;max-width:900px;margin:0">{}</pre>',
+        json.dumps(data, indent=2, ensure_ascii=False),
+    )
+
+
+class EventInline(admin.TabularInline):
+    model = ApplicationEvent
+    extra = 0
+    fields = ("at", "by", "kind", "title", "body", "actor")
+    readonly_fields = fields
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class ScorecardInline(admin.TabularInline):
+    model = Scorecard
+    extra = 0
+    fields = (
+        "reviewer",
+        "problem",
+        "solution",
+        "market",
+        "team",
+        "traction",
+        "recommendation",
+        "summary",
+        "updated_at",
+    )
+    readonly_fields = fields
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class NoteInline(admin.TabularInline):
+    model = InternalNote
+    extra = 0
+    fields = ("at", "author", "body")
+    readonly_fields = fields
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Application)
+class ApplicationAdmin(admin.ModelAdmin):
+    """Read-mostly: reviewing happens on the website's review panel, where every rule is enforced.
+    Use this for look-ups, fixing a public address, or deleting an application on request."""
+
+    list_display = (
+        "__str__",
+        "founder_name",
+        "email",
+        "status",
+        "stage",
+        "industry",
+        "submitted_at",
+        "updated_at",
+        "team_score",
+    )
+    list_filter = ("status", "stage", "industry")
+    search_fields = ("startup_name", "founder_name", "user__email", "tagline", "slug")
+    date_hierarchy = "created_at"
+    list_select_related = ("user", "assignee")
+    inlines = [EventInline, ScorecardInline, NoteInline]
+    fields = (
+        "user",
+        "status",
+        "slug",
+        "assignee",
+        "review_link",
+        "created_at",
+        "updated_at",
+        "submitted_at",
+        "team_score",
+        "profile_json",
+        "startup_json",
+        "team_json",
+    )
+    readonly_fields = (
+        "user",
+        "status",
+        "assignee",
+        "review_link",
+        "created_at",
+        "updated_at",
+        "submitted_at",
+        "team_score",
+        "profile_json",
+        "startup_json",
+        "team_json",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.display(description="Email", ordering="user__email")
+    def email(self, obj):
+        return obj.user.email
+
+    @admin.display(description="Review panel")
+    def review_link(self, obj):
+        url = f"{settings.SITE_URL}/admin/applications/{obj.user_id}"
+        return format_html('<a href="{}" target="_blank" rel="noopener">{}</a>', url, url)
+
+    @admin.display(description="Profile")
+    def profile_json(self, obj):
+        return pretty(obj.profile_data)
+
+    @admin.display(description="Startup")
+    def startup_json(self, obj):
+        return pretty(obj.startup_data)
+
+    @admin.display(description="Team")
+    def team_json(self, obj):
+        return pretty(obj.team_data)

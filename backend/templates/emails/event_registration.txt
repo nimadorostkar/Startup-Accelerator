@@ -1,0 +1,12 @@
+{% autoescape off %}Hi {{ name }},
+
+You're registered for {{ title }}.
+
+When: {{ when }}
+{% if online %}Joining link: {{ where }}{% else %}Where: {{ where }}{% endif %}
+
+The calendar invite is attached. We'll send a reminder the day before.
+
+{{ action_url }}
+
+— The Fundup Club team{% endautoescape %}

@@ -1,3 +1,5 @@
+import { unstable_rethrow } from "next/navigation";
+import { connection } from "next/server";
 import {
   PUBLIC_STATUS_ORDER,
   type StartupCardData,
@@ -10,8 +12,8 @@ import Eyebrow from "./ui/Eyebrow";
 
 /* Landing: "Building with us right now". Every submitted startup (cohort
    first, then in review, then applied; newest first within each), filtered
-   and paged in the browser by startup-list/Browser. Read from the live
-   application store, like /startups; the landing page rebuilds hourly. */
+   and paged in the browser by startup-list/Browser. Read from the API's
+   public directory, like /startups (cached for a minute, refreshed on change). */
 
 const WEEK = 7 * 86_400_000;
 
@@ -37,8 +39,20 @@ function toItems(all: StartupCardData[], now = Date.now()): ListItem[] {
     }));
 }
 
+/** The landing page still renders if the directory can't be loaded; this section just shows its empty state. */
+async function startupsOrNone() {
+  await connection(); // outside the try: Next signals "render at request time" by throwing
+  try {
+    return await listPublicStartups();
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error(err);
+    return [];
+  }
+}
+
 export default async function StartupList() {
-  const all = await listPublicStartups();
+  const all = await startupsOrNone();
   const items = toItems(all);
   const industries = new Set(all.map((s) => s.industry).filter(Boolean)).size;
   const countries = new Set(all.map((s) => s.country).filter(Boolean)).size;

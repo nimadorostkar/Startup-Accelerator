@@ -7,10 +7,11 @@ import Field from "./Field";
 import FormBanner from "./FormBanner";
 import SubmitButton from "./SubmitButton";
 
-export default function LoginForm() {
+/** `notice` is shown in the banner before the first submit (e.g. a failed Google sign-in). */
+export default function LoginForm({ notice }: { notice?: string }) {
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     login,
-    {},
+    notice ? { message: notice } : {},
   );
   /* Held here so "Forgot password?" can carry the address across. */
   const [email, setEmail] = useState(state.values?.email ?? "");

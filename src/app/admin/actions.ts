@@ -1,18 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { event } from "@/lib/application/dal";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { notFound, redirect } from "next/navigation";
+import { api, BackendUnavailable, UNAVAILABLE } from "@/lib/api";
 import { DECISIONS, type Decision } from "@/lib/application/decisions";
-import { mutateForReview, reviewOf, ReviewRejected } from "@/lib/application/review";
-import {
-  RECOMMENDATIONS,
-  SCORE_AREAS,
-  STATUSES,
-  type Scorecard,
-  type Status,
-  type StoredApplication,
-} from "@/lib/application/types";
-import { maxLength, oneOf, readString, type FieldErrors } from "@/lib/validation";
+import { SCORE_AREAS } from "@/lib/application/types";
+import { readString, type FieldErrors } from "@/lib/validation";
+
+/* The review panel's actions. The API checks the reviewer role and every
+   rule (which decisions are allowed from the stored status, so two reviewers
+   can't both decide; one scorecard per reviewer; message rules) and emails
+   the founder about decisions. See backend/apps/applications/services.py. */
 
 export type ReviewState = {
   ok?: boolean;
@@ -23,167 +21,93 @@ export type ReviewState = {
   savedAt?: string;
 };
 
-/* Runs a reviewer change and refreshes both sides: the admin pages, and the
-   founder's dashboard (which shows status changes and messages). */
-async function commit(
-  id: string,
-  form: FormData | null,
-  change: Parameters<typeof mutateForReview>[1],
-  message: string,
-): Promise<ReviewState> {
-  try {
-    await mutateForReview(id, change);
-  } catch (err) {
-    if (err instanceof ReviewRejected) {
-      const values = form ? echo(form) : undefined;
-      return err.field
-        ? { ok: false, errors: { [err.field]: err.message }, values }
-        : { ok: false, message: err.message, values };
-    }
-    throw err; // includes Next's redirect / not-found signals
-  }
-  revalidatePath("/admin", "layout");
-  revalidatePath("/dashboard", "layout");
-  return { ok: true, message, savedAt: new Date().toISOString() };
-}
-
 function echo(form: FormData) {
   const values: Record<string, string> = {};
   for (const [k, v] of form) if (typeof v === "string" && !k.startsWith("$")) values[k] = v;
   return values;
 }
 
+/* Sends a reviewer change and refreshes both sides: the admin pages, and the
+   founder's dashboard (which shows status changes and messages). */
+async function send(
+  id: string,
+  tail: string,
+  method: "POST" | "PUT" | "DELETE",
+  body: unknown,
+  form: FormData | null,
+  message: string,
+): Promise<ReviewState> {
+  const values = form ? echo(form) : undefined;
+  let result;
+  try {
+    result = await api(`/admin/applications/${encodeURIComponent(id)}${tail}`, { method, body, auth: true });
+  } catch (err) {
+    if (err instanceof BackendUnavailable) {
+      console.error(err);
+      return { ok: false, message: UNAVAILABLE, values };
+    }
+    throw err;
+  }
+  if (result.status === 401) redirect("/login");
+  if (!result.ok) {
+    // 404 means "not a reviewer" (or no such application): show the 404 page,
+    // unless the application was deleted while the page was open.
+    if (result.status === 404 && !result.error.message?.includes("no longer exists")) notFound();
+    const { errors, message: refusal } = result.error;
+    // Field problems show under their fields, like the rest of the panel.
+    return errors ? { ok: false, errors, values } : { ok: false, message: refusal, values };
+  }
+  revalidatePath("/admin", "layout");
+  revalidatePath("/dashboard", "layout");
+  revalidateTag("startups", { expire: 0 });
+  return { ok: true, message, savedAt: new Date().toISOString() };
+}
+
 /* ---------- Decisions ---------- */
 
 export async function decide(id: string, _prev: ReviewState, form: FormData): Promise<ReviewState> {
   const decision = readString(form, "decision");
-  const note = readString(form, "message");
-  if (!oneOf(decision, Object.keys(DECISIONS) as Decision[]))
-    return { ok: false, message: "Pick a decision." };
-  const rule = DECISIONS[decision];
-
-  const tooLong = maxLength(note, 2000);
-  if (tooLong) return { ok: false, errors: { message: tooLong }, values: echo(form) };
-  if (rule.message === "required" && note.length < 20)
-    return {
-      ok: false,
-      errors: { message: "Tell the founder what to change — at least a sentence or two." },
-      values: echo(form),
-    };
-
-  return commit(
+  const label = DECISIONS[decision as Decision]?.label ?? "Decision";
+  return send(
     id,
+    "/decisions",
+    "POST",
+    { decision, message: readString(form, "message") },
     form,
-    (app, reviewer) => {
-      // Checked against the stored status, so two reviewers can't both decide.
-      if (!(rule.from as readonly Status[]).includes(app.status))
-        throw new ReviewRejected(
-          `Someone got there first — this application is now "${STATUSES[app.status].label}". Refresh to see the latest.`,
-        );
-      const review = reviewOf(app);
-      const next: StoredApplication = {
-        ...app,
-        status: rule.to,
-        events: [...app.events, event("status", rule.title, note || undefined, "support")],
-        // Starting a review claims it, unless someone already has.
-        review:
-          decision === "start_review" && !review.assigneeId
-            ? { ...review, assigneeId: reviewer.id, assigneeName: reviewer.name }
-            : review,
-      };
-      // TODO: email the founder here (status + message) so they don't have to check the dashboard.
-      return next;
-    },
-    `${rule.label} — done. The founder can see this on their dashboard.`,
+    `${label} — done. The founder can see this on their dashboard and gets an email.`,
   );
 }
 
 /* ---------- Assignment ---------- */
 
 export async function assignToMe(id: string): Promise<ReviewState> {
-  return commit(
-    id,
-    null,
-    (app, reviewer) => ({
-      ...app,
-      review: { ...reviewOf(app), assigneeId: reviewer.id, assigneeName: reviewer.name },
-    }),
-    "Assigned to you.",
-  );
+  return send(id, "/assignee", "PUT", undefined, null, "Assigned to you.");
 }
 
 export async function unassign(id: string): Promise<ReviewState> {
-  return commit(
-    id,
-    null,
-    (app) => ({ ...app, review: { ...reviewOf(app), assigneeId: null, assigneeName: null } }),
-    "Unassigned.",
-  );
+  return send(id, "/assignee", "DELETE", undefined, null, "Unassigned.");
 }
 
 /* ---------- Scorecard ---------- */
 
 export async function saveScorecard(id: string, _prev: ReviewState, form: FormData): Promise<ReviewState> {
-  const scores: Scorecard["scores"] = {};
-  const errors: FieldErrors = {};
-  for (const area of SCORE_AREAS) {
-    const raw = readString(form, `score-${area.id}`);
-    if (!raw) continue;
-    const n = Number(raw);
-    if (!Number.isInteger(n) || n < 1 || n > 5) errors[`score-${area.id}`] = "Score from 1 to 5.";
-    else scores[area.id] = n;
-  }
-  const recommendation = readString(form, "recommendation");
-  if (recommendation && !oneOf(recommendation, RECOMMENDATIONS.map((r) => r.id)))
-    errors.recommendation = "Pick a recommendation.";
-  const summary = readString(form, "summary");
-  const tooLong = maxLength(summary, 2000);
-  if (tooLong) errors.summary = tooLong;
-  if (Object.keys(errors).length) return { ok: false, errors, values: echo(form) };
-
-  return commit(
-    id,
-    form,
-    (app, reviewer) => {
-      const review = reviewOf(app);
-      const card: Scorecard = {
-        reviewerId: reviewer.id,
-        reviewerName: reviewer.name,
-        scores,
-        recommendation: recommendation as Scorecard["recommendation"],
-        summary,
-        updatedAt: new Date().toISOString(),
-      };
-      // Each reviewer has exactly one scorecard; saving replaces theirs.
-      const scorecards = [...review.scorecards.filter((c) => c.reviewerId !== reviewer.id), card];
-      return { ...app, review: { ...review, scorecards } };
-    },
-    "Scorecard saved.",
-  );
+  const body: Record<string, string> = {
+    recommendation: readString(form, "recommendation"),
+    summary: readString(form, "summary"),
+  };
+  for (const area of SCORE_AREAS) body[`score-${area.id}`] = readString(form, `score-${area.id}`);
+  return send(id, "/scorecard", "PUT", body, form, "Scorecard saved.");
 }
 
 /* ---------- Internal notes ---------- */
 
 export async function addNote(id: string, _prev: ReviewState, form: FormData): Promise<ReviewState> {
-  const body = readString(form, "body");
-  if (!body) return { ok: false, errors: { body: "Write a note first." } };
-  const tooLong = maxLength(body, 2000);
-  if (tooLong) return { ok: false, errors: { body: tooLong }, values: echo(form) };
-
-  return commit(
+  return send(
     id,
+    "/notes",
+    "POST",
+    { body: readString(form, "body") },
     form,
-    (app, reviewer) => {
-      const review = reviewOf(app);
-      const note = {
-        id: crypto.randomUUID(),
-        at: new Date().toISOString(),
-        authorId: reviewer.id,
-        authorName: reviewer.name,
-        body,
-      };
-      return { ...app, review: { ...review, notes: [...review.notes, note] } };
-    },
     "Note added. Only the review team can see it.",
   );
 }

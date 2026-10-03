@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ExternalIcon } from "@/components/dashboard/icons";
 import Footer from "@/components/Footer";
 import { ArrowRight, CheckIcon } from "@/components/icons";
@@ -12,21 +11,20 @@ import {
   compact,
   formatDay,
   formatMonth,
-  toCard,
-  type PublicStartup,
+  type StartupCardData,
 } from "@/lib/application/directory";
 import {
   findPublicStartup,
   listPublicStartups,
 } from "@/lib/application/public";
 
-export const dynamic = "force-dynamic";
+/* Rendered per request from the API's directory (cached for a minute and
+   refreshed the moment an application is submitted or decided). */
 
 export async function generateMetadata({
   params,
 }: PageProps<"/startups/[slug]">): Promise<Metadata> {
   const s = await findPublicStartup((await params).slug);
-  if (!s) return {};
   return {
     title: `${s.name} — Startups · Fundup Club`,
     description: s.tagline || `${s.name} on Fundup Club.`,
@@ -98,8 +96,7 @@ export default async function StartupPage({
   params,
 }: PageProps<"/startups/[slug]">) {
   const { slug } = await params;
-  const s = await findPublicStartup(slug);
-  if (!s) notFound();
+  const s = await findPublicStartup(slug); // 404s on its own
 
   const others = (await listPublicStartups()).filter((x) => x.slug !== slug);
   const related = [
@@ -478,9 +475,9 @@ export default async function StartupPage({
                 </Link>
               </div>
               <ul className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {related.map((r: PublicStartup) => (
+                {related.map((r: StartupCardData) => (
                   <li key={r.slug}>
-                    <StartupCard s={toCard(r)} />
+                    <StartupCard s={r} />
                   </li>
                 ))}
               </ul>

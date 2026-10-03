@@ -1,0 +1,9 @@
+{% autoescape off %}New message from the contact form.
+
+From: {{ name }} <{{ email }}>{% if company %}
+Company: {{ company }}{% endif %}
+About: {{ topic }}
+
+{{ message }}
+
+Reply to this email to answer {{ name }} directly.{% endautoescape %}

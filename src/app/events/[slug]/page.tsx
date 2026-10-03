@@ -3,33 +3,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Countdown from "@/components/events/Countdown";
 import EventTicket, { FormatBadge } from "@/components/events/EventTicket";
-import {
-  EVENTS,
-  eventDate,
-  findEvent,
-  googleCalendarUrl,
-  isPast,
-  upcomingEvents,
-} from "@/components/events/events";
+import { eventDate, googleCalendarUrl, isPast } from "@/components/events/events";
 import RegisterForm from "@/components/events/RegisterForm";
 import Footer from "@/components/Footer";
 import { ArrowRight, CalendarIcon, CheckIcon } from "@/components/icons";
 import { UsersIcon } from "@/components/journey/icons";
 import Navbar from "@/components/Navbar";
+import { findEvent, upcomingEvents } from "@/lib/events";
 
-export const dynamicParams = false;
-export const revalidate = 3600;
-
-export function generateStaticParams() {
-  return EVENTS.map((e) => ({ slug: e.slug }));
-}
+/* Events come from the API at request time (cached for a minute); unknown
+   or unpublished slugs are a 404. */
 
 export async function generateMetadata({
   params,
 }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const e = findEvent(slug);
-  if (!e) return {};
+  const e = await findEvent(slug);
+  if (!e) notFound(); // keeps the 404 page's own title
   return { title: `${e.title} — Fundup Club Events`, description: e.summary };
 }
 
@@ -55,14 +45,12 @@ export default async function EventPage({
   params,
 }: PageProps<"/events/[slug]">) {
   const { slug } = await params;
-  const e = findEvent(slug);
+  const e = await findEvent(slug);
   if (!e) notFound();
 
   const ended = isPast(e);
   const d = eventDate(e);
-  const more = upcomingEvents()
-    .filter((x) => x.slug !== e.slug)
-    .slice(0, 3);
+  const more = (await upcomingEvents()).filter((x) => x.slug !== e.slug).slice(0, 3);
 
   const facts = [
     { Icon: CalendarIcon, label: d.long, sub: d.time },

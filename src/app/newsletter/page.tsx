@@ -7,10 +7,11 @@ import Reveal from "@/components/motion/Reveal";
 import Navbar from "@/components/Navbar";
 import Cover from "@/components/newsletter/Cover";
 import PostCard from "@/components/newsletter/PostCard";
-import { CATEGORIES, formatDate, POSTS } from "@/components/newsletter/posts";
+import { CATEGORIES, formatDate } from "@/components/newsletter/posts";
 import SubscribeForm from "@/components/newsletter/SubscribeForm";
 import Eyebrow from "@/components/ui/Eyebrow";
 import FilterList from "@/components/ui/FilterList";
+import { listPosts } from "@/lib/newsletter";
 
 export const metadata: Metadata = {
   title: "Newsletter — The Founder Brief · Fundup Club",
@@ -20,8 +21,9 @@ export const metadata: Metadata = {
 
 const PERKS = ["Every other Thursday", "A 5-minute read", "Free, always"];
 
-export default function NewsletterPage() {
-  const featured = POSTS[0];
+export default async function NewsletterPage() {
+  const posts = await listPosts();
+  const featured = posts[0]; // newest first; undefined until the first issue is published
 
   return (
     <>
@@ -75,6 +77,7 @@ export default function NewsletterPage() {
             </div>
 
             {/* Inbox preview: the latest issue as it lands */}
+            {featured && (
             <Reveal
               delay={200}
               y={40}
@@ -125,10 +128,12 @@ export default function NewsletterPage() {
                 </span>
               </Link>
             </Reveal>
+            )}
           </div>
         </section>
 
         {/* Featured */}
+        {featured && (
         <section
           aria-labelledby="featured-title"
           className="px-4 pt-16 sm:px-8 sm:pt-24"
@@ -177,6 +182,7 @@ export default function NewsletterPage() {
             </Reveal>
           </div>
         </section>
+        )}
 
         {/* Latest */}
         <section
@@ -200,8 +206,8 @@ export default function NewsletterPage() {
               emptyText="No articles in this topic yet."
               listClassName="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
               categories={CATEGORIES}
-              hideOnAll={featured.slug}
-              items={POSTS.map((post) => ({
+              hideOnAll={featured?.slug}
+              items={posts.map((post) => ({
                 key: post.slug,
                 category: post.category,
                 node: <PostCard post={post} />,

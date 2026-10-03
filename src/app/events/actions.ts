@@ -1,6 +1,6 @@
 "use server";
 
-import { findEvent, isPast } from "@/components/events/events";
+import { unstable_rethrow } from "next/navigation";
 import { addRegistration } from "@/lib/events";
 import {
   checkEmail,
@@ -28,10 +28,7 @@ export async function registerForEvent(
   const company = readString(form, "company");
   const values = { name, email, company };
 
-  const event = findEvent(slug);
-  if (!event) return { message: "We couldn't find that event.", values };
-  if (isPast(event))
-    return { message: "Registration for this event has closed.", values };
+  // Unknown, ended and full events are refused by the API, whatever the page showed.
 
   // Honeypot: hidden from people, filled in by most bots. Pretend it worked.
   if (readString(form, "website"))
@@ -45,9 +42,12 @@ export async function registerForEvent(
   if (errors) return { errors, values };
 
   try {
-    const added = await addRegistration({ event: slug, name, email, company });
-    return { done: { name, email, existing: !added } };
-  } catch {
+    const result = await addRegistration({ event: slug, name, email, company });
+    if (!result.ok) return { message: result.errors ? undefined : result.message, errors: result.errors, values };
+    return { done: { name, email, existing: result.existing } };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error(err);
     return {
       message: "We couldn't save your registration just now. Please try again.",
       values,

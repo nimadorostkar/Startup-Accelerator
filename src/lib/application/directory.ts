@@ -94,39 +94,6 @@ export type PublicStartup = StartupCardData & {
   timeline: { at: string; title: string }[];
 };
 
-export function toCard(s: PublicStartup): StartupCardData {
-  const {
-    slug,
-    name,
-    tagline,
-    industry,
-    stage,
-    stageLabel,
-    country,
-    foundedOn,
-    status,
-    appliedAt,
-    founders,
-    users,
-    customers,
-  } = s;
-  return {
-    slug,
-    name,
-    tagline,
-    industry,
-    stage,
-    stageLabel,
-    country,
-    foundedOn,
-    status,
-    appliedAt,
-    founders,
-    users,
-    customers,
-  };
-}
-
 /* ---------- Helpers ---------- */
 
 export function slugify(name: string) {

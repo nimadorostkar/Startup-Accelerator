@@ -1,0 +1,6 @@
+{% autoescape off %}{% if resubmitted %}A founder resubmitted after a change request:{% else %}A new application is waiting for review:{% endif %}
+
+{{ startup }}{% if tagline %} — {{ tagline }}{% endif %}
+Founder: {{ founder|default:"(no name yet)" }}
+
+{{ action_url }}{% endautoescape %}

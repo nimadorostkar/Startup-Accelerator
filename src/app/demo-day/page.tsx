@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Roadmap from "@/components/demo-day/Roadmap";
 import Countdown from "@/components/events/Countdown";
-import { eventDate, upcomingEvents } from "@/components/events/events";
+import { eventDate } from "@/components/events/events";
 import Accordion, { type QA } from "@/components/faq/Accordion";
 import Footer from "@/components/Footer";
 import { ArrowRight, CalendarIcon, CheckIcon } from "@/components/icons";
@@ -15,15 +15,13 @@ import { LEFT, RIGHT } from "@/components/results/data";
 import TestimonialCard from "@/components/results/TestimonialCard";
 import ButtonLink from "@/components/ui/ButtonLink";
 import Eyebrow from "@/components/ui/Eyebrow";
+import { nextDemoDay } from "@/lib/events";
 
 export const metadata: Metadata = {
   title: "Demo Day — Fundup Club",
   description:
     "Ten weeks of building, one afternoon on stage. How Demo Day works, where it sits in the six-stage program, and what founders walk away with.",
 };
-
-// "Next Demo Day" depends on today's date, so refresh hourly.
-export const revalidate = 3600;
 
 const DEMO = STAGES.find((s) => s.id === "demo-day")!;
 const STAGE_NO = STAGES.indexOf(DEMO) + 1;
@@ -107,8 +105,9 @@ const FAQS: QA[] = [
   },
 ];
 
-export default function DemoDayPage() {
-  const next = upcomingEvents().find((e) => e.type === "Demo Day");
+// "Next Demo Day" comes from the events API at request time (cached for a minute).
+export default async function DemoDayPage() {
+  const next = await nextDemoDay();
   const nextDate = next && eventDate(next);
 
   return (

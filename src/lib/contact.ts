@@ -1,13 +1,10 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
-import { updateJsonFile } from "./json-file";
+import { api } from "./api";
 
 /* ══════════════════════════════════════════════════════════════════════
-   STORAGE SWAP POINT — contact form messages.
-
-   Saved to `.data/messages.json` for local development. Replace
-   saveContactMessage with a database insert and/or an email to the team
-   before launch; nothing here notifies anyone.
+   CONTACT FORM — messages are stored by the API (backend/apps/content),
+   which emails them to the support team (SUPPORT_EMAILS) with the sender
+   as reply-to. They're also listed in the back office (/backoffice/).
    ══════════════════════════════════════════════════════════════════════ */
 
 export const CONTACT_TOPICS = [
@@ -21,28 +18,16 @@ export const CONTACT_TOPICS = [
 export type ContactTopic = (typeof CONTACT_TOPICS)[number];
 
 export type ContactMessage = {
-  id: string;
   name: string;
   email: string;
   company: string;
   topic: ContactTopic;
   message: string;
-  createdAt: string;
 };
 
-export function saveContactMessage(
-  input: Omit<ContactMessage, "id" | "createdAt">,
-): Promise<ContactMessage> {
-  return updateJsonFile<ContactMessage[], ContactMessage>(
-    "messages.json",
-    [],
-    (all) => {
-      const saved = {
-        ...input,
-        id: randomUUID(),
-        createdAt: new Date().toISOString(),
-      };
-      return { next: [...all, saved], result: saved };
-    },
-  );
+export type SendResult = { ok: true } | { ok: false; message?: string; errors?: Record<string, string> };
+
+export async function saveContactMessage(input: ContactMessage): Promise<SendResult> {
+  const result = await api("/contact", { method: "POST", body: input });
+  return result.ok ? { ok: true } : { ok: false, message: result.error.message, errors: result.error.errors };
 }

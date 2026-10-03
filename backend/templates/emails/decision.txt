@@ -1,0 +1,11 @@
+{% autoescape off %}Hi {{ name }},
+
+{{ intro }}{% if message %}
+
+A message from the review team:
+
+{{ message }}{% endif %}
+
+{{ action_url }}
+
+— The Fundup Club team{% endautoescape %}

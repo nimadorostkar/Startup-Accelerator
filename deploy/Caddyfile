@@ -1,0 +1,47 @@
+# Fundup Club — reverse proxy with automatic HTTPS.
+#
+# SITE_ADDRESS is your domain (e.g. fundup.club): Caddy fetches and renews the
+# certificate itself. Use "http://localhost" to run the stack locally without TLS.
+{
+	servers {
+		# Believe X-Forwarded-For only from a load balancer on a private network;
+		# anything a visitor sends is replaced with their real address.
+		trusted_proxies static private_ranges
+	}
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	request_body {
+		max_size 2MB
+	}
+
+	# The API and the back office (Django)
+	@django path /api/v1/* /backoffice/*
+	handle @django {
+		reverse_proxy backend:8000 {
+			header_up X-Request-ID {http.request.uuid}
+		}
+	}
+
+	# Everything else is the website (Next.js), streamed without buffering
+	handle {
+		reverse_proxy frontend:3000 {
+			flush_interval -1
+			header_up X-Request-ID {http.request.uuid}
+		}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

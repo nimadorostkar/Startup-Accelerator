@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 import {
   createAccount,
   requestPasswordReset,
+  resetPassword,
   signInWithPassword,
   startGoogleOAuth,
+  verifyEmail,
 } from "@/lib/auth";
 import {
   checkEmail,
@@ -108,4 +110,36 @@ export async function continueWithGoogle(): Promise<AuthFormState> {
   if (result.ok) redirect(result.redirectTo);
 
   return { message: result.message };
+}
+
+/** Sets the new password from the emailed link; success signs the user in. */
+export async function chooseNewPassword(
+  _prev: AuthFormState,
+  form: FormData,
+): Promise<AuthFormState> {
+  const token = readString(form, "token");
+  const password = readString(form, "password");
+
+  const errors = collect([["password", checkNewPassword(password)]]);
+  if (errors) return { errors };
+  if (!token)
+    return { message: "This reset link is incomplete. Request a new one below." };
+
+  const result = await resetPassword({ token, password });
+  if (result.ok) redirect(result.redirectTo);
+  return { message: result.message, errors: result.fieldErrors };
+}
+
+export type VerifyState = { ok?: boolean; message?: string };
+
+/* A button press rather than the page load confirms the address, so mail
+   scanners that open every link can't use the token up first. */
+export async function confirmEmail(
+  _prev: VerifyState,
+  form: FormData,
+): Promise<VerifyState> {
+  const result = await verifyEmail(readString(form, "token"));
+  return result.ok
+    ? { ok: true }
+    : { ok: false, message: result.message ?? "That link didn't work." };
 }

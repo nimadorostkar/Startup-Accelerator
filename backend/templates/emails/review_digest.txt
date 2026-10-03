@@ -1,0 +1,6 @@
+{% autoescape off %}These applications have waited {{ sla_days }}+ days. Founders are told reviews start within {{ sla_days }} working days.
+{% for item in items %}
+- {{ item.startup }}{% if item.founder %} ({{ item.founder }}){% endif %}: waiting {{ item.days }} days
+  {{ item.url }}{% endfor %}
+
+{{ action_url }}{% endautoescape %}

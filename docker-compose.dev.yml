@@ -1,0 +1,66 @@
+# Local development, layered on the production file:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   npm run dev            # the website, on http://localhost:3000
+#
+# Starts Postgres, Redis, the API (auto-reloading, code mounted), a worker and
+# Mailpit, which catches every email (http://localhost:8025). The production
+# frontend and Caddy only start with `--profile full`.
+#
+# Ports are bound to 127.0.0.1 and can be moved if they clash with something
+# else on your machine: DEV_DB_PORT, DEV_REDIS_PORT, DEV_API_PORT, DEV_MAIL_PORT.
+# If you move the API, point the website at it with BACKEND_URL in .env.
+
+services:
+  db:
+    ports:
+      - "127.0.0.1:${DEV_DB_PORT:-5433}:5432"
+
+  redis:
+    ports:
+      - "127.0.0.1:${DEV_REDIS_PORT:-6380}:6379"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:${DEV_MAIL_PORT:-8025}:8025"
+    restart: unless-stopped
+
+  backend:
+    command: ["sh", "-c", "python manage.py wait_for_db && python manage.py migrate_safely && python manage.py seed_content --if-empty && exec python manage.py runserver 0.0.0.0:8000"]
+    entrypoint: []
+    user: root
+    ports:
+      - "127.0.0.1:${DEV_API_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+    environment: &dev-env
+      DATABASE_URL: postgres://${POSTGRES_USER:-fundup}:${POSTGRES_PASSWORD:-fundup}@db:5432/${POSTGRES_DB:-fundup}
+      REDIS_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: "*"
+      SITE_URL: http://localhost:3000
+      COOKIE_SECURE: "false"
+      EMAIL_HOST: mailpit
+      EMAIL_PORT: "1025"
+      EMAIL_USE_TLS: "false"
+      FRONTEND_INTERNAL_URL: http://host.docker.internal:3000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  worker:
+    volumes:
+      - ./backend:/app
+    environment: *dev-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  beat:
+    profiles: ["full"]
+
+  frontend:
+    profiles: ["full"]
+
+  caddy:
+    profiles: ["full"]

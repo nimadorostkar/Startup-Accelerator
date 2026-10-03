@@ -11,8 +11,8 @@ import StartupList from "@/components/StartupList";
 import StatsMarquee from "@/components/StatsMarquee";
 import UnicornCta from "@/components/UnicornCta";
 
-/* The hero shows the next Demo Day date; the startup list reads the store */
-export const revalidate = 3600;
+/* The hero shows the next Demo Day and the startup list reads the directory,
+   both from the API at request time (cached for a minute, see lib/api.ts). */
 
 /* Display face of the hero (hero/Hero.module.css). Loaded here rather than in
    the root layout so other routes don't preload it. */

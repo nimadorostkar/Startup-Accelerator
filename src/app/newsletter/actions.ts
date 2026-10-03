@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_rethrow } from "next/navigation";
 import { addSubscriber } from "@/lib/newsletter";
 import { checkEmail, readString } from "@/lib/validation";
 
@@ -26,7 +27,9 @@ export async function subscribe(
   try {
     const added = await addSubscriber(email, source);
     return { done: added ? "new" : "existing", email };
-  } catch {
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error(err);
     return {
       error: "We couldn't sign you up just now. Please try again.",
       email,

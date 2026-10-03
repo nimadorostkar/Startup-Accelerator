@@ -1,0 +1,11 @@
+{% autoescape off %}Welcome to The Founder Brief!
+
+Every other Thursday you'll get a five-minute read on fundraising, building and the founders in our network. It's free, and you can leave any time.
+
+Catch up on the latest issues while you wait:
+
+{{ action_url }}
+
+— The Fundup Club team
+
+Don't want these emails? Unsubscribe: {{ unsubscribe_url }}{% endautoescape %}

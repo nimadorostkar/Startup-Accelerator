@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { eventDate, upcomingEvents } from "./events/events";
+import { nextDemoDay } from "@/lib/events";
+import { eventDate } from "./events/events";
 import { Arrow } from "./hero/Arrow";
 import { PITCHES } from "./hero/demo-day";
 import FoundersPanel from "./hero/FoundersPanel";
@@ -32,8 +33,8 @@ function CalendarGlyph() {
   );
 }
 
-export default function Hero() {
-  const next = upcomingEvents().find((e) => e.type === "Demo Day");
+export default async function Hero() {
+  const next = await nextDemoDay();
   const when = next && eventDate(next);
 
   return (

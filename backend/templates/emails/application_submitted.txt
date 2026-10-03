@@ -1,0 +1,9 @@
+{% autoescape off %}Hi {{ name }},
+
+{% if resubmitted %}Thanks for the update: the review team has your revised application for {{ startup }}, and they'll pick it up from here.{% else %}Thanks for applying to Fundup Club! The review team has your application for {{ startup }}.{% endif %}
+
+The team usually starts a review within {{ sla_days }} working days. You'll get an email whenever something changes, and you can follow along on your dashboard:
+
+{{ action_url }}
+
+— The Fundup Club team{% endautoescape %}

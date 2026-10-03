@@ -4,8 +4,8 @@ import FilterBar from "@/components/admin/FilterBar";
 import { AlertIcon } from "@/components/icons";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import { REVIEW_SLA_DAYS } from "@/lib/application/decisions";
-import { applyFilters, parseFilters, queueHref, TABS } from "@/lib/application/queue";
-import { listForReview, requireReviewer, type QueueRow } from "@/lib/application/review";
+import { parseFilters, queueHref, TABS, type Filters } from "@/lib/application/queue";
+import { getQueue, requireReviewer, type QueueRow } from "@/lib/application/review";
 import { formatMoney, stageLabel } from "@/lib/application/types";
 
 // The layout's title template only applies to child segments, not this page.
@@ -18,14 +18,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const date = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
 export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
-  const reviewer = await requireReviewer();
+  await requireReviewer();
   const filters = parseFilters(await searchParams);
-  const all = await listForReview();
-  const { rows, counts } = applyFilters(all, filters, reviewer.id);
-
-  const waiting = all.filter((r) => r.status === "submitted").length;
-  const overdue = all.filter((r) => r.overdue).length;
-  const mine = all.filter((r) => r.assigneeId === reviewer.id && r.status === "in_review").length;
+  const queue = await getQueue(filters);
+  const { rows, counts, total } = queue;
+  const { waiting, overdue, mineInReview: mine } = queue.summary;
 
   return (
     <>
@@ -89,7 +86,9 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
       <FilterBar filters={filters} />
 
       <p className="mt-5 mb-3 text-[13px] text-muted" aria-live="polite">
-        {rows.length} {rows.length === 1 ? "application" : "applications"}
+        {total} {total === 1 ? "application" : "applications"}
+        {queue.pages > 1 &&
+          ` · showing ${(queue.page - 1) * queue.pageSize + 1}–${(queue.page - 1) * queue.pageSize + rows.length}`}
       </p>
 
       {rows.length === 0 ? (
@@ -175,9 +174,36 @@ export default async function QueuePage({ searchParams }: PageProps<"/admin">) {
               </li>
             ))}
           </ul>
+
+          {queue.pages > 1 && <Pager filters={filters} page={queue.page} pages={queue.pages} />}
         </>
       )}
     </>
+  );
+}
+
+function Pager({ filters, page, pages }: { filters: Filters; page: number; pages: number }) {
+  const link = "flex h-10 items-center rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-ink hover:border-brand";
+  return (
+    <nav aria-label="Pages" className="mt-5 flex items-center justify-between gap-3">
+      {page > 1 ? (
+        <Link href={queueHref(filters, { page: page - 1 })} className={link} rel="prev">
+          Previous
+        </Link>
+      ) : (
+        <span />
+      )}
+      <span className="text-[13px] text-muted tabular-nums">
+        Page {page} of {pages}
+      </span>
+      {page < pages ? (
+        <Link href={queueHref(filters, { page: page + 1 })} className={link} rel="next">
+          Next
+        </Link>
+      ) : (
+        <span />
+      )}
+    </nav>
   );
 }
 

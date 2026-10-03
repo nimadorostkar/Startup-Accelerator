@@ -1,0 +1,11 @@
+{% autoescape off %}Hi {{ name }},
+
+A reminder: {{ title }} is tomorrow.
+
+When: {{ when }}
+{% if online %}Joining link: {{ where }}{% else %}Where: {{ where }}{% endif %}
+
+{{ action_url }}
+
+See you there!
+— The Fundup Club team{% endautoescape %}

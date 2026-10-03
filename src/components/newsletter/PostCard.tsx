@@ -1,12 +1,12 @@
 import Link from "next/link";
 import Cover from "./Cover";
-import { formatDate, type Post } from "./posts";
+import { formatDate, type PostSummary } from "./posts";
 
 export default function PostCard({
   post,
   idSuffix,
 }: {
-  post: Post;
+  post: PostSummary;
   idSuffix?: string;
 }) {
   return (

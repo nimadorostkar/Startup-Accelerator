@@ -7,21 +7,19 @@ import { BrandMark } from "@/components/Logo";
 import Navbar from "@/components/Navbar";
 import Cover from "@/components/newsletter/Cover";
 import PostCard from "@/components/newsletter/PostCard";
-import { formatDate, POSTS, type Block } from "@/components/newsletter/posts";
+import { formatDate, type Block } from "@/components/newsletter/posts";
 import SubscribeForm from "@/components/newsletter/SubscribeForm";
+import { findPost, listPosts } from "@/lib/newsletter";
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return POSTS.map((p) => ({ slug: p.slug }));
-}
+/* Articles come from the API at request time (cached for a minute); unknown
+   or unpublished slugs are a 404. */
 
 export async function generateMetadata({
   params,
 }: PageProps<"/newsletter/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const post = POSTS.find((p) => p.slug === slug);
-  if (!post) return {};
+  const post = await findPost(slug);
+  if (!post) notFound(); // keeps the 404 page's own title
   return {
     title: `${post.title} — The Founder Brief`,
     description: post.excerpt,
@@ -101,12 +99,13 @@ export default async function ArticlePage({
   params,
 }: PageProps<"/newsletter/[slug]">) {
   const { slug } = await params;
-  const post = POSTS.find((p) => p.slug === slug);
+  const post = await findPost(slug);
   if (!post) notFound();
 
+  const others = (await listPosts()).filter((p) => p.slug !== slug);
   const more = [
-    ...POSTS.filter((p) => p.slug !== slug && p.category === post.category),
-    ...POSTS.filter((p) => p.slug !== slug && p.category !== post.category),
+    ...others.filter((p) => p.category === post.category),
+    ...others.filter((p) => p.category !== post.category),
   ].slice(0, 3);
 
   return (

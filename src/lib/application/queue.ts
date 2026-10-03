@@ -1,8 +1,8 @@
-import type { QueueRow } from "./review";
 import { INDUSTRIES, STAGES, type Status } from "./types";
 
-/* Review-queue filtering and sorting. Pure, so the server page and the
-   client filter bar share one definition of every option. */
+/* Review-queue options. Pure, so the server page and the client filter bar
+   share one definition of every option. The filtering, counting, sorting and
+   paging happen in the API (backend/apps/applications/queue.py), in SQL. */
 
 export const TABS: { id: Status | "all"; label: string }[] = [
   { id: "submitted", label: "Needs review" },
@@ -29,6 +29,8 @@ export type Filters = {
   industry: string;
   mine: boolean;
   sort: SortId;
+  /** 1-based; the API serves 50 rows per page. */
+  page: number;
 };
 
 type Params = Record<string, string | string[] | undefined>;
@@ -49,45 +51,14 @@ export function parseFilters(params: Params): Filters {
     mine: one(params.mine) === "1",
     // The work queue reads oldest-first; everything else, most recent first.
     sort: SORTS.find((s) => s.id === sort)?.id ?? (tab === "submitted" ? "waiting" : "recent"),
+    page: Math.max(1, Math.min(10_000, Number.parseInt(one(params.page), 10) || 1)),
   };
 }
 
-export function applyFilters(rows: QueueRow[], f: Filters, reviewerId: string) {
-  const q = f.q.toLowerCase();
-  const matches = rows.filter(
-    (r) =>
-      (!q || [r.startup, r.founder, r.email, r.tagline].some((t) => t.toLowerCase().includes(q))) &&
-      (!f.stage || r.stage === f.stage) &&
-      (!f.industry || r.industry === f.industry) &&
-      (!f.mine || r.assigneeId === reviewerId),
-  );
-
-  // Counts per tab respect the search filters, so the tabs tell you where results are.
-  const counts = Object.fromEntries(
-    TABS.map((t) => [t.id, t.id === "all" ? matches.length : matches.filter((r) => r.status === t.id).length]),
-  ) as Record<Filters["status"], number>;
-
-  const inTab = f.status === "all" ? matches : matches.filter((r) => r.status === f.status);
-  const byTime = (s: string | null) => (s ? new Date(s).getTime() : Infinity);
-  const sorted = [...inTab].sort((a, b) => {
-    switch (f.sort) {
-      case "waiting":
-        return byTime(a.submittedAt) - byTime(b.submittedAt);
-      case "score":
-        return (b.score ?? -1) - (a.score ?? -1);
-      case "name":
-        return (a.startup || "~").localeCompare(b.startup || "~");
-      default:
-        return byTime(b.updatedAt) - byTime(a.updatedAt);
-    }
-  });
-
-  return { rows: sorted, counts };
-}
-
-/** Builds a queue URL, keeping the current filters unless overridden. */
+/** Builds a queue URL, keeping the current filters unless overridden.
+    Any change other than the page itself starts again from page 1. */
 export function queueHref(f: Filters, change: Partial<Filters> = {}) {
-  const next = { ...f, ...change };
+  const next = { ...f, page: 1, ...change };
   const params = new URLSearchParams();
   params.set("status", next.status);
   if (next.q) params.set("q", next.q);
@@ -95,5 +66,6 @@ export function queueHref(f: Filters, change: Partial<Filters> = {}) {
   if (next.industry) params.set("industry", next.industry);
   if (next.mine) params.set("mine", "1");
   params.set("sort", next.sort);
+  if (next.page > 1) params.set("page", String(next.page));
   return `/admin?${params}`;
 }

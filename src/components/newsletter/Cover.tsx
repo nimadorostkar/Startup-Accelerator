@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Category, Post } from "./posts";
+import type { Category, PostSummary } from "./posts";
 
 /* Drawn covers: no image downloads, crisp at any size. One motif and
    palette per category; the issue number keeps each one distinct. */
@@ -209,7 +209,7 @@ export default function Cover({
   className = "",
   idSuffix = "",
 }: {
-  post: Post;
+  post: PostSummary;
   className?: string;
   /** Keeps SVG ids unique when the same cover renders twice on a page. */
   idSuffix?: string;

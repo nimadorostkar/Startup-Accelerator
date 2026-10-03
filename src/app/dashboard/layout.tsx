@@ -5,6 +5,7 @@ import FocusFromHash from "@/components/dashboard/FocusFromHash";
 import { ChatIcon, LogOutIcon } from "@/components/dashboard/icons";
 import { initials } from "@/components/dashboard/initials";
 import StatusBadge from "@/components/dashboard/StatusBadge";
+import VerifyEmailNotice from "@/components/dashboard/VerifyEmailNotice";
 import { BrandLogo } from "@/components/Logo";
 import { getMyApplication, requireUser } from "@/lib/application/dal";
 import { isReviewer } from "@/lib/auth";
@@ -145,6 +146,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         </header>
 
         <main id="main" className="mx-auto w-full max-w-[1080px] px-4 pt-6 pb-16 sm:px-8 sm:pt-8 lg:px-10 lg:pt-10">
+          {!user.emailVerified && <VerifyEmailNotice email={user.email} />}
           {children}
         </main>
         <FocusFromHash />

@@ -1,8 +1,21 @@
 import type { MetadataRoute } from "next";
-import { EVENTS } from "@/components/events/events";
-import { POSTS } from "@/components/newsletter/posts";
+import { unstable_rethrow } from "next/navigation";
+import { connection } from "next/server";
 import { listPublicStartups } from "@/lib/application/public";
+import { listEvents } from "@/lib/events";
+import { listPosts } from "@/lib/newsletter";
 import { SITE_URL } from "@/lib/site";
+
+/** If the API can't answer, the sitemap still lists the fixed pages. */
+async function orNone<T>(load: () => Promise<T[]>): Promise<T[]> {
+  try {
+    return await load();
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error(err);
+    return [];
+  }
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = (path: string) => `${SITE_URL}${path}`;
@@ -20,20 +33,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: url("/code-of-conduct"), changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const posts = POSTS.map((p) => ({
+  await connection(); // listed at request time, so new startups and events appear
+  const [allPosts, allEvents, allStartups] = await Promise.all([
+    orNone(listPosts),
+    orNone(listEvents),
+    orNone(listPublicStartups),
+  ]);
+
+  const posts = allPosts.map((p) => ({
     url: url(`/newsletter/${p.slug}`),
     lastModified: new Date(`${p.date}T00:00:00Z`),
     changeFrequency: "yearly" as const,
     priority: 0.6,
   }));
 
-  const events = EVENTS.map((e) => ({
+  const events = allEvents.map((e) => ({
     url: url(`/events/${e.slug}`),
     changeFrequency: "weekly" as const,
     priority: 0.6,
   }));
 
-  const startups = (await listPublicStartups()).map((s) => ({
+  const startups = allStartups.map((s) => ({
     url: url(`/startups/${s.slug}`),
     changeFrequency: "weekly" as const,
     priority: 0.5,

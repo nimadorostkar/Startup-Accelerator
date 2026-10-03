@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_rethrow } from "next/navigation";
 import { CONTACT_TOPICS, saveContactMessage } from "@/lib/contact";
 import {
   checkEmail,
@@ -53,8 +54,11 @@ export async function sendContactMessage(
     return { errors: errors ?? {}, values };
 
   try {
-    await saveContactMessage({ name, email, company, topic, message });
-  } catch {
+    const result = await saveContactMessage({ name, email, company, topic, message });
+    if (!result.ok) return { message: result.errors ? undefined : result.message, errors: result.errors, values };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error(err);
     return {
       message: "We couldn't send your message just now. Please try again.",
       values,

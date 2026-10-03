@@ -1,10 +1,9 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
+import { api } from "@/lib/api";
 import { getCurrentUser, isReviewer, type SessionUser } from "@/lib/auth";
-import { daysWaiting, REVIEW_SLA_DAYS } from "./decisions";
-import { progress } from "./progress";
-import { findApplication, listApplications, updateApplication } from "./store";
+import type { Filters } from "./queue";
 import {
   SCORE_AREAS,
   type Recommendation,
@@ -15,9 +14,10 @@ import {
   type StoredApplication,
 } from "./types";
 
-/* Data access for the admin panel. Every function checks the reviewer role
-   itself — pages and actions can be reached directly, so a check in the
-   layout alone wouldn't protect anything. */
+/* Data access for the admin panel. The API checks the reviewer role on every
+   call and answers 404 to anyone else, so the panel can't be reached by
+   skipping a page check; the checks here just send people to the right page.
+   Changes go through the panel's Server Actions (app/admin/actions.ts). */
 
 /** Signed out → sign in. Signed in but not a reviewer → 404, so the panel isn't advertised. */
 export const requireReviewer = cache(async (): Promise<SessionUser> => {
@@ -69,69 +69,41 @@ export type QueueRow = {
   teamSize: number;
 };
 
-export function toQueueRow(app: StoredApplication, now = Date.now()): QueueRow {
-  const review = reviewOf(app);
-  const waiting = daysWaiting(app.submittedAt, now);
-  return {
-    id: app.userId,
-    startup: app.startup.name,
-    tagline: app.startup.tagline,
-    founder: app.profile.fullName,
-    email: app.profile.email,
-    stage: app.startup.stage,
-    industry: app.startup.industry,
-    country: app.startup.country,
-    status: app.status,
-    percent: progress(app).percent,
-    submittedAt: app.submittedAt,
-    updatedAt: app.updatedAt,
-    waiting,
-    overdue: app.status === "submitted" && waiting !== null && waiting >= REVIEW_SLA_DAYS,
-    assigneeId: review.assigneeId,
-    assigneeName: review.assigneeName,
-    score: teamAverage(review),
-    scorecards: review.scorecards.length,
-    recommendations: review.scorecards.map((c) => c.recommendation).filter((r): r is Recommendation => r !== ""),
-    monthlyRevenue: app.startup.monthlyRevenue,
-    seeking: app.startup.seeking,
-    teamSize: app.team.members.length,
-  };
-}
+export type QueuePage = {
+  rows: QueueRow[];
+  /** Per status tab, respecting the search and filters. */
+  counts: Record<Filters["status"], number>;
+  /** Across everything, ignoring filters. */
+  summary: { waiting: number; overdue: number; mineInReview: number };
+  page: number;
+  pages: number;
+  pageSize: number;
+  total: number;
+};
 
-export async function listForReview(): Promise<QueueRow[]> {
+/** One page of the queue: filtered, counted, sorted and paged by the API. */
+export async function getQueue(filters: Filters): Promise<QueuePage> {
   await requireReviewer();
-  const now = Date.now();
-  return (await listApplications()).map((a) => toQueueRow(a, now));
+  const params = new URLSearchParams({ status: filters.status, sort: filters.sort, page: String(filters.page) });
+  if (filters.q) params.set("q", filters.q);
+  if (filters.stage) params.set("stage", filters.stage);
+  if (filters.industry) params.set("industry", filters.industry);
+  if (filters.mine) params.set("mine", "1");
+  const result = await api<QueuePage>(`/admin/applications?${params}`, { auth: true });
+  if (result.status === 401) redirect("/login");
+  if (result.status === 404) notFound();
+  if (!result.ok) throw new Error(`Couldn't load the review queue (${result.status}).`);
+  return result.data;
 }
 
 /** Full record for the review page, reviewer data included. */
-export async function getForReview(id: string): Promise<StoredApplication> {
+export const getForReview = cache(async (id: string): Promise<StoredApplication> => {
   await requireReviewer();
-  const app = await findApplication(id);
-  if (!app) notFound();
-  return app;
-}
-
-export class ReviewRejected extends Error {
-  constructor(
-    message: string,
-    readonly field?: string,
-  ) {
-    super(message);
-  }
-}
-
-/** Atomic change to any application, by a reviewer. Never creates one. */
-export async function mutateForReview(
-  id: string,
-  fn: (app: StoredApplication, reviewer: SessionUser) => StoredApplication,
-): Promise<StoredApplication> {
-  const reviewer = await requireReviewer();
-  return updateApplication(
-    id,
-    () => {
-      throw new ReviewRejected("That application no longer exists.");
-    },
-    (current) => ({ ...fn(current, reviewer), updatedAt: new Date().toISOString() }),
+  const result = await api<{ application: StoredApplication }>(
+    `/admin/applications/${encodeURIComponent(id)}`,
+    { auth: true },
   );
-}
+  if (result.status === 401) redirect("/login");
+  if (!result.ok) notFound();
+  return result.data.application;
+});

@@ -1,94 +1,138 @@
 /* ══════════════════════════════════════════════════════════════════════
-   PLUG YOUR AUTH PROVIDER IN HERE — this is the only file that needs to
-   change. The pages, forms, validation and error handling are finished
-   and call into the functions below.
+   ACCOUNTS AND SESSIONS — backed by the Django API (backend/apps/accounts).
 
-   Each one takes validated input and reports back the same way:
+   The API owns users, password hashes and sessions. Signing in returns a
+   session token in the `vcs_session` cookie; this module copies that
+   cookie onto the response to the browser, and forwards it on every
+   signed-in call (lib/api.ts). The API keeps only the token's hash, so
+   signing out (or a password reset) ends the session everywhere.
+
+   Each function reports back the way the forms expect:
      { ok: true,  redirectTo: "/some-path" }   → the user is signed in
      { ok: true }                              → reset email accepted
      { ok: false, message: "..." }             → shown above the form
      { ok: false, fieldErrors: { email: "…" }} → shown under that field
-
-   Whatever you use (Auth.js, Clerk, Supabase, your own API), do the work
-   inside these bodies and set a session cookie before returning ok.
    ══════════════════════════════════════════════════════════════════════ */
 
 import "server-only";
+import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { cache } from "react";
+import { api, BackendUnavailable, SESSION_COOKIE, UNAVAILABLE, type ApiResult } from "./api";
+import { SITE_URL } from "./site";
+
+export { SESSION_COOKIE };
 
 export type AuthResult =
   | { ok: true; redirectTo: string }
   | { ok: false; message?: string; fieldErrors?: Record<string, string> };
 
-/** Where a user lands once they're signed in. */
+/** Password reset has no redirect on success — the answer is "check your inbox". */
+export type ResetRequestResult =
+  | { ok: true }
+  | { ok: false; message?: string; fieldErrors?: Record<string, string> };
+
+/** Where a founder lands once they're signed in. */
 export const AFTER_SIGN_IN = "/dashboard";
+/** Reviewers go straight to the queue (visiting /dashboard would start a founder application for them). */
+export const AFTER_REVIEWER_SIGN_IN = "/admin";
 
 /* ---------- Sessions ---------- */
 
-export type SessionUser = { id: string; email: string; name: string };
-
-/** Set this cookie (httpOnly, secure, sameSite: "lax") when a sign-in succeeds. */
-export const SESSION_COOKIE = "vcs_session";
-
-/* Development only: a stand-in founder so the dashboard can be used before
-   sign-in is wired up. `next build` sets NODE_ENV=production, so this can
-   never switch on in a deployed app. Delete it once real sessions exist. */
-const DEV_USER: SessionUser = {
-  id: "dev-founder",
-  email: "founder@example.com",
-  name: "Alex Rivera",
+export type SessionUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: "founder" | "reviewer";
+  /** Reviewer role on a verified address: may open the review panel. */
+  isReviewer: boolean;
+  emailVerified: boolean;
 };
+
+/** Send the cookie over HTTPS only (COOKIE_SECURE=false for plain-http local runs). */
+const COOKIE_SECURE = process.env.COOKIE_SECURE
+  ? process.env.COOKIE_SECURE !== "false"
+  : process.env.NODE_ENV === "production";
+
+/** Short-lived cookie holding the Google sign-in `state`, checked on the way back. */
+export const OAUTH_STATE_COOKIE = "vcs_oauth_state";
+export const GOOGLE_CALLBACK_PATH = "/api/auth/callback/google";
 
 /**
  * The signed-in user, or null. Cached per request, so calling it from a
- * layout, a page and a server action costs one lookup.
+ * layout, a page and a server action costs one call to the API.
  */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (token) {
-    // TODO: verify the token's signature and expiry, then load its user:
-    //   return { id: user.id, email: user.email, name: user.name };
-  }
-  if (process.env.NODE_ENV !== "production") return DEV_USER;
-  return null;
+  if (!(await cookies()).get(SESSION_COOKIE)?.value) return null;
+  const result = await api<{ user: SessionUser }>("/me", { auth: true });
+  return result.ok ? result.data.user : null; // 401: expired or revoked
 });
 
-/**
- * Who can open the admin panel. Set REVIEWER_EMAILS to a comma-separated
- * list of support-team addresses. This trusts the session's email, so it's
- * only as safe as your sign-in: make sure addresses are verified before a
- * session is issued. (Move this to a role column once you have a users table.)
- * In development the stand-in user is a reviewer too, so both sides can be
- * tried from one browser.
- */
+/** Who can open the review panel: the API's reviewer role, on a verified address. */
 export function isReviewer(user: SessionUser) {
-  const allowed = (process.env.REVIEWER_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  if (allowed.includes(user.email.toLowerCase())) return true;
-  return process.env.NODE_ENV !== "production" && user.id === DEV_USER.id;
+  return user.isReviewer;
 }
 
-export async function endSession() {
-  // TODO: also revoke the session server-side, so a copied cookie stops working.
-  (await cookies()).delete(SESSION_COOKIE);
+/** Copies the session cookie the API just issued onto our response to the browser. */
+async function keepSession(response: Response) {
+  for (const raw of response.headers.getSetCookie()) {
+    const [pair, ...attributes] = raw.split(";");
+    const eq = pair.indexOf("=");
+    if (pair.slice(0, eq).trim() !== SESSION_COOKIE) continue;
+    const maxAge = attributes
+      .map((a) => a.trim().split("="))
+      .find(([key]) => key.toLowerCase() === "max-age")?.[1];
+    (await cookies()).set(SESSION_COOKIE, pair.slice(eq + 1).trim(), {
+      httpOnly: true,
+      secure: COOKIE_SECURE,
+      sameSite: "lax",
+      path: "/",
+      ...(maxAge ? { maxAge: Number(maxAge) } : {}),
+    });
+    return;
+  }
+  throw new Error("The API signed the user in but sent no session cookie.");
 }
 
-/* Shown while the stubs are still in place, so nothing fails silently. */
-const notWiredUp = (what: string) =>
-  `${what} isn't connected yet. Your details were validated, but there's no account store behind this form.`;
+/** Turns an API refusal into what the forms show. */
+function refusal(result: Extract<ApiResult<unknown>, { ok: false }>) {
+  return {
+    ok: false as const,
+    message: result.error.errors ? undefined : (result.error.message ?? "That didn't work. Please try again."),
+    fieldErrors: result.error.errors,
+  };
+}
+
+/** Runs an API call, turning "the API is down" into a message instead of an error page. */
+async function guarded<T>(run: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await run();
+  } catch (err) {
+    if (err instanceof BackendUnavailable) {
+      console.error(err);
+      return fallback;
+    }
+    throw err;
+  }
+}
+
+const unavailable = { ok: false as const, message: UNAVAILABLE };
+
+async function signIn(path: string, body: unknown): Promise<AuthResult> {
+  return guarded<AuthResult>(async () => {
+    const result = await api<{ user: SessionUser }>(path, { method: "POST", body });
+    if (!result.ok) return refusal(result);
+    await keepSession(result.response);
+    return { ok: true, redirectTo: result.data.user.isReviewer ? AFTER_REVIEWER_SIGN_IN : AFTER_SIGN_IN };
+  }, unavailable);
+}
 
 export async function signInWithPassword(input: {
   email: string;
   password: string;
   remember: boolean;
 }): Promise<AuthResult> {
-  // TODO: look the user up, verify the password hash, create a session.
-  // The `remember` flag is meant to control the session cookie's maxAge.
-  void input;
-  return { ok: false, message: notWiredUp("Sign-in") };
+  return signIn("/auth/login", input);
 }
 
 export async function createAccount(input: {
@@ -96,65 +140,90 @@ export async function createAccount(input: {
   email: string;
   password: string;
 }): Promise<AuthResult> {
-  // TODO: reject addresses that already exist with
-  //   { ok: false, fieldErrors: { email: "That email is already registered." } }
-  // then hash the password, store the user, and create a session.
-  void input;
-  return { ok: false, message: notWiredUp("Sign-up") };
+  // The form already required the terms box; the API records the consent.
+  return signIn("/auth/register", { ...input, terms: true });
 }
 
-/** Password reset has no redirect on success — the answer is "check your inbox". */
-export type ResetRequestResult =
-  | { ok: true }
-  | { ok: false; message?: string; fieldErrors?: Record<string, string> };
-
-export async function requestPasswordReset(input: {
-  email: string;
-}): Promise<ResetRequestResult> {
-  // TODO: mint a single-use, expiring token, store its hash against the user,
-  // and email a link to /reset-password?token=…
-  //
-  // Return { ok: true } even when no account matches. Saying "no such user"
-  // here would let anyone test which addresses are registered. Reserve
-  // { ok: false } for genuine failures, like the mail provider being down.
-  void input;
-  return { ok: false, message: notWiredUp("Password reset") };
+export async function endSession() {
+  await guarded(() => api("/auth/logout", { method: "POST", auth: true }), null);
+  (await cookies()).delete(SESSION_COOKIE);
 }
+
+/* ---------- Password reset ---------- */
 
 /**
- * Returns the URL to send the browser to for Google sign-in.
- *
- * With GOOGLE_CLIENT_ID and NEXT_PUBLIC_SITE_URL set, this builds a real
- * Google consent URL. You still need to handle the redirect back: create
- * a route handler at the `redirect_uri` below that exchanges `code` for
- * tokens (that step needs GOOGLE_CLIENT_SECRET) and starts a session.
+ * The API answers the same way whether or not the address has an account,
+ * so this never reveals who is registered. The email (if any) is sent in
+ * the background.
+ */
+export async function requestPasswordReset(input: { email: string }): Promise<ResetRequestResult> {
+  return guarded<ResetRequestResult>(async () => {
+    const result = await api("/auth/password-reset", { method: "POST", body: input });
+    return result.ok ? { ok: true as const } : refusal(result);
+  }, unavailable);
+}
+
+/** Sets a new password from the emailed link, then signs the user in. */
+export async function resetPassword(input: { token: string; password: string }): Promise<AuthResult> {
+  return signIn("/auth/password-reset/confirm", input);
+}
+
+/* ---------- Email verification ---------- */
+
+export async function verifyEmail(token: string): Promise<{ ok: boolean; message?: string }> {
+  return guarded(async () => {
+    const result = await api("/auth/verify-email", { method: "POST", body: { token } });
+    return result.ok ? { ok: true } : { ok: false, message: result.error.message };
+  }, unavailable);
+}
+
+export async function resendVerification(): Promise<{ ok: boolean; message?: string }> {
+  return guarded(async () => {
+    const result = await api<{ message?: string }>("/auth/verify-email/resend", { method: "POST", auth: true });
+    return result.ok
+      ? { ok: true, message: result.data?.message }
+      : { ok: false, message: result.error.message };
+  }, unavailable);
+}
+
+/* ---------- Google sign-in ---------- */
+
+/**
+ * Returns the URL to send the browser to for Google sign-in, after storing a
+ * random `state` in a short-lived cookie. Google sends the visitor back to
+ * GOOGLE_CALLBACK_PATH (app/api/auth/callback/google), which checks the
+ * state and hands the code to the API.
  */
 export async function startGoogleOAuth(): Promise<AuthResult> {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-
-  if (!clientId || !siteUrl) {
+  if (!clientId) {
     return {
       ok: false,
-      message:
-        "Google sign-in isn't configured yet. Set GOOGLE_CLIENT_ID and NEXT_PUBLIC_SITE_URL to enable it.",
+      message: "Google sign-in isn't configured yet. Set GOOGLE_CLIENT_ID (and the secret on the API) to enable it.",
     };
   }
 
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: new URL("/api/auth/callback/google", siteUrl).toString(),
-    response_type: "code",
-    scope: "openid email profile",
-    access_type: "offline",
-    prompt: "select_account",
-    // TODO: generate a random value, store it in a cookie, and verify it on
-    // the way back. Without this check the callback is open to CSRF.
-    state: "replace-me-with-a-random-value",
+  const state = randomBytes(24).toString("base64url");
+  (await cookies()).set(OAUTH_STATE_COOKIE, state, {
+    httpOnly: true,
+    secure: COOKIE_SECURE,
+    sameSite: "lax",
+    path: GOOGLE_CALLBACK_PATH,
+    maxAge: 600,
   });
 
-  return {
-    ok: true,
-    redirectTo: `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
-  };
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: new URL(GOOGLE_CALLBACK_PATH, SITE_URL).toString(),
+    response_type: "code",
+    scope: "openid email profile",
+    prompt: "select_account",
+    state,
+  });
+  return { ok: true, redirectTo: `https://accounts.google.com/o/oauth2/v2/auth?${params}` };
+}
+
+/** Second half, called by the callback route once `state` checks out. */
+export async function completeGoogleSignIn(code: string): Promise<AuthResult> {
+  return signIn("/auth/google", { code });
 }
