@@ -4,9 +4,9 @@ from django.dispatch import receiver
 from . import directory, rules
 from .models import Application, Scorecard
 
-
-# Columns the public directory never shows: saving only these leaves it as it is.
-REVIEW_ONLY = {"assignee", "team_score", "updated_at"}
+# Columns the public directory never shows. Saving only these (plus the synced
+# copies, which can't change unless an answer section is saved too) leaves it as it is.
+REVIEW_ONLY = {"assignee", "team_score", "updated_at"} | Application.SYNCED_COLUMNS
 
 
 @receiver(post_save, sender=Application)

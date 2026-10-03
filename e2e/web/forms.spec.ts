@@ -1,8 +1,8 @@
-import { expect, test } from "@playwright/test";
 import { Api, json, reviewer } from "../support/api";
 import { uid, uniqueEmail } from "../support/data";
 import { ADMIN, API } from "../support/env";
 import { emailsTo, linkIn, waitForEmail } from "../support/mailpit";
+import { expect, test } from "../support/web";
 
 test("event registration: confirmation, calendar invite, and a repeat", async ({ page }) => {
   const api = await Api.create();

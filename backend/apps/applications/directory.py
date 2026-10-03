@@ -58,6 +58,8 @@ def find(slug: str) -> dict | None:
     found = cache.get(key)
     if found is None:
         app = public_queryset().filter(slug=slug).first()
-        found = payloads.public_startup(app) if app else {}
+        if app is None:
+            return None  # misses aren't cached: made-up addresses would fill the cache
+        found = payloads.public_startup(app)
         cache.set(key, found, TTL)
-    return found or None
+    return found

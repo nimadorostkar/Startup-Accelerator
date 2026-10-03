@@ -18,7 +18,7 @@ export function purge() {
   if (process.env.E2E_PURGE === "0") return;
   try {
     execSync(
-      "docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T backend python manage.py purge_e2e_data",
+      "docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T backend python manage.py purge_e2e_data --rate-limits",
       { stdio: "pipe", timeout: 60_000 },
     );
   } catch {

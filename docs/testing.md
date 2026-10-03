@@ -24,7 +24,7 @@ npm run test:e2e
 
 The suite checks first that the website, the API (with its database and Redis), Mailpit and the test reviewer all answer, and says what to start if not. Results print as they run; the HTML report (with a trace and screenshot for any failure) is written to `e2e-report/` — open it with `npx playwright show-report e2e-report`.
 
-**Test data:** every account, registration, subscriber and message the suite creates uses an `@e2e.fundup.example` address. `python manage.py purge_e2e_data` removes them; the suite runs it before and after itself against the dev stack (set `E2E_PURGE=0` to keep the data for a look).
+**Test data:** every account, registration, subscriber and message the suite creates uses an `@e2e.fundup.example` address. `python manage.py purge_e2e_data` removes them; the suite runs it before and after itself against the dev stack (set `E2E_PURGE=0` to keep the data for a look), with `--rate-limits`, which also resets every rate-limit counter: on the dev stack every visitor of the website shares one address, so an hour of clicking around would otherwise leave the suite's sign-ups refused.
 
 **Against another stack** (staging, or the production setup on your machine), point it there:
 
@@ -37,7 +37,7 @@ The suite checks first that the website, the API (with its database and Redis), 
 | `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD` | the `seed_dev_accounts` admin | A back-office superuser (a `createsuperuser` account works for both) |
 | `E2E_PURGE` | on | `0` to skip the clean-up |
 
-The API tests give each test its own visitor address (`X-Forwarded-For`, which the API believes only from the private network) so their rate limits never collide. Through Caddy that header is replaced by the real address, so point `E2E_API_URL` at the API's own port rather than through the proxy; the website tests go through Caddy as visitors do. The emails need a Mailpit (or any server with Mailpit's API) receiving the stack's mail.
+The API tests give each test its own visitor address (`X-Forwarded-For`, which the API believes only from the private network) so their rate limits never collide; the website tests do the same through the browser (the `test` exported by `e2e/support/web.ts`), which the dev website passes on to the API. Through Caddy that header is replaced by the real address, so point `E2E_API_URL` at the API's own port rather than through the proxy; the website tests go through Caddy as visitors do. The emails need a Mailpit (or any server with Mailpit's API) receiving the stack's mail.
 
 On 2026-10-03 all 61 tests passed against the dev stack (twice in a row) and against the production setup: the production Next.js build behind Caddy, Gunicorn with `DJANGO_DEBUG=false`, the worker sending real SMTP.
 
@@ -56,5 +56,6 @@ On 2026-10-03 all 61 tests passed against the dev stack (twice in a row) and aga
 | `e2e/web/lifecycle.spec.ts` | A founder fills in and submits; a reviewer starts a review and requests changes; the founder sees it and resubmits; the reviewer scores, notes and accepts; the founder and the public directory see the result; the export includes it |
 | `e2e/web/forms.spec.ts` | Event registration (and the repeat), newsletter sign-up and unsubscribe from the email, the contact form, the back office |
 | `e2e/web/form-state.spec.ts` | A save the server refuses keeps everything typed or picked, dropdowns and choice cards included |
+| `e2e/web/session.spec.ts` | Signed-out visitors come back to the page they asked for after signing in (`?next=`), and `next` never leads off the site or into the wrong area; a refused sign-in keeps "Keep me signed in" ticked; account settings (rename, wrong then right current password, other sessions ended, sign in with the new one); a session ending mid-edit keeps what was typed and offers a way back in |
 
 Left to the API tests (they need setup the running stack doesn't expose): a successful Google sign-in (Google's token endpoint is mocked there), full events, the daily review digest and event reminders.

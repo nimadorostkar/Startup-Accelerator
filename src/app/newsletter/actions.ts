@@ -25,8 +25,9 @@ export async function subscribe(
 
   const source = readString(form, "source").slice(0, 80) || "newsletter";
   try {
-    const added = await addSubscriber(email, source);
-    return { done: added ? "new" : "existing", email };
+    const result = await addSubscriber(email, source);
+    if (result.ok) return { done: result.added ? "new" : "existing", email };
+    return { error: result.message ?? "We couldn't sign you up just now. Please try again.", email };
   } catch (err) {
     unstable_rethrow(err);
     console.error(err);

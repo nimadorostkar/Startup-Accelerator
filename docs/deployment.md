@@ -8,8 +8,8 @@ As of 2026-10-03. How to run the whole site in production with Docker Compose, s
 
 | Service | Image | Role | Exposed |
 | --- | --- | --- | --- |
-| `caddy` | `caddy:2-alpine` | HTTPS (automatic Let's Encrypt certificates), compression, security headers; routes `/api/v1/*` and `/backoffice/*` to the API, everything else to the website ([deploy/Caddyfile](../deploy/Caddyfile)) | 80, 443 |
-| `frontend` | built from [Dockerfile](../Dockerfile) | The Next.js website (standalone server, non-root) | — |
+| `caddy` | `caddy:2-alpine` | HTTPS (automatic Let's Encrypt certificates), compression, security headers; routes `/api/v1/*` and `/backoffice/*` to the API (`/backoffice` redirects to `/backoffice/`), everything else to the website ([deploy/Caddyfile](../deploy/Caddyfile)) | 80, 443 |
+| `frontend` | built from [Dockerfile](../Dockerfile) | The Next.js website (standalone server, non-root). Waits up to 90 s for the API to be ready before it starts serving ([scripts/start.mjs](../scripts/start.mjs)) | — |
 | `backend` | built from [backend/Dockerfile](../backend/Dockerfile) | The Django API on Gunicorn; applies database migrations on start | — |
 | `worker` | same image | Celery: emails, page refreshes | — |
 | `beat` | same image | Celery beat: daily review digest, hourly event reminders, nightly clean-up | — |
@@ -57,7 +57,7 @@ git pull
 docker compose up -d --build
 ```
 
-The API applies new migrations as it starts (under a database lock, so it's safe if several start at once). Both images build without contacting the API; public pages fill in from the API on their first visit after the deploy. There is a few seconds' gap while containers are replaced; for zero-downtime deploys, run two website and API containers behind Caddy and replace them one at a time.
+The API applies new migrations as it starts (under a database lock, so it's safe if several start at once). Both images build without contacting the API; public pages fill in from the API on their first visit after the deploy (which is why the website waits for the API on start: after a host reboot, Docker restarts containers without regard to `depends_on`). There is a few seconds' gap while containers are replaced; for zero-downtime deploys, run two website and API containers behind Caddy and replace them one at a time.
 
 ## Backups
 
@@ -72,7 +72,7 @@ Run it from cron, and copy `backups/` off the server (object storage). Restore i
 
 ## Monitoring
 
-- **Health:** `/api/v1/health` (process up) and `/api/v1/health/ready` (database and Redis reachable). Every container has a Docker healthcheck.
+- **Health:** `/api/v1/health` (process up) and `/api/v1/health/ready` (database and Redis reachable). The website, API, worker, Postgres and Redis containers have Docker healthchecks (beat and Caddy don't).
 - **Logs:** `docker compose logs -f backend worker frontend caddy`. The API writes one JSON object per line; every request carries an `X-Request-ID` that Caddy creates and the website and API log, so one id follows a request through all three. Logs rotate at 10 MB × 5 files per container.
 - **Errors:** set `SENTRY_DSN` to send API and worker errors to Sentry.
 - **Slow queries:** Postgres logs any statement over 500 ms.
@@ -102,6 +102,6 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend pyth
 npm install && npm run dev
 ```
 
-That runs Postgres, Redis, the API (auto-reloading, at http://localhost:8000), a worker and Mailpit (every email lands at http://localhost:8025); the website runs on your machine at http://localhost:3000. `seed_dev_accounts` creates `founder@example.com`, `reviewer@example.com` and a back-office admin, `admin@example.com` (password in [the command](../backend/apps/accounts/management/commands/seed_dev_accounts.py)); `seed_demo` adds 23 sample applications for the review queue (`seed_demo --reset` removes them). If ports clash with other projects, move them with `DEV_DB_PORT`, `DEV_REDIS_PORT`, `DEV_API_PORT` and `DEV_MAIL_PORT` in `.env`, and point the website at the API with `BACKEND_URL`.
+That runs Postgres, Redis, the API (auto-reloading, at http://localhost:8000), a worker and Mailpit (every email lands at http://localhost:8025); the website runs on your machine at http://localhost:3000. `seed_dev_accounts` creates `founder@example.com`, `reviewer@example.com` and a back-office admin, `admin@example.com` (password in [the command](../backend/apps/accounts/management/commands/seed_dev_accounts.py)); `seed_demo` adds 23 sample applications for the review queue (`seed_demo --reset` removes them). If ports clash with other projects, move them with `DEV_DB_PORT`, `DEV_REDIS_PORT`, `DEV_API_PORT` and `DEV_MAIL_PORT` in `.env`, and point the website at the API with `BACKEND_URL`. The dev API keeps no database connections open between requests (`DATABASE_CONN_MAX_AGE=0`): Django's development server starts a thread per request, and kept-open connections from finished threads used to pile up until Postgres refused new ones ("too many clients"). Gunicorn's threads are long-lived, so production keeps them for 60 s.
 
 To try the production setup locally: set `SITE_URL=http://localhost`, `SITE_ADDRESS=http://localhost` and `COOKIE_SECURE=false` in `.env`, then `docker compose up -d --build` and open http://localhost.

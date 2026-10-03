@@ -12,7 +12,7 @@ from django.conf import settings
 from django.core import signing
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.db.models import Prefetch
+from django.db.models import F, Prefetch
 
 from apps.core.emails import queue_email
 from apps.core.exceptions import ApiError, Conflict, Invalid, NotFound
@@ -79,9 +79,11 @@ def find_event(slug: str) -> dict | None:
     found = cache.get(key)
     if found is None:
         event = _published_events().filter(slug=slug).first()
-        found = payloads.event(event) if event else {}
+        if event is None:
+            return None  # misses aren't cached: made-up addresses would fill the cache
+        found = payloads.event(event)
         cache.set(key, found, TTL)
-    return found or None
+    return found
 
 
 def _joining_details(event: Event) -> str:
@@ -166,14 +168,16 @@ def send_reminders() -> int:
             event__is_published=True,
             event__start__gt=at,
             event__start__lte=at + timedelta(hours=24),
+            # Guests who signed up within a day of the start just had their
+            # confirmation. Filtered here, not in the loop, so they can't fill
+            # the batch and crowd out guests of later events.
+            created_at__lte=F("event__start") - timedelta(hours=24),
         )
         .order_by("event__start")[:500]
     )
     sent = 0
     for registration in due:
         event = registration.event
-        if event.start - registration.created_at < timedelta(hours=24):
-            continue  # their confirmation was recent enough
         with transaction.atomic():
             updated = EventRegistration.objects.filter(pk=registration.pk, reminded_at__isnull=True).update(
                 reminded_at=at
@@ -208,9 +212,11 @@ def find_post(slug: str) -> dict | None:
     found = cache.get(key)
     if found is None:
         post = Post.objects.filter(is_published=True, slug=slug).first()
-        found = payloads.post(post, body=True) if post else {}
+        if post is None:
+            return None  # misses aren't cached: made-up addresses would fill the cache
+        found = payloads.post(post, body=True)
         cache.set(key, found, TTL)
-    return found or None
+    return found
 
 
 def unsubscribe_url(subscriber: Subscriber) -> str:

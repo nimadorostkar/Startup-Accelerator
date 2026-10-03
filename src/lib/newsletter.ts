@@ -30,14 +30,18 @@ export const findPost = cache(async (slug: string): Promise<Post | null> => {
   return result.data.post;
 });
 
-/** Returns false when the address is already on the list. Throws on other refusals. */
-export async function addSubscriber(email: string, source: string) {
+/** `added` is false when the address was already on the list. A refusal (an
+    address the API won't take, too many sign-ups) comes back as its message. */
+export async function addSubscriber(
+  email: string,
+  source: string,
+): Promise<{ ok: true; added: boolean } | { ok: false; message?: string }> {
   const result = await api<{ status: "new" | "existing" }>("/newsletter/subscribers", {
     method: "POST",
     body: { email, source },
   });
-  if (!result.ok) throw new Error(result.error.message ?? `Sign-up refused (${result.status}).`);
-  return result.data.status === "new";
+  if (result.ok) return { ok: true, added: result.data.status === "new" };
+  return { ok: false, message: result.error.errors?.email ?? result.error.message };
 }
 
 export async function unsubscribe(token: string): Promise<{ ok: true; email: string } | { ok: false; message: string }> {

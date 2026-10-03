@@ -1,8 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
+import { type Page } from "@playwright/test";
 import { json, newFounder, reviewer, slugOf } from "../support/api";
 import { PROFILE, startup, TEAM, uid } from "../support/data";
 import { waitForEmail } from "../support/mailpit";
-import { signInAs } from "../support/web";
+import { expect, signInAs, test } from "../support/web";
 
 /* The whole application lifecycle through the website, in two browsers:
    a founder fills in and submits their application, a reviewer starts a

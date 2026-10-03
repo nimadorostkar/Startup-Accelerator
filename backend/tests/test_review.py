@@ -281,3 +281,19 @@ def test_csv_export_escapes_and_neutralises_formulas(founder_client, submitted, 
     assert record["One-line pitch"] == '\'+1 more, with "quotes"\nand a line break'
     assert record["Problem"] == "'-minus" and record["Solution"] == "'@at"
     assert record["Email"] == "founder@example.com" and record["Status"] == "Submitted"
+
+
+def test_only_decisions_refresh_the_public_directory(submitted, reviewer_client):
+    from apps.applications import directory
+
+    def version():
+        return directory._version()
+
+    before = version()
+    reviewer_client.put(url(submitted.pk, "/assignee"))
+    reviewer_client.put(url(submitted.pk, "/scorecard"), {"scores": {"problem": 4}}, format="json")
+    reviewer_client.post(url(submitted.pk, "/notes"), {"body": "Strong team"}, format="json")
+    assert version() == before  # nothing public changed
+
+    reviewer_client.post(url(submitted.pk, "/decisions"), {"decision": "start_review"}, format="json")
+    assert version() > before

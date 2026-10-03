@@ -1,6 +1,5 @@
-import { expect, test } from "@playwright/test";
 import { newFounder } from "../support/api";
-import { signInAs } from "../support/web";
+import { expect, signInAs, test } from "../support/web";
 
 /* A save the server refuses must keep everything that was typed or picked,
    dropdowns and choice cards included, so fixing one field is enough. */

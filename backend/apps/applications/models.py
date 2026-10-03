@@ -115,17 +115,13 @@ class Application(models.Model):
         self.tagline = (startup.get("tagline") or "")[:120]
         self.founder_name = (profile.get("fullName") or "").strip()[:80]
 
+    # Copies of answers kept in columns (see sync_columns); always saved with the rest.
+    SYNCED_COLUMNS = frozenset({"startup_name", "stage", "industry", "tagline", "founder_name"})
+
     def save(self, *args, **kwargs):
         self.sync_columns()
         if kwargs.get("update_fields") is not None:
-            kwargs["update_fields"] = {
-                *kwargs["update_fields"],
-                "startup_name",
-                "stage",
-                "industry",
-                "tagline",
-                "founder_name",
-            }
+            kwargs["update_fields"] = {*kwargs["update_fields"], *self.SYNCED_COLUMNS}
         super().save(*args, **kwargs)
 
 

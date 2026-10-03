@@ -27,13 +27,14 @@ The site has four areas: a public landing page, sign-in pages, a founder dashboa
 | `/register` | Create account | New founders | Public |
 | `/forgot-password` | Reset password request | Founders | Public |
 | `/reset-password` | Choose a new password (from the emailed link) | Founders | Public |
-| `/verify-email` | Confirm the email address (from the emailed link) | Founders | Public |
+| `/verify-email` | Confirm the email address (from the emailed link, or a "check your inbox" page without it) | Founders | Public |
 | `/newsletter/unsubscribe` | Leave the newsletter (from the emailed link) | Subscribers | Public |
 | `/dashboard` | Founder overview | Founders | Signed in |
 | `/dashboard/profile` | Your profile (step 1 of 3) | Founders | Signed in |
 | `/dashboard/startup` | Startup details (step 2 of 3) | Founders | Signed in |
 | `/dashboard/team` | Team (step 3 of 3) | Founders | Signed in |
 | `/dashboard/review` | Review & submit | Founders | Signed in |
+| `/dashboard/account` | Account settings: name and password | Founders | Signed in |
 | `/admin` | Review queue | Support team | Reviewers only |
 | `/admin/applications/[id]` | Review one application | Support team | Reviewers only |
 | `/admin/export` | CSV download of all applications | Support team | Reviewers only |
@@ -126,7 +127,7 @@ Code: [src/app/contact/page.tsx](../src/app/contact/page.tsx), form in [src/comp
 
 ### Article page (`/newsletter/[slug]`)
 
-Code: [src/app/newsletter/[slug]/page.tsx](<../src/app/newsletter/[slug]/page.tsx>). All articles are built as static pages; unknown slugs return 404.
+Code: [src/app/newsletter/[slug]/page.tsx](<../src/app/newsletter/[slug]/page.tsx>). Articles are rendered on their first visit and then cached like the other public pages; unknown slugs return 404.
 
 - Header: back link, topic, issue number, date, read time, title, summary, author.
 - Large cover, then the article (paragraphs, headings, lists, pull quotes) at a comfortable reading width.
@@ -142,6 +143,7 @@ Code: [src/app/newsletter/[slug]/page.tsx](<../src/app/newsletter/[slug]/page.ts
 - Server action: [src/app/newsletter/actions.ts](../src/app/newsletter/actions.ts). Each form also sends a hidden `source` (`newsletter-hero`, `newsletter-band`, `article:<slug>`), saved with the address.
 - Success: **"You're in. The next issue goes to …"**. An address already on the list (any capitalisation) gets **"… is already on the list."**
 - Same hidden `website` bot trap as the contact form.
+- A refusal from the API (an address it won't take, or too many sign-ups from one address) shows the API's own message under the field.
 - Subscribers are stored by the API (`POST /api/v1/newsletter/subscribers`, 20 per hour per address). A new subscriber gets a welcome email with an unsubscribe link; someone who unsubscribed and signs up again is welcomed back. Subscribers can be exported as CSV from the back office.
 
 ### Unsubscribe (`/newsletter/unsubscribe?token=…`)
@@ -206,7 +208,7 @@ Code: [src/app/demo-day/page.tsx](../src/app/demo-day/page.tsx); the roadmap is 
 
 ## Startup directory (`/startups`)
 
-Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the API's public directory (`GET /api/v1/startups`): **every application that has been submitted appears; drafts never do.** A submission, withdrawal or decision shows up within seconds (the cached copy is refreshed straight away).
+Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the API's public directory (`GET /api/v1/startups`): **every application that has been submitted appears; drafts never do.** A submission, withdrawal or decision shows up within seconds: the cached copy is marked out of date straight away, the next visitor still gets it while a fresh one is rendered, and everyone after that sees the change. (If the API is unreachable at that moment, the old copy keeps being served rather than an error.)
 
 | Section | Content |
 | --- | --- |
@@ -256,9 +258,10 @@ Accounts and sessions live in the API; [src/lib/auth.ts](../src/lib/auth.ts) is 
 
 - **Continue with Google** button above an "or with email" divider.
 - **Forgot password?** carries any email already typed into `/forgot-password?email=…`.
-- On success founders go to `/dashboard` (`AFTER_SIGN_IN`) and reviewers to `/admin`.
+- On success founders go to `/dashboard` (`AFTER_SIGN_IN`) and reviewers to `/admin`, unless the page was opened as `/login?next=…`: then they go back there. Signed-out visitors to any `/dashboard` or `/admin` page (a link in an email, say) are sent to `/login?next=<that page>` ([src/proxy.ts](../src/proxy.ts)). `next` is only followed to a path on this site inside the visitor's own area (a founder to `/dashboard…`, a reviewer to `/admin…`); anything else, another site included, falls back to their home ([src/lib/session.ts](../src/lib/session.ts)). Google sign-in carries it through too.
 - A wrong email or password gets one message for both, so the form never reveals who has an account. Sign-in is limited to 10 attempts a minute per address, and 5 failed attempts per account per address per 15 minutes (50 per account per hour from anywhere); only failures count, so nobody can lock a founder out by trying their address. Past a limit the banner says how long to wait.
-- `?error=google…` (after a failed Google sign-in) shows why in the banner.
+- `?error=google…` (after a failed Google sign-in) shows why in the banner: cancelled, expired, a Google account without a verified address, a deactivated account, too many attempts, Google sign-in unavailable, or a generic failure.
+- A refused sign-in keeps the email and the **Keep me signed in** tick (React resets a form after its action, so the action sends both back).
 
 ### Create account — `/register`
 
@@ -267,7 +270,7 @@ Accounts and sessions live in the API; [src/lib/auth.ts](../src/lib/auth.ts) is 
 | Full name | `name` | text | Required; 2–80 characters |
 | Email | `email` | email | Required; valid format; max 254 characters |
 | Password | `password` | password (show/hide toggle) | Required; 8–200 characters; at least one letter and one number; not a common password (checked by the API) |
-| Terms of Use and Privacy Policy | `terms` | checkbox | Must be ticked |
+| Terms of Use and Privacy Policy | `terms` | checkbox | Must be ticked; stays ticked after a refused submit |
 
 - **Sign up with Google** button above the form.
 - On success it redirects to `/dashboard`, signed in, and the API emails a link to confirm the address (see `/verify-email`). An address that's already registered gets *"That email is already registered."* under the email field.
@@ -287,32 +290,31 @@ Where the emailed link lands. One field, **New password** (`password`, same rule
 
 ### Confirm your email — `/verify-email?token=…`
 
-Where the sign-up email's link lands. The visitor presses **Confirm my email** (a button rather than the link itself, so mail scanners that open every link can't use the token up first), then sees **Email confirmed** and a link to the dashboard. The link works for 3 days; the dashboard's notice can send a new one. A reviewer's access to `/admin` starts only once their address is confirmed. Code: [VerifyEmailForm.tsx](../src/components/auth/VerifyEmailForm.tsx), action `confirmEmail`.
+Where the sign-up email's link lands. Opened without the link, it says to check the inbox, with a **Resend link** button for a signed-in visitor (reviewers who haven't confirmed yet are sent here; a confirmed visitor goes straight on to their home). The visitor presses **Confirm my email** (a button rather than the link itself, so mail scanners that open every link can't use the token up first), then sees **Email confirmed** and a link to the dashboard. The link works for 3 days; the dashboard's notice can send a new one. A reviewer's access to `/admin` starts only once their address is confirmed. Code: [VerifyEmailForm.tsx](../src/components/auth/VerifyEmailForm.tsx), action `confirmEmail`.
 
 ### Shared behaviour
 
 - Validation runs on the website's server ([src/lib/validation.ts](../src/lib/validation.ts)) and again in the API, in the same words; each error shows under its field and is linked to it for screen readers.
 - Typed values survive a failed submit (never the password).
 - Inputs are 52px tall with 16px text, which stops iPhones zooming in on focus.
-- **Google sign-in** (needs `GOOGLE_CLIENT_ID` on the website and the client id and secret on the API): the button stores a random `state` in a 10-minute cookie and sends the visitor to Google; Google returns them to `/api/auth/callback/google` ([route.ts](../src/app/api/auth/callback/google/route.ts)), which checks the `state`, and the API exchanges the code for the verified Google identity, creating the account or joining an existing one with the same address. Cancelled, expired or failed attempts return to `/login` with a message.
+- **Google sign-in** (needs `GOOGLE_CLIENT_ID` on the website and the client id and secret on the API): the button stores a random `state` in a 10-minute cookie and sends the visitor to Google; Google returns them to `/api/auth/callback/google` ([route.ts](../src/app/api/auth/callback/google/route.ts)), which checks the `state`, and the API exchanges the code for the verified Google identity, creating the account or joining an existing one with the same address. Cancelled, expired or failed attempts return to `/login` with a message saying why.
 - If the API can't be reached, the forms say so (*"We couldn't reach the server just now…"*) instead of failing.
 
 ## Founder dashboard: layout and navigation
 
-Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/app/dashboard/layout.tsx)) showing the application's status and completion. Signed-out visitors (or an expired session) are sent to `/login`; the application is created by the API on the first visit. Until the founder confirms their email, a notice at the top of every page says where the link went, with a **Resend link** button.
+Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/app/dashboard/layout.tsx)) showing the application's status and completion. Signed-out visitors (or an expired session) are sent to `/login?next=<the page>`, and come back to it once signed in; the application is created by the API on the first visit. Reviewers never get one: their `/dashboard` visits go to `/admin` (or, until they confirm their address, to `/verify-email`), so no founder draft is started in a staff member's name. Until the founder confirms their email, a notice at the top of every page says where the link went, with a **Resend link** button.
 
 **Desktop (1024px and up): left sidebar**
 
 - Fundup Club logo, linking to the landing page.
 - Application card: status badge, percent complete and a progress bar.
 - Navigation: Overview, Profile, Startup, Team, Review & submit. Each section shows a green tick when complete, otherwise a count such as `3/6`.
-- **Review panel** link, shown only to reviewers.
 - "Questions?" card linking to the FAQ.
-- User block: initials, name, email and a sign-out button.
+- User block: initials, name and email (linking to **Account settings**) and a sign-out button.
 
 **Phones and tablets: sticky header**
 
-- Logo, status badge, and an account menu (name, email, Sign out).
+- Logo, status badge, and an account menu (name, email, Account settings, Sign out).
 - A swipeable row of section tabs with the same ticks and counts.
 
 **Shared behaviour**
@@ -321,7 +323,11 @@ Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/
 - **Required fields** are marked `*`. They are only needed to submit; drafts can be saved with gaps.
 - **Locked sections:** while the application is with the review team, every section page shows a lock notice and read-only fields.
 - **Feedback banner:** when changes are requested, the review team's message appears at the top of every page.
-- **Loading:** a skeleton shows while a page loads.
+- **Loading:** a skeleton shows while a page loads. A page that fails to load (the API unreachable) shows *This page didn't load* with **Try again**, inside the dashboard's frame ([src/app/dashboard/error.tsx](../src/app/dashboard/error.tsx)).
+- **Session ended mid-edit:** a save after the session ended (signed out elsewhere, or expired) isn't redirected away: the form keeps what was typed and says *"You've been signed out, so this wasn't saved."* with **Sign in again (new tab)** (to `/login?next=<this page>`); sign in there, come back and save.
+- **Refused because something changed:** when a save, a submission or a withdrawal is refused because the application changed elsewhere (locked for review, a member removed in another tab, an answer cleared), the page refreshes to show what's true now (the lock, the list of missing answers).
+- **Line breaks** count as one character everywhere (browsers send them as two), so a long answer the counter accepts is accepted by the API too.
+- **Sign out** shows *Signing out…* while it runs.
 - **Titles and search engines:** pages are titled "… — Fundup Club" and hidden from search engines.
 
 Server actions for all dashboard pages: [src/app/dashboard/actions.ts](../src/app/dashboard/actions.ts). Each sends what was typed to the API (`/api/v1/me/application/…`), which checks every rule against the stored application and answers with the same field names and messages shown below.
@@ -356,12 +362,12 @@ The profile has 11 fields; 6 must be answered before the application can be subm
 | Your role | `title` | text (e.g. "CEO & co-founder") | Yes | Max 80 characters |
 | Email | — | read-only | — | Comes from the account; never read from the form |
 | Phone | `phone` | tel | No | 7–15 digits, with country code |
-| LinkedIn | `linkedin` | url | Yes | Must be a linkedin.com link; `https://` added if missing |
+| LinkedIn | `linkedin` | url | Yes | Must be a link to linkedin.com (or a subdomain such as uk.linkedin.com), not merely mention it; `https://` added if missing |
 | Years of work experience | `experienceYears` | number | No | Number 0–60 |
 | Country | `country` | text | Yes | Max 60 characters |
 | City | `city` | text | No | Max 60 characters |
 | Commitment | `commitment` | choice: `full-time` / `part-time` | Yes | One of the two options |
-| How did you hear about us? | `heardFrom` | dropdown | No | Friend or alumni referral, Fundup Club event, Social media, Search, Press or podcast, Other. Answers saved as "VC Summit event" (the old brand name) are read back as "Fundup Club event" (`upgradeStored` in `types.ts`) |
+| How did you hear about us? | `heardFrom` | dropdown | No | Friend or alumni referral, Fundup Club event, Social media, Search, Press or podcast, Other. Answers saved as "VC Summit event" (the old brand name) are read back as "Fundup Club event" (by the API, `profile_data` in [backend/apps/applications/models.py](../backend/apps/applications/models.py)) |
 | Short bio | `bio` | long text, live counter | Yes, at least 60 characters | Max 1,200 characters |
 
 The *Next: startup details* link sits under the form.
@@ -378,7 +384,7 @@ This is what the review team validates and analyses: 26 fields in six parts, 12 
 | Basics | Industry | `industry` | dropdown | Yes | One of 12 options (below) |
 | Basics | Business model | `businessModel` | dropdown | Yes | One of 8 options (below) |
 | Basics | Headquarters (country) | `country` | text | Yes | Max 60 characters |
-| Basics | Founded | `foundedOn` | month picker (`YYYY-MM`) | No | Can't be in the future |
+| Basics | Founded | `foundedOn` | month picker (`YYYY-MM`) | No | Can't be in the future (the current month counts from when it has begun anywhere, so time zones ahead of UTC can pick it) |
 | Basics | Incorporated? | `incorporated` | choice: `yes` / `no` | No | — |
 | Stage | Current stage | `stage` | 6 choice cards | Yes | One of the six stage ids (below) |
 | The idea | Problem | `problem` | long text | Yes, at least 80 characters | Max 1,500 characters |
@@ -387,14 +393,16 @@ This is what the review team validates and analyses: 26 fields in six parts, 12 
 | The idea | Market size | `marketSize` | long text | No | Max 600 characters |
 | The idea | Competitors | `competitors` | long text | Yes | Max 1,000 characters |
 | The idea | Unfair advantage | `advantage` | long text | Yes, at least 40 characters | Max 1,000 characters |
-| Traction | Active users | `activeUsers` | number | No | Positive number; commas allowed |
-| Traction | Paying customers | `payingCustomers` | number | No | Positive number |
+| Traction | Active users | `activeUsers` | number | No | Positive whole number; commas allowed (so "1.200" is refused rather than read as 1.2) |
+| Traction | Paying customers | `payingCustomers` | number | No | Positive whole number |
 | Traction | Monthly revenue (USD) | `monthlyRevenue` | number, `$` | No | Positive number |
 | Traction | Monthly growth | `growthRate` | number, `%` | No | 0–1,000 |
 | Traction | Most important metric | `keyMetric` | text | No | Max 200 characters |
 | Funding | Raised to date (USD) | `raisedToDate` | number, `$` | No | Positive number |
 | Funding | Currently raising (USD) | `seeking` | number, `$` | No | Positive number |
 | Funding | Use of funds | `useOfFunds` | long text | No | Max 1,000 characters |
+
+Every number on the page (and experience and equity elsewhere) is capped at 1,000,000,000,000 (*"That number is too large."*): bigger values would come back from the browser in exponent form (`1e+21`) and fail every later save.
 | Materials | Pitch deck | `deckUrl` | url | Yes | Valid link |
 | Materials | Product or demo | `demoUrl` | url | No | Valid link |
 | Materials | Founder video (1–2 min) | `videoUrl` | url | No | Valid link |
@@ -429,12 +437,12 @@ The applicant is added automatically as the first founder. Members appear as car
 | Name | `name` | text | Required; max 80 characters |
 | Role | `role` | text (e.g. "CTO & co-founder") | Required; max 80 characters |
 | Email | `email` | email | Optional; valid format |
-| LinkedIn | `linkedin` | url | Optional; must be a linkedin.com link |
+| LinkedIn | `linkedin` | url | Optional; must be a link to linkedin.com |
 | Equity | `equity` | number, `%` | Optional; 0–100 |
 | Commitment | `commitment` | choice: `full-time` / `part-time` | Optional |
 | This person is a co-founder | `isFounder` | checkbox | — |
 
-- **Equity limit:** total equity across the team can't exceed 100%. The check runs in the API inside the save, so two quick saves can't together push past 100%; the total is rounded, so 33.3 + 33.3 + 33.4 counts as 100. An **Equity allocated** meter shows the running total (rounded the same way).
+- **Equity limit:** total equity across the team can't exceed 100%. The check runs in the API inside the save, so two quick saves can't together push past 100%; the total is rounded to 6 decimals, so 33.3 + 33.3 + 33.4 counts as 100, and the message names the total to the same precision (*"That brings team equity to 100.004%…"*). An **Equity allocated** meter shows the running total, rounded to 2 decimals.
 - **Removing:** asks for confirmation. The last remaining member can't be removed (the API refuses too). A team lists up to 20 people.
 
 ### About the team
@@ -464,7 +472,7 @@ This page shows the founder exactly what the review team will see, and it is the
 - **Withdraw to make changes:** only while the status is Submitted, i.e. before a reviewer starts. It asks for confirmation, then returns the application to Draft. Action: `withdrawApplication`.
 - The summary and activity timeline stay visible, read-only.
 
-**The server checks everything again:** submitting is refused if any required answer is missing, even when the button is bypassed, and withdrawing is refused once review has started.
+**The server checks everything again:** submitting is refused if any required answer is missing, even when the button is bypassed, and withdrawing is refused once review has started (or, with its own message, if the application isn't submitted at all). A refused submission refreshes the page, so the list of missing answers is up to date.
 
 **Emails:** submitting (or resubmitting) emails the founder a confirmation and each reviewer a link to the application.
 
@@ -506,8 +514,8 @@ Reviewers can decide straight from Submitted; starting a review first is optiona
 
 The queue is the support team's work list, opening on **Needs review** with the longest-waiting application first. Every admin page has a dark header with the logo, a *Review* label, links to Queue and Export CSV, and the reviewer's name, initials and sign-out.
 
-- **Summary line:** "N waiting for review · N in review with you".
-- **Overdue warning:** an amber banner when any application has waited 5+ days, since founders are told reviews start within 5 working days. It links to the waiting list.
+- **Summary line:** "N waiting for review · N in review with you" ("Nothing waiting for review right now." only when both are zero).
+- **Overdue warning:** an amber banner when any application has waited 5+ days, since founders are told reviews start within 5 working days. It links to the whole waiting list (`/admin?status=submitted&sort=waiting`, without the current search or filters, which the count ignores too).
 - **Status tabs, each with a count:** Needs review, In review, Changes requested, Accepted, Declined, Drafts, All. The counts respect the active search and filters.
 
 | Filter | URL parameter | Options |
@@ -520,7 +528,7 @@ The queue is the support team's work list, opening on **Needs review** with the 
 | Sort | `sort` | `waiting` Longest wait (default on Needs review), `recent` Most recent (default elsewhere), `score` Top score, `name` Name A–Z |
 | Page | `page` | 50 applications per page; **Previous** / **Next** links under the list when there's more than one page |
 
-Dropdown and checkbox filters apply as soon as they change; search applies on Enter or **Search**; **Clear** resets. Filters live in the web address, so a view can be bookmarked or shared. The options are defined in [src/lib/application/queue.ts](../src/lib/application/queue.ts); the API does the filtering, counting, sorting and paging in SQL ([backend/apps/applications/queue.py](../backend/apps/applications/queue.py)).
+Dropdown and checkbox filters apply as soon as they change; search applies on Enter or **Search**; **Clear** resets. The filter bar always shows the filters in the address (it's rebuilt when a tab, **Clear** or the overdue banner changes them). A skeleton shows while a queue or application page loads, and a page that fails to load shows **Try again** inside the panel ([src/app/admin/loading.tsx](../src/app/admin/loading.tsx), [error.tsx](../src/app/admin/error.tsx)). Filters live in the web address, so a view can be bookmarked or shared. The options are defined in [src/lib/application/queue.ts](../src/lib/application/queue.ts); the API does the filtering, counting, sorting and paging in SQL ([backend/apps/applications/queue.py](../backend/apps/applications/queue.py)).
 
 | Column (desktop table) | Content |
 | --- | --- |
@@ -555,7 +563,7 @@ Only the decisions that are valid for the current status are shown. Each asks fo
 | `reopen` | Reopen review | Accepted, Declined | In review | Optional |
 
 - **Where decisions go:** each one is added to the founder's activity timeline as a *Review team* entry, with the message, and **emailed to the founder** with a link to their dashboard.
-- **Two reviewers at once:** the second is refused with "Someone got there first — this application is now …".
+- **Two reviewers at once:** the second is refused with "Someone got there first — this application is now …", and the page refreshes to show the decisions the new status allows.
 - **Nothing to decide:** Drafts and Changes requested show why instead of buttons.
 
 ### Reviewer, scorecard and notes
@@ -565,9 +573,11 @@ Only the decisions that are valid for the current status are shown. Each asks fo
 | Reviewer | `assignToMe`, `unassign` | Shows who owns the application; **Assign to me**, **Take over** or **Unassign** |
 | Your scorecard | `saveScorecard` | Scores 1–5 for Problem, Solution, Market, Team, Traction (`score-<area>`), a recommendation (`accept`, `interview`, `decline`) and a summary up to 2,000 characters. One scorecard per reviewer; saving replaces your own |
 | Other reviewers | — | Each colleague's average, per-area scores, recommendation and summary |
-| Team score | — | Average of each reviewer's average, shown in the header and the queue |
-| Internal notes | `addNote` | Timestamped notes (`body`), up to 2,000 characters each, visible to the review team only |
+| Team score | — | Average of each reviewer's average, shown in the header and the queue; recomputed when a scorecard is saved or removed (a reviewer's account deleted) |
+| Internal notes | `addNote` | Timestamped notes (`body`), up to 2,000 characters each, visible to the review team only. A note that can't be posted says why |
 | Founder-visible activity | — | The same timeline the founder sees |
+
+If the session ended while a note, scorecard or decision was being written, it isn't lost: the panel says nothing was saved, with **Sign in again (new tab)**. Assignments, scorecards and notes never refresh the public directory; decisions do.
 
 **Scoring areas and their guiding questions:**
 
@@ -579,7 +589,7 @@ Only the decisions that are valid for the current status are shown. Each asks fo
 
 ## CSV export (`/admin/export`)
 
-The export downloads every application (all statuses, most recently active first) as `fundup-club-applications-YYYY-MM-DD.csv`, with 33 columns. It is available from the admin header and the queue page, to reviewers only; anyone else gets a 404. The API builds the file (`GET /api/v1/admin/export.csv`, [backend/apps/applications/export.py](../backend/apps/applications/export.py)), streaming it row by row; [src/app/admin/export/route.ts](../src/app/admin/export/route.ts) passes it through.
+The export downloads every application (all statuses, most recently active first) as `fundup-club-applications-YYYY-MM-DD.csv`, with 33 columns. It is available from the admin header and the queue page, to reviewers only; anyone else gets a 404 (the API decides; the website passes its answer on). A signed-out reviewer is sent to sign in, and a rate-limited request answers 429 with `Retry-After`. The API builds the file (`GET /api/v1/admin/export.csv`, [backend/apps/applications/export.py](../backend/apps/applications/export.py)), streaming it row by row; [src/app/admin/export/route.ts](../src/app/admin/export/route.ts) passes it through.
 
 | Group | Columns |
 | --- | --- |
@@ -627,6 +637,7 @@ Each founder has one application, keyed by their user id, stored by the API in P
 | [src/lib/application/public.ts](../src/lib/application/public.ts) | The public directory |
 | [src/lib/application/queue.ts](../src/lib/application/queue.ts) | Queue options and links |
 | [src/lib/validation.ts](../src/lib/validation.ts) | Field format checks for the sign-in and public forms (the API repeats them) |
+| [src/lib/session.ts](../src/lib/session.ts), [src/proxy.ts](../src/proxy.ts) | The session cookie's name, and where to return after signing in (`?next=`, only within the visitor's own area) |
 | [src/lib/events.ts](../src/lib/events.ts), [newsletter.ts](../src/lib/newsletter.ts), [contact.ts](../src/lib/contact.ts) | Events, the newsletter, the contact form |
 
 ## Security and access control
@@ -641,7 +652,7 @@ Every rule is enforced by the API, inside each request, not just by hiding butto
 | No edits while under review | Saves refused unless status is Draft or Changes requested, checked on the locked record |
 | No submitting incomplete applications | Completeness re-checked on the locked record |
 | Team equity ≤ 100% | Checked on the locked record |
-| Only reviewers reach `/admin` | Every review endpoint answers 404 to everyone else; the pages and the export check too, and page titles are generated only after the check |
+| Only reviewers reach `/admin` | Every review endpoint answers 404 to everyone else; the pages check too (the export passes on the API's answer), and page titles are generated only after the check |
 | Two reviewers can't both decide | Status re-checked on the locked record; the second gets "Someone got there first" |
 | Safe spreadsheet export | Formula cells neutralised, cells escaped |
 | Other sites can't act with a visitor's cookie | Cookie-authenticated changes must come from the site's own origin |
@@ -649,7 +660,19 @@ Every rule is enforced by the API, inside each request, not just by hiding butto
 
 **Who counts as a reviewer:** a user with the *reviewer* role **and** an email address they confirmed themselves with the emailed link. Set the role in the back office (Users → *Make reviewer*, which sends a fresh link to anyone unconfirmed); the back office can't confirm an address on someone's behalf. Back-office superusers created with `createsuperuser` are reviewers too.
 
-**Passwords and sessions:** passwords are hashed with Argon2; sessions are random tokens stored only as hashes, revoked on sign-out and on a password reset, and can be ended from the back office (*Sign out of every device*).
+**Passwords and sessions:** passwords are hashed with Argon2; sessions are random tokens stored only as hashes, revoked on sign-out, on a password reset and (except the one making the change) on a password change, and can be ended from the back office (*Sign out of every device*).
+
+## Account settings (`/dashboard/account`)
+
+Reached from the name and email in the dashboard's sidebar, or **Account settings** in the phone menu. Code: [src/app/dashboard/account/page.tsx](../src/app/dashboard/account/page.tsx), forms in [AccountForms.tsx](../src/components/dashboard/AccountForms.tsx), actions `saveAccountName` and `savePassword`.
+
+| Form | Field | Form name | Rule |
+| --- | --- | --- | --- |
+| Your name | Name | `name` | 2–80 characters. The account's name, used in emails; the application keeps its own *Full name* |
+| Change your password | Current password | `currentPassword` | Must match (*"That's not your current password."*); not asked of accounts that have only signed in with Google, whose form is titled **Set a password** |
+| | New password | `newPassword` | Same rules as sign-up |
+
+Changing the password keeps this session, ends every other one and emails a "your password was changed" notice. Attempts share the sign-in limit (10 a minute per address).
 
 ## Setup and what's still to be built
 
@@ -661,7 +684,7 @@ Local development, test accounts and sample data: [deployment.md → Local devel
 | `NEXT_PUBLIC_SITE_URL` | Site address, used for Google sign-in, link previews, robots.txt and the sitemap (set at build time from `SITE_URL`) |
 | `GOOGLE_CLIENT_ID` | Starts the Google consent screen |
 | `REVALIDATE_SECRET` | Lets the API refresh the website's cached pages |
-| `COOKIE_SECURE` | `false` only for plain-http local runs |
+| `COOKIE_SECURE` | `false` only for plain-http local runs (read like the API reads it: `1`, `true`, `yes` or `on` is on) |
 
 The API's settings are listed in [.env.example](../.env.example) and [backend-integration.md](backend-integration.md#environment-variables).
 

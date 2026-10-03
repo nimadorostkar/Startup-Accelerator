@@ -27,6 +27,9 @@
 		max_size 2MB
 	}
 
+	# The back office's address as people type it
+	redir /backoffice /backoffice/ 308
+
 	# The API and the back office (Django)
 	@django path /api/v1/* /backoffice/*
 	handle @django {

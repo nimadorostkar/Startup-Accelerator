@@ -1,8 +1,7 @@
-import { expect, test } from "@playwright/test";
 import { newFounder } from "../support/api";
 import { PASSWORD, uniqueEmail } from "../support/data";
 import { linkIn, waitForEmail } from "../support/mailpit";
-import { signInAs } from "../support/web";
+import { expect, signInAs, test } from "../support/web";
 
 test("sign up, confirm the email, sign out, sign back in", async ({ page }) => {
   const email = uniqueEmail();
@@ -28,7 +27,7 @@ test("sign up, confirm the email, sign out, sign back in", async ({ page }) => {
   await page.getByRole("button", { name: "Sign out" }).first().click();
   await expect(page).toHaveURL(/\/login$/);
   await page.goto("/dashboard");
-  await expect(page).toHaveURL(/\/login$/); // the session really ended
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard$/); // the session really ended
 
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill("wrong-password-1");
@@ -86,7 +85,7 @@ test("a failed Google sign-in comes back with a message", async ({ page }) => {
 
 test("founders get a 404 from the review panel, signed-out visitors the sign-in page", async ({ page, context }) => {
   await page.goto("/admin");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin$/);
   const founder = await newFounder();
   await signInAs(context, founder.token);
   const response = await page.goto("/admin");

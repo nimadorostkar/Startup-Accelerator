@@ -27,8 +27,10 @@ RUN addgroup -S -g 10001 app && adduser -S -u 10001 -G app app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
+COPY --from=build --chown=app:app /app/scripts/start.mjs ./start.mjs
 USER app
 EXPOSE 3000
-HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
+HEALTHCHECK --interval=15s --timeout=5s --start-period=120s --retries=5 \
     CMD wget -q -O /dev/null http://127.0.0.1:3000/robots.txt || exit 1
-CMD ["node", "server.js"]
+# Waits (up to 90 s) for the API, then runs Next's server.js.
+CMD ["node", "start.mjs"]

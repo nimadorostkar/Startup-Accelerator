@@ -18,7 +18,7 @@ flowchart LR
 ```
 
 - **The website never touches the database.** Pages and Server Actions call the API through one client, [src/lib/api.ts](../src/lib/api.ts), over the private Docker network (`BACKEND_URL`). The browser only ever talks to the website (and, for Google sign-in, to Google).
-- **Identity comes from the session.** Signing in returns a random token in the `vcs_session` cookie (httpOnly, `SameSite=Lax`, `Secure` in production). The website copies it onto its own response and forwards it as `Authorization: Bearer …` on every signed-in call. The API stores only the token's SHA-256 hash, so signing out, a password reset or a back-office "sign out everywhere" ends it for good.
+- **Identity comes from the session.** Signing in returns a random token in the `vcs_session` cookie (httpOnly, `SameSite=Lax`, `Secure` in production). The website copies it onto its own response and forwards it as `Authorization: Bearer …` on every signed-in call. [src/proxy.ts](../src/proxy.ts) sends visitors with no cookie at all from `/dashboard…` and `/admin…` to `/login?next=<page>`, and tells signed-in pages their own path so an ended session can do the same; it's a shortcut only, the API still answers every call. A 401 from `/me` means signed out; any other refusal there (a 429, say) shows the error page rather than the sign-in form. The API stores only the token's SHA-256 hash, so signing out, a password reset or a back-office "sign out everywhere" ends it for good.
 - **Every rule is enforced by the API**, inside one transaction holding the application's row lock (`SELECT … FOR UPDATE`): the edit lock, "complete before submit", the 100% equity cap and "two reviewers can't both decide". The website keeps its copies of the rules in `progress.ts`, `decisions.ts`, `types.ts` and `validation.ts` only to show progress, hide invalid buttons and validate sign-in forms early. **If you change a rule, change it in both places**; the API's copy (`backend/apps/applications/rules.py`, `backend/apps/core/validation.py`) is the one that counts.
 - **Public pages are static (ISR).** The landing page, `/events`, `/newsletter` and `/demo-day` are served from Next's cache, refreshed every minute, and the moment the API reports a change (see *Caching and refresh*). Event, article and startup pages are rendered on first visit and cached the same way.
 - **Emails are sent in the background** by the Celery worker, after the database transaction commits, with retries. Without an SMTP server configured they're printed to the worker's log.
@@ -67,8 +67,8 @@ Base path `/api/v1`. JSON in and out. Interactive docs (OpenAPI) at `/api/v1/doc
 | POST | `/auth/verify-email/resend` | — (signed in) | 202 |
 | POST | `/auth/google` | `{ code }` | 200 `{ user }` + cookie. Exchanges the code Google sent to `SITE_URL/api/auth/callback/google`; joins an existing account with the same address. If that account's address was never confirmed, its password, sessions and emailed links are cancelled first, so an account registered in advance by someone else can't be kept by them |
 | GET | `/me` | — | `{ user: { id, email, name, role, isReviewer, emailVerified, hasPassword, createdAt } }` |
-| PATCH | `/me` | `{ name }` | 200 `{ user }` |
-| POST | `/me/password` | `{ currentPassword, newPassword }` | 204; ends every other session |
+| PATCH | `/me` | `{ name }` | 200 `{ user }` (the website's `/dashboard/account`) |
+| POST | `/me/password` | `{ currentPassword, newPassword }` | 204; ends every other session. `currentPassword` is ignored for accounts without a password (Google-only), which this sets one for. Shares the sign-in rate limit |
 
 ### The founder's application
 
@@ -84,7 +84,7 @@ Always the signed-in founder's own; no endpoint takes a user id. Responses carry
 | PATCH | `/me/application/team/members/:id` | Member fields | Merged into the stored member, then checked |
 | DELETE | `/me/application/team/members/:id` | — | 409 for the last remaining member |
 | POST | `/me/application/submit` | `{ confirm: true }` | 422 `{ message, missing: [...] }` with every answer still missing |
-| POST | `/me/application/withdraw` | — | Only while Submitted; 409 once review has started |
+| POST | `/me/application/withdraw` | — | Only while Submitted; 409 once review has started, or (another message) when it isn't submitted |
 
 ### Review panel (reviewers only; everyone else gets 404)
 
@@ -153,6 +153,9 @@ Each has an automated test (`backend/tests/`).
 10. **CSV export neutralises formulas.** *(test_csv_export_escapes_and_neutralises_formulas)*
 11. **Cross-site requests can't use a visitor's cookie** to change data. *(test_cookie_session_writes_must_come_from_the_site)*
 12. **The public directory is an allowlist:** no emails, phones, equity, money, deck, review messages. *(test_submitted_startups_are_listed_without_private_fields)*
+13. **Public LinkedIn links go to LinkedIn**, not anywhere that mentions it. *(test_profile_validation_messages)*
+14. **Answers mean what the founder saw:** line breaks count once (browsers send two characters), and numbers are capped at 10¹² (whole numbers for people counts), so a value can't be stored that the form can't send back. *(test_line_breaks_count_once_and_are_stored_as_newlines, test_startup_validation_messages)*
+15. **Only a decision changes the public directory**; assignments, scorecards and notes leave its cache alone. *(test_only_decisions_refresh_the_public_directory)*
 
 ## Notifications
 
@@ -174,10 +177,12 @@ All sent by the Celery worker after the change commits; failed sends are retried
 
 ## Caching and refresh
 
-- **The API** caches the startup directory, events and articles in Redis for 5 minutes, and drops them the moment one changes.
+- **The API** caches the startup directory, events and articles in Redis for 5 minutes, and drops them the moment one changes. Only things that exist are cached by address: a made-up slug is looked up each time (the website caches its 404 for a minute), so random addresses can't fill Redis and push out the rate-limit counters.
 - **The website** caches its reads of that public data for a minute (`fetch` tags `startups`, `events`, `newsletter`), and its public pages are static (ISR, `revalidate = 60`).
-- **On change**, the API's worker calls the website's [`/api/revalidate`](../src/app/api/revalidate/route.ts) with the tag (authorised by `REVALIDATE_SECRET`), so an event edited in the back office or a decided application shows within seconds. Founder and reviewer actions refresh the `startups` tag themselves.
-- **At build time** the API isn't reachable, so public pages are prerendered without data (`BUILDING` in `lib/api.ts`) and [scripts/expire-prerendered.mjs](../scripts/expire-prerendered.mjs) backdates them; the first visit after a deploy renders them with live data. If the API is down later, the last good copy keeps being served.
+- **On change**, the API's worker calls the website's [`/api/revalidate`](../src/app/api/revalidate/route.ts) with the tag (authorised by `REVALIDATE_SECRET`), so an event edited in the back office or a decided application shows within seconds. Founder submissions and withdrawals, and reviewer decisions, refresh the `startups` tag themselves; assignments, scorecards and notes don't touch it (on either side: the API's directory cache ignores saves of review-only columns, `REVIEW_ONLY` in `applications/signals.py`).
+- **Refreshing is stale-while-revalidate** (`revalidateTag(tag, "max")`): a refreshed tag marks pages out of date; the next visitor gets the old copy while a new one renders, and everyone after sees the change. If the API can't be reached for that render, the old copy stays. (Expiring tags outright, `{ expire: 0 }`, made those pages answer 500 for as long as the API was down.)
+- **Pages rendered after the build stay in memory** (`experimental.isrFlushToDisk: false` in `next.config.ts`; an LRU of `cacheMaxMemorySize`, 50 MB by default), so requests for endless made-up addresses can't fill the website container's disk. A restart starts from the build's copies again.
+- **At build time** the API isn't reachable, so public pages are prerendered without data (`BUILDING` in `lib/api.ts`) and [scripts/expire-prerendered.mjs](../scripts/expire-prerendered.mjs) backdates them; the first visit after a deploy renders them with live data. So that this first visit doesn't race the API (after a host reboot, Docker's restart policy ignores `depends_on`), the website's container waits up to 90 seconds for `/api/v1/health/ready` before starting ([scripts/start.mjs](../scripts/start.mjs); `API_WAIT_SECONDS`). If the API is down later, the last good copy keeps being served.
 - Signed-in pages (`/dashboard`, `/admin`) are always rendered per request and never cached.
 
 ## Rate limits
@@ -186,7 +191,7 @@ Counted per client address in Redis, so every API worker shares one count. The a
 
 | Scope | Limit |
 | --- | --- |
-| Sign-in | 10 per minute per address. Failed attempts only: 5 per account per address per 15 minutes, and 50 per account from anywhere per hour. A success clears the visitor's count; a password reset clears the account's |
+| Sign-in (and password change) | 10 per minute per address. Failed attempts only: 5 per account per address per 15 minutes, and 50 per account from anywhere per hour. A success clears the visitor's count; a password reset clears the account's |
 | Back-office sign-in | 10 failed attempts per address per 15 minutes |
 | Sign-up | 10 per hour per address |
 | Password reset | 5 requests per hour per address; at most 3 emails per hour per inbox (past that the request still answers 202 and the latest link keeps working, so nobody can block or flood someone's reset) |

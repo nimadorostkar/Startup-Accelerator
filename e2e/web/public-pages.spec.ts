@@ -1,7 +1,6 @@
-import { expect, test } from "@playwright/test";
 import { Api, json, reviewer, slugOf, submittedFounder } from "../support/api";
 import { uid } from "../support/data";
-import { monthDay } from "../support/web";
+import { expect, monthDay, test } from "../support/web";
 
 type Event = { slug: string; title: string; type: string; start: string; tz: string; agenda: { item: string }[] };
 
