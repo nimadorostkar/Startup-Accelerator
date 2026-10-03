@@ -203,7 +203,7 @@ The website reads `BACKEND_URL` (where the API is; `http://backend:8000` in Dock
 
 ## Tests
 
-`cd backend && pytest` runs 131 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections. The list that was checked by hand before the backend existed is now automated:
+`cd backend && pytest` runs 131 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections, and `npm run test:e2e` runs 61 end-to-end tests against a running stack: every endpoint over HTTP, and the website in a browser. Details: [testing.md](testing.md). The list that was checked by hand before the backend existed is now automated:
 
 - [x] A founder can't read or change another founder's application.
 - [x] No founder payload contains scorecards, notes, assignee or `review`.

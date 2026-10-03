@@ -6,6 +6,7 @@ Start here before changing the app, the API or how it's deployed.
 | --- | --- | --- |
 | [pages-and-features.md](pages-and-features.md) | Changing any page, form or rule | Every route, every field with its form name and validation, the application lifecycle, the admin panel, emails, security rules |
 | [backend-integration.md](backend-integration.md) | Working on the API or how the website talks to it | Architecture, the full API reference, data model, the rules the API enforces (and their tests), notifications, caching, rate limits, environment variables |
+| [testing.md](testing.md) | Checking a change, or a deployment | The three test layers (API tests, end-to-end API, end-to-end website), how to run them against any stack, what each covers |
 | [deployment.md](deployment.md) | Running it in production (or locally) | The Docker Compose stack, sizing for ~1,000 users, first deploy, email, updates, backups, monitoring, security checklist, local development |
 | [../backend/README.md](../backend/README.md) | Working inside `backend/` | Apps, commands, tests, lint |
 
@@ -18,4 +19,4 @@ Start here before changing the app, the API or how it's deployed.
 - **Areas:** landing page `/` · public pages (`/startups`, `/events`, `/newsletter`, `/demo-day`…) · sign-in `/login` `/register` `/forgot-password` `/reset-password` `/verify-email` · founder dashboard `/dashboard/*` · review panel `/admin/*` · back office (Django admin) `/backoffice/`.
 - **Run it locally:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`, then `npm run dev`. Details, test accounts and sample data: [deployment.md → Local development](deployment.md#local-development).
 - **Production:** `docker compose up -d --build` behind Caddy with automatic HTTPS: [deployment.md](deployment.md).
-- **Tests:** `cd backend && pytest` (131 tests, real Postgres) · `npx tsc --noEmit && npm run lint` for the website.
+- **Tests:** `cd backend && pytest` (131 tests, real Postgres) · `npm run test:e2e` (61 end-to-end tests: every API endpoint, and the website in a browser) · `npx tsc --noEmit && npm run lint`. See [testing.md](testing.md).

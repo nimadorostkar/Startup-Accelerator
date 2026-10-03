@@ -104,7 +104,7 @@ Code: [src/app/contact/page.tsx](../src/app/contact/page.tsx), form in [src/comp
 | Message | `message` | textarea | Required; 10–2000 characters |
 
 - A hidden `website` field catches bots: if it's filled in, the form shows success but saves nothing.
-- On success the form is replaced by **Message sent** (with the sender's email) and a **Send another message** button.
+- On success the form is replaced by **Message sent** (with the sender's email) and a **Send another message** button. A refused message keeps what was typed, including the chosen topic.
 - Messages are stored by the API ([src/lib/contact.ts](../src/lib/contact.ts) → `POST /api/v1/contact`) and emailed to the support team (`SUPPORT_EMAILS`, or every reviewer) with the sender as reply-to. They're also listed in the back office, where they can be marked handled. Limited to 10 per hour per address.
 - Beside the form: shortcut cards to apply (`/dashboard`), the FAQ (`/#faq`) and sign in (`/login`).
 
@@ -317,7 +317,7 @@ Every `/dashboard` page shares one frame ([src/app/dashboard/layout.tsx](../src/
 
 **Shared behaviour**
 
-- **Saving:** each section form has a save bar that sticks to the bottom of the screen. It shows *Unsaved changes*, *Saving…*, *Changes saved.* or the error, and the browser warns before closing the tab with unsaved edits.
+- **Saving:** each section form has a save bar that sticks to the bottom of the screen. It shows *Unsaved changes*, *Saving…*, *Changes saved.* or the error, and the browser warns before closing the tab with unsaved edits. A save the server refuses keeps everything typed or picked, dropdowns and choice cards included, so only the flagged field needs fixing.
 - **Required fields** are marked `*`. They are only needed to submit; drafts can be saved with gaps.
 - **Locked sections:** while the application is with the review team, every section page shows a lock notice and read-only fields.
 - **Feedback banner:** when changes are requested, the review team's message appears at the top of every page.

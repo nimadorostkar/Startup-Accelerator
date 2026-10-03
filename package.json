@@ -7,7 +7,9 @@
     "build": "next build",
     "postbuild": "node scripts/expire-prerendered.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test",
+    "test:e2e:api": "playwright test --project=api"
   },
   "dependencies": {
     "next": "16.3.6",

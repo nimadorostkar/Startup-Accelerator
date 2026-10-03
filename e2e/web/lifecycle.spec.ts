@@ -59,7 +59,9 @@ test("apply, review, request changes, resubmit, accept", async ({ browser }) => 
   await expect(f.getByText("Everything required is answered")).toBeVisible();
   await f.locator('input[name="confirm"]').check();
   await f.getByRole("button", { name: "Submit application" }).click();
-  await expect(f.getByText("Submitted — the review team has your application.")).toBeVisible();
+  // The page turns into the read-only "Your application", with the way back to editing.
+  await expect(f.getByRole("heading", { level: 1, name: "Your application" })).toBeVisible();
+  await expect(f.getByRole("button", { name: "Withdraw to make changes" })).toBeVisible();
   await waitForEmail(founder.email, "We have your Fundup Club application");
 
   // ---------------------------------------------------------------- the reviewer starts and asks for changes
@@ -94,7 +96,8 @@ test("apply, review, request changes, resubmit, accept", async ({ browser }) => 
   await f.goto("/dashboard/review");
   await f.locator('input[name="confirm"]').check();
   await f.getByRole("button", { name: "Resubmit application" }).click();
-  await expect(f.getByText("Submitted — the review team has your application.")).toBeVisible();
+  await expect(f.getByRole("heading", { level: 1, name: "Your application" })).toBeVisible();
+  await waitForEmail(founder.email, "We have your updated application");
 
   // ---------------------------------------------------------------- the reviewer scores, notes and accepts
   await rv.reload();

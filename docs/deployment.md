@@ -77,6 +77,10 @@ Run it from cron, and copy `backups/` off the server (object storage). Restore i
 - **Errors:** set `SENTRY_DSN` to send API and worker errors to Sentry.
 - **Slow queries:** Postgres logs any statement over 500 ms.
 
+## Checking a deployment
+
+The end-to-end suite runs against any stack, production included: see [testing.md](testing.md#running-the-end-to-end-suite) for the variables that point it there.
+
 ## Security checklist
 
 - [ ] `DJANGO_DEBUG=false`, long random `DJANGO_SECRET_KEY` and `REVALIDATE_SECRET`

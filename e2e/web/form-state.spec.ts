@@ -39,3 +39,25 @@ test("contact: a refused message keeps the chosen topic", async ({ page }) => {
   await expect(page.getByText("Tell us a little more (at least 10 characters).")).toBeVisible();
   await expect(page.locator('select[name="topic"]')).toHaveValue("Press");
 });
+
+test("team: a refused member keeps every answer", async ({ page, context }) => {
+  const founder = await newFounder();
+  const [me] = (await (await founder.api.get("/me/application")).json()).application.team.members;
+  await founder.api.patch(`/me/application/team/members/${me.id}`, { role: "CEO", equity: 70 });
+  await signInAs(context, founder.token);
+  await page.goto("/dashboard/team");
+  await page.getByRole("button", { name: "Add team member" }).click();
+  const form = page.getByRole("form", { name: "Add team member" });
+  await form.locator('input[name="name"]').fill("Tom Achebe");
+  await form.locator('input[name="role"]').fill("CTO");
+  await form.locator('input[name="equity"]').fill("40"); // 70 + 40 > 100: refused
+  await form.locator('input[name="commitment"][value="part-time"]').check();
+  await form.locator('input[name="isFounder"]').check();
+  await form.getByRole("button", { name: /add|save/i }).last().click();
+  await expect(form.getByText("That brings team equity to 110% — it can't exceed 100%.")).toBeVisible();
+
+  await expect(form.locator('input[name="name"]')).toHaveValue("Tom Achebe");
+  await expect(form.locator('input[name="commitment"][value="part-time"]')).toBeChecked();
+  await expect(form.locator('input[name="isFounder"]')).toBeChecked();
+  await founder.api.dispose();
+});

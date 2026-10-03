@@ -91,7 +91,8 @@ test("founders get a 404 from the review panel, signed-out visitors the sign-in 
   await signInAs(context, founder.token);
   const response = await page.goto("/admin");
   expect(response?.status()).toBe(404);
-  await expect(page).toHaveTitle("Page not found — Fundup Club");
+  await expect(page.getByText(/this page moved on/i)).toBeVisible();
+  expect(await page.title()).not.toMatch(/review/i); // the panel isn't advertised, not even in the title
   const exported = await page.request.get("/admin/export");
   expect(exported.status()).toBe(404);
   await founder.api.dispose();
