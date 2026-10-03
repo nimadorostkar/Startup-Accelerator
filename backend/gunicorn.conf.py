@@ -9,7 +9,10 @@ worker_class = "gthread"
 threads = int(os.environ.get("WEB_THREADS", "4"))
 timeout = 30
 graceful_timeout = 30
-keepalive = 5
+# Longer than Caddy keeps an idle connection to us (30 s, deploy/Caddyfile) and than
+# the website's server does (4 s), so we are never the one to close a connection the
+# other side is about to send a request on (that request would be lost: a 502).
+keepalive = 75
 # Recycle workers now and then, so a slow leak can never grow without bound.
 max_requests = 2000
 max_requests_jitter = 200

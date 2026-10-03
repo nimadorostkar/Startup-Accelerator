@@ -22,7 +22,11 @@ WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=0.0.0.0 \
+    KEEP_ALIVE_TIMEOUT=75000
+# KEEP_ALIVE_TIMEOUT (ms): how long the server keeps an idle connection. Node's 5 s
+# default is shorter than Caddy's (30 s, deploy/Caddyfile), so Caddy would now and then
+# send a request just as the connection closed and answer 502; a form post isn't retried.
 RUN addgroup -S -g 10001 app && adduser -S -u 10001 -G app app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static

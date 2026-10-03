@@ -1,0 +1,14 @@
+# The production Caddyfile, for end-to-end test runs on one machine (docker-compose.e2e.yml).
+#
+# Trusting the private ranges makes Caddy pass on the X-Forwarded-For each test
+# browser sends, so every test is a visitor with its own address and the API's
+# rate limits count them apart, as they would real visitors. Never use this in
+# production: there, the address Caddy sees is the one that counts.
+
+{
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+import Caddyfile

@@ -1,0 +1,51 @@
+# The production stack on your machine, for the end-to-end suite (docs/testing.md):
+#
+#   docker compose -p fundup-e2e -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
+#
+# Same images, Gunicorn, Celery, Caddy and production Next.js build as a real
+# deployment, at http://localhost. Its own project name (-p fundup-e2e) gives it
+# its own database, so it never touches the dev stack's or a deployment's data.
+# Added for testing only: Mailpit catches the emails, the API gets a port for
+# the API tests, and Caddy passes on each test browser's address.
+#
+# Ports can be moved with E2E_API_PORT and E2E_MAIL_PORT.
+
+x-e2e-env: &e2e-env
+  DJANGO_DEBUG: "false"
+  SITE_URL: http://localhost
+  COOKIE_SECURE: "false"
+  EMAIL_HOST: mailpit
+  EMAIL_PORT: "1025"
+  EMAIL_USE_TLS: "false"
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:${E2E_MAIL_PORT:-8026}:8025"
+    restart: unless-stopped
+
+  backend:
+    ports:
+      - "127.0.0.1:${E2E_API_PORT:-8002}:8000"
+    environment: *e2e-env
+
+  worker:
+    environment: *e2e-env
+
+  beat:
+    environment: *e2e-env
+
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_SITE_URL: http://localhost
+    environment:
+      COOKIE_SECURE: "false"
+
+  caddy:
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile.e2e", "--adapter", "caddyfile"]
+    environment:
+      SITE_ADDRESS: http://localhost
+    volumes:
+      - ./deploy/Caddyfile.e2e:/etc/caddy/Caddyfile.e2e:ro

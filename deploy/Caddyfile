@@ -30,11 +30,20 @@
 	# The back office's address as people type it
 	redir /backoffice /backoffice/ 308
 
+	# `keepalive 30s`, twice below: idle connections to the website and the API are
+	# dropped here after 30 s, well before either of them closes one (75 s:
+	# KEEP_ALIVE_TIMEOUT in the Dockerfile, `keepalive` in backend/gunicorn.conf.py).
+	# The other way round, a request sent as the connection closes is lost, and a
+	# form post can't be retried: the visitor gets an error page.
+
 	# The API and the back office (Django)
 	@django path /api/v1/* /backoffice/*
 	handle @django {
 		reverse_proxy backend:8000 {
 			header_up X-Request-ID {http.request.uuid}
+			transport http {
+				keepalive 30s
+			}
 		}
 	}
 
@@ -43,6 +52,9 @@
 		reverse_proxy frontend:3000 {
 			flush_interval -1
 			header_up X-Request-ID {http.request.uuid}
+			transport http {
+				keepalive 30s
+			}
 		}
 	}
 
