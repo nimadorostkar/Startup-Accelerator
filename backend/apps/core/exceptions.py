@@ -91,7 +91,9 @@ def exception_handler(exc, context):
             status=status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
     if isinstance(exc, exceptions.ParseError):
-        return Response({"message": "The request body isn't valid JSON."}, status=status.HTTP_400_BAD_REQUEST)
+        detail = str(exc.detail)
+        message = "The request body isn't valid JSON." if detail.startswith("JSON parse error") else detail
+        return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
     if isinstance(exc, exceptions.Throttled):
         wait = exc.wait or 60
         response = Response(

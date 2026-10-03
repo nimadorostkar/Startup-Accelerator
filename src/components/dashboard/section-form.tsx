@@ -5,6 +5,8 @@ import type { SaveState } from "@/app/dashboard/actions";
 import { AlertIcon, CheckIcon } from "../icons";
 
 type Action = (prev: SaveState, form: FormData) => Promise<SaveState>;
+/** The action's answer, numbered so every response (saved or refused) is a new one. */
+type Answer = SaveState & { response?: number };
 
 /**
  * Wraps a dashboard section form: saving, error echo, dirty tracking and the
@@ -23,7 +25,10 @@ export default function SectionForm({
     err: (name: string) => string | undefined;
   }) => ReactNode;
 }) {
-  const [state, formAction, pending] = useActionState(action, {});
+  const [state, formAction, pending] = useActionState<Answer, FormData>(
+    async (prev, form) => ({ ...(await action(prev, form)), response: (prev.response ?? 0) + 1 }),
+    {},
+  );
   const [dirty, setDirty] = useState(false);
 
   // A new successful save means the stored data now matches the form.
@@ -52,9 +57,11 @@ export default function SectionForm({
       onInput={() => setDirty(true)}
       className="flex flex-col gap-5"
     >
-      {/* Remount on each successful save so every field (and textarea
-          counter) picks up the freshly stored values. */}
-      <fieldset key={state.savedAt ?? "initial"} disabled={!editable} className="flex min-w-0 flex-col gap-5">
+      {/* Remount after every answer, so each field (and textarea counter) re-reads
+          its value through v(): the stored one after a save, what was typed after
+          a refusal. React resets a form once its action has run, and a <select>
+          would otherwise drop back to its placeholder. */}
+      <fieldset key={state.response ?? 0} disabled={!editable} className="flex min-w-0 flex-col gap-5">
         {children({ v, err })}
       </fieldset>
 

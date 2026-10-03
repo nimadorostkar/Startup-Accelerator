@@ -23,7 +23,12 @@ def test_responses_carry_a_request_id():
 
 def test_bad_json_is_a_400_with_a_message():
     response = APIClient().post("/api/v1/contact", data="{not json", content_type="application/json")
-    assert response.status_code == 400 and "message" in response.json()
+    assert response.status_code == 400
+    assert response.json() == {"message": "The request body isn't valid JSON."}
+    for body in ('"just a string"', "[1, 2]", "42"):
+        response = APIClient().post("/api/v1/contact", data=body, content_type="application/json")
+        assert response.status_code == 400
+        assert response.json() == {"message": "The request body must be a JSON object."}
 
 
 def test_unknown_api_path_is_404():

@@ -74,6 +74,8 @@ export function sessionCookieAttributes(response: APIResponse): Record<string, s
   );
 }
 
+// Tests read the API's JSON loosely and let the assertions check its shape.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function json<T = Record<string, any>>(response: APIResponse): Promise<T> {
   return (await response.json()) as T;
 }

@@ -57,12 +57,16 @@ test.describe("health and basics", () => {
     expect(signedOut.headers()["www-authenticate"]).toContain("Bearer");
   });
 
-  test("malformed JSON is a 400 with a message", async () => {
-    const response = await api.ctx.post(`${API}/contact`, {
-      data: "{not json",
-      headers: { "Content-Type": "application/json" },
-    });
-    expect(response.status()).toBe(400);
-    expect(await response.json()).toEqual({ message: "The request body isn't valid JSON." });
+  test("malformed JSON, or JSON that isn't an object, is a 400 with a message", async () => {
+    const send = (raw: string) =>
+      api.ctx.post(`${API}/contact`, { data: Buffer.from(raw), headers: { "Content-Type": "application/json" } });
+    const broken = await send("{not json");
+    expect(broken.status()).toBe(400);
+    expect(await broken.json()).toEqual({ message: "The request body isn't valid JSON." });
+    for (const raw of ['"just a string"', "[1, 2]"]) {
+      const response = await send(raw);
+      expect(response.status()).toBe(400);
+      expect(await response.json()).toEqual({ message: "The request body must be a JSON object." });
+    }
   });
 });

@@ -12,10 +12,19 @@ import { CheckIcon } from "../icons";
 
 /* Topics come from the server page, since lib/contact is server-only. */
 export default function ContactForm({ topics }: { topics: readonly string[] }) {
+  /* Each answer is numbered, so the topic dropdown can be re-created with the
+     topic that was picked: React resets the form after the action runs, and a
+     <select> would otherwise drop back to "Choose a topic". */
   const [state, formAction, pending] = useActionState<
-    ContactFormState,
+    ContactFormState & { response?: number },
     FormData
-  >(sendContactMessage, {});
+  >(
+    async (prev, form) => ({
+      ...(await sendContactMessage(prev, form)),
+      response: (prev.response ?? 0) + 1,
+    }),
+    {},
+  );
   const [dismissed, setDismissed] = useState<ContactFormState | null>(null);
   const id = useId();
   const v = state.values ?? {};
@@ -87,6 +96,7 @@ export default function ContactForm({ topics }: { topics: readonly string[] }) {
             What&rsquo;s this about?
           </label>
           <select
+            key={state.response ?? 0}
             id={`${id}-topic`}
             name="topic"
             defaultValue={v.topic ?? ""}
