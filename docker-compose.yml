@@ -16,9 +16,9 @@ x-logging: &logging
     max-size: "10m"
     max-file: "5"
 
+# One image, three roles. Only `backend` builds it (three builds of one image tag
+# at once collide); the worker and beat run the image it built.
 x-backend: &backend
-  build:
-    context: ./backend
   image: fundup-backend:latest
   env_file:
     - path: .env
@@ -77,6 +77,8 @@ services:
 
   backend:
     <<: *backend
+    build:
+      context: ./backend
     command: web
     environment:
       <<: *backend-env
@@ -84,6 +86,7 @@ services:
 
   worker:
     <<: *backend
+    pull_policy: never  # built locally by `backend`, never on a registry
     command: worker
     healthcheck:
       test: ["CMD-SHELL", "celery -A config inspect ping -d celery@$$HOSTNAME --timeout 5 >/dev/null || exit 1"]
@@ -94,6 +97,7 @@ services:
 
   beat:
     <<: *backend
+    pull_policy: never  # built locally by `backend`, never on a registry
     command: beat
     healthcheck:
       disable: true
