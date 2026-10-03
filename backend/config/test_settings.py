@@ -1,6 +1,8 @@
 """Settings for the test suite: real Postgres (row locks matter), no Redis, eager jobs."""
 
 import os
+import tempfile
+from pathlib import Path
 
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-secret-key")
 os.environ.setdefault("SITE_URL", "http://testserver.local")
@@ -23,3 +25,4 @@ STORAGES = {  # noqa: F405
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 API_THROTTLING = False
+MEDIA_ROOT = Path(tempfile.mkdtemp(prefix="fundup-test-media-"))

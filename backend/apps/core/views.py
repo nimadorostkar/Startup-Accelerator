@@ -1,9 +1,11 @@
 import logging
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.http import JsonResponse
 from django.views.defaults import server_error as html_server_error
+from django.views.static import serve as serve_file
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, throttle_classes
 from rest_framework.exceptions import NotFound
@@ -55,6 +57,17 @@ def ready(request):
 def not_found(request, *args, **kwargs):
     """Unknown API paths answer in the API's error shape, not with an HTML page."""
     raise NotFound()
+
+
+def media(request, folder, name):
+    """An uploaded image. Names are random and a file never changes, so it's cached for good.
+    Production serves these straight from Caddy (deploy/Caddyfile); this is for development."""
+    response = serve_file(request, f"{folder}/{name}", document_root=settings.MEDIA_ROOT)
+    # Said outright: the slim image has no table of file types, and with `nosniff` a
+    # browser won't show an image served as "application/octet-stream".
+    response["Content-Type"] = "image/webp"
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
 
 
 def server_error(request, *args, **kwargs):

@@ -1,7 +1,7 @@
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from . import directory, rules
+from . import directory, images, rules
 from .models import Application, Scorecard
 
 # Columns the public directory never shows. Saving only these (plus the synced
@@ -22,6 +22,8 @@ def application_saved(sender, instance: Application, update_fields=None, **kwarg
 @receiver(post_delete, sender=Application)
 def application_deleted(sender, instance: Application, **kwargs):
     directory.invalidate()
+    images.discard(instance.logo.name)
+    images.discard(instance.photo.name)
 
 
 @receiver(post_delete, sender=Scorecard)

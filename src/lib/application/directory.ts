@@ -50,6 +50,10 @@ export type PublicFounder = {
 export type StartupCardData = {
   slug: string;
   name: string;
+  /** Address of the startup's logo, or "" (the card then shows its initials). */
+  logo: string;
+  /** The applicant: who the featured-founders cards show. `photo` may be "". */
+  founder: { name: string; role: string; photo: string };
   tagline: string;
   industry: string;
   stage: StageId | "";
@@ -89,6 +93,7 @@ export type PublicStartup = StartupCardData & {
     bio: string;
     experienceYears: number | null;
     linkedin: string;
+    photo: string;
   };
   /** Dated milestones, titles only: the messages behind them stay private. */
   timeline: { at: string; title: string }[];

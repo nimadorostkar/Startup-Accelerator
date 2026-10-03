@@ -18,7 +18,7 @@ from apps.core.exceptions import Conflict, Invalid, NotFound
 from apps.core.utils import now
 from apps.core.validation import Fields, max_length, text_length
 
-from . import directory, notifications, rules
+from . import directory, images, notifications, rules
 from .models import Application, ApplicationEvent, InternalNote, Scorecard, slugify
 
 LOCKED = "This application is with the review team and can't be edited right now."
@@ -146,6 +146,39 @@ def remove_member(user: User, member_id: str) -> Application:
         app.team = {**app.team_data, "members": [m for m in members if m["id"] != member_id]}
 
     return _founder_change(user, change)
+
+
+def set_image(user: User, kind: str, upload) -> Application:
+    """Replaces the startup's logo or the founder's photo (`kind`) with a new upload."""
+    content = images.process(upload, kind)
+    previous = None
+
+    def change(app):
+        nonlocal previous
+        field = getattr(app, kind)
+        previous = field.name
+        field.save(content.name, content, save=False)
+
+    try:
+        app = _founder_change(user, change)
+    except Exception:
+        images.discard(f"{images.FOLDERS[kind]}/{content.name}")  # refused: don't keep the new file
+        raise
+    images.discard(previous)
+    return app
+
+
+def remove_image(user: User, kind: str) -> Application:
+    previous = None
+
+    def change(app):
+        nonlocal previous
+        previous = getattr(app, kind).name
+        setattr(app, kind, "")
+
+    app = _founder_change(user, change)
+    images.discard(previous)
+    return app
 
 
 def free_slug(name: str, *, exclude=None) -> str:

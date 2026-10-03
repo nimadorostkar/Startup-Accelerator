@@ -19,6 +19,8 @@ WORKDIR /app
 COPY --from=build /wheels /wheels
 RUN pip install /wheels/* && rm -rf /wheels
 COPY --chown=app:app . .
+# Uploaded images (the `media` volume is mounted here and takes this ownership).
+RUN mkdir -p /app/media && chown app:app /app/media
 # Static files for the back office, served by WhiteNoise. The key is only needed to load settings.
 RUN DJANGO_SECRET_KEY=collectstatic-only python manage.py collectstatic --noinput \
     && chmod +x entrypoint.sh

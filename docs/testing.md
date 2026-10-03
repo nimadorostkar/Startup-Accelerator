@@ -26,7 +26,28 @@ The suite checks first that the website, the API (with its database and Redis), 
 
 **Test data:** every account, registration, subscriber and message the suite creates uses an `@e2e.fundup.example` address. `python manage.py purge_e2e_data` removes them; the suite runs it before and after itself against the dev stack (set `E2E_PURGE=0` to keep the data for a look), with `--rate-limits`, which also resets every rate-limit counter: on the dev stack every visitor of the website shares one address, so an hour of clicking around would otherwise leave the suite's sign-ups refused.
 
-**Against another stack** (staging, or the production setup on your machine), point it there:
+### Against the production build
+
+[docker-compose.e2e.yml](../docker-compose.e2e.yml) runs the real production stack on your machine (the same images, Gunicorn, Celery, Caddy and production Next.js build, at http://localhost) as a separate Compose project with its own database, so neither the dev stack nor `.env` is touched. For testing only, it adds Mailpit (port 8026), gives the API a port (8002) for the API tests, and has Caddy pass on each test browser's address ([deploy/Caddyfile.e2e](../deploy/Caddyfile.e2e)), so rate limits count every test as its own visitor. Run it after any change to the Dockerfiles, the Caddyfile, `next.config.ts` or how the website caches: some problems only exist there (see the note at the end of this section).
+
+```bash
+E2E="docker compose -p fundup-e2e -f docker-compose.yml -f docker-compose.e2e.yml"
+$E2E up -d --build
+# A reviewer who is also a back-office admin, for the suite to sign in as (asks for a password):
+$E2E exec backend python manage.py createsuperuser --email reviewer@e2e-admin.example --name "E2E Reviewer"
+
+export E2E_SITE_URL=http://localhost E2E_API_URL=http://localhost:8002/api/v1 E2E_MAILPIT_URL=http://localhost:8026
+export E2E_REVIEWER_EMAIL=reviewer@e2e-admin.example E2E_ADMIN_EMAIL=reviewer@e2e-admin.example
+export E2E_REVIEWER_PASSWORD=… E2E_ADMIN_PASSWORD=…        # the password you chose
+E2E_PURGE=0 npm run test:e2e
+
+$E2E exec backend python manage.py purge_e2e_data --force --rate-limits   # between runs
+$E2E down -v                                                              # when done
+```
+
+`E2E_PURGE=0` because the suite's own clean-up talks to the dev stack; clean this one with the `purge_e2e_data` line. Ports 80 and 443 must be free; move the others with `E2E_API_PORT` and `E2E_MAIL_PORT`.
+
+**Against another stack** (staging, say), point it there:
 
 | Variable | Default | What |
 | --- | --- | --- |
@@ -37,9 +58,11 @@ The suite checks first that the website, the API (with its database and Redis), 
 | `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD` | the `seed_dev_accounts` admin | A back-office superuser (a `createsuperuser` account works for both) |
 | `E2E_PURGE` | on | `0` to skip the clean-up |
 
-The API tests give each test its own visitor address (`X-Forwarded-For`, which the API believes only from the private network) so their rate limits never collide; the website tests do the same through the browser (the `test` exported by `e2e/support/web.ts`), which the dev website passes on to the API. Through Caddy that header is replaced by the real address, so point `E2E_API_URL` at the API's own port rather than through the proxy; the website tests go through Caddy as visitors do. The emails need a Mailpit (or any server with Mailpit's API) receiving the stack's mail.
+The API tests give each test its own visitor address (`X-Forwarded-For`, which the API believes only from the private network) so their rate limits never collide; the website tests do the same through the browser (the `test` exported by `e2e/support/web.ts`), which the dev website passes on to the API. Through Caddy that header is replaced by the real address, so point `E2E_API_URL` at the API's own port rather than through the proxy; the website tests go through Caddy as visitors do, and unless that Caddy passes their addresses on (as the test overlay's does) they all share one: the tests that sign in repeatedly (`session.spec.ts`) then run into the sign-in limit of 10 a minute, so run the website tests with `--workers=1` there and expect those to need a retry. The emails need a Mailpit (or any server with Mailpit's API) receiving the stack's mail.
 
 On 2026-10-03 all 61 tests passed against the dev stack (twice in a row) and against the production setup: the production Next.js build behind Caddy, Gunicorn with `DJANGO_DEBUG=false`, the worker sending real SMTP. After the integration review later that day, all 66 passed against the dev stack, and the production build was checked by hand for the proxy's sign-in redirect, the start-up wait for the API, and public pages staying up (serving their last copy) when the API is down.
+
+Later still, the whole suite was run against the production build with the test overlay, which found two problems that never show on the dev stack: Caddy reusing connections the website had just closed (an occasional 502 on a form post), and optimised images not being cached at all (each request re-encoded its image, stalling the website for seconds under load). Both are fixed ([deployment.md](deployment.md#what-runs), [backend-integration.md](backend-integration.md#caching-and-refresh)); with the fixes, all 66 passed four times in a row against the production build, with no 502 in Caddy's log.
 
 ## What the end-to-end suite covers
 

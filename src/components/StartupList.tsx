@@ -27,6 +27,7 @@ function toItems(all: StartupCardData[], now = Date.now()): ListItem[] {
     .map((s) => ({
       slug: s.slug,
       name: s.name,
+      logo: s.logo,
       tagline: s.tagline,
       industry: s.industry,
       stageLabel: s.stageLabel,

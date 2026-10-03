@@ -1,35 +1,35 @@
+import type { StartupCardData } from "@/lib/application/directory";
+import { sectorLabel } from "./founders";
+
 /**
- * Startups pitching in the hero's Demo Day band.
- *
- * PLACEHOLDER CONTENT from the Fundup Club hero design: names, copy and stage
- * photos (cropped from the design mock-up, so they are low resolution). Swap in
- * the real line-up and full-size photos before launch.
+ * The startups in the hero's Demo Day band: the three most recently accepted
+ * into the cohort, from the API's public directory. The stage photos behind
+ * them are event imagery (not pictures of these founders), used in order.
  */
 export type Pitch = {
+  slug: string;
   name: string;
   sector: string;
   blurb: string;
   photo: string;
 };
 
-export const PITCHES: Pitch[] = [
-  {
-    name: "Orbit",
-    sector: "AI & Productivity",
-    blurb:
-      "A modern workspace for founders to capture, organize and turn ideas into real progress.",
-    photo: "/images/demo-day/orbit.webp",
-  },
-  {
-    name: "Numa",
-    sector: "SaaS",
-    blurb: "AI research partner for customer insights.",
-    photo: "/images/demo-day/numa.webp",
-  },
-  {
-    name: "Relay",
-    sector: "Fintech",
-    blurb: "Modern payments infrastructure for global founders.",
-    photo: "/images/demo-day/relay.webp",
-  },
+const STAGE_PHOTOS = [
+  "/images/demo-day/orbit.webp",
+  "/images/demo-day/numa.webp",
+  "/images/demo-day/relay.webp",
 ];
+
+export function pitches(all: StartupCardData[]): Pitch[] {
+  return all
+    .filter((s) => s.status === "cohort")
+    .toSorted((a, b) => (b.appliedAt ?? "").localeCompare(a.appliedAt ?? ""))
+    .slice(0, STAGE_PHOTOS.length)
+    .map((s, i) => ({
+      slug: s.slug,
+      name: s.name,
+      sector: sectorLabel(s.industry),
+      blurb: s.tagline,
+      photo: STAGE_PHOTOS[i],
+    }));
+}

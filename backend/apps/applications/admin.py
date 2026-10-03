@@ -1,9 +1,14 @@
 import json
 
+from django import forms
 from django.conf import settings
 from django.contrib import admin
+from django.core.files.uploadedfile import UploadedFile
 from django.utils.html import format_html
 
+from apps.core.exceptions import Invalid
+
+from . import images
 from .models import Application, ApplicationEvent, InternalNote, Scorecard
 
 
@@ -57,10 +62,34 @@ class NoteInline(admin.TabularInline):
         return False
 
 
+class ApplicationForm(forms.ModelForm):
+    """Images uploaded here go through the same checks and resizing as a founder's upload."""
+
+    class Meta:
+        model = Application
+        fields = ("slug", "logo", "photo")
+
+    def _image(self, kind: str):
+        upload = self.cleaned_data.get(kind)
+        if not isinstance(upload, UploadedFile):
+            return upload  # unchanged, or cleared
+        try:
+            return images.process(upload, kind)
+        except Invalid as refused:
+            raise forms.ValidationError(refused.errors["file"]) from None
+
+    def clean_logo(self):
+        return self._image("logo")
+
+    def clean_photo(self):
+        return self._image("photo")
+
+
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
     """Read-mostly: reviewing happens on the website's review panel, where every rule is enforced.
-    Use this for look-ups, fixing a public address, or deleting an application on request."""
+    Use this for look-ups, fixing a public address, a logo or a founder photo, or deleting an
+    application on request."""
 
     list_display = (
         "__str__",
@@ -78,10 +107,13 @@ class ApplicationAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
     list_select_related = ("user", "assignee")
     inlines = [EventInline, ScorecardInline, NoteInline]
+    form = ApplicationForm
     fields = (
         "user",
         "status",
         "slug",
+        "logo",
+        "photo",
         "assignee",
         "review_link",
         "created_at",

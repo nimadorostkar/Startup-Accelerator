@@ -1,17 +1,19 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { listPublicStartups } from "@/lib/application/public";
 import { nextDemoDay } from "@/lib/events";
 import { eventDate } from "./events/events";
 import { Arrow } from "./hero/Arrow";
-import { PITCHES } from "./hero/demo-day";
+import { pitches } from "./hero/demo-day";
+import { featured } from "./hero/founders";
 import FoundersPanel from "./hero/FoundersPanel";
 import s from "./hero/Hero.module.css";
-import { FOUNDERS } from "./portfolio/data";
 
 /* Landing hero (Fundup Club design): a light intro with the featured-founders
    panel, over a dark Demo Day band. Layout and motion live in
-   hero/Hero.module.css; data in hero/founders.ts and hero/demo-day.ts. */
+   hero/Hero.module.css. The founders, startups and pitches come from the API's
+   public directory, chosen in hero/founders.ts and hero/demo-day.ts. */
 
 /** Entrance delay for one block of the staggered reveal. */
 const at = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
@@ -34,8 +36,11 @@ function CalendarGlyph() {
 }
 
 export default async function Hero() {
-  const next = await nextDemoDay();
+  const [next, startups] = await Promise.all([nextDemoDay(), listPublicStartups()]);
   const when = next && eventDate(next);
+  const founders = featured(startups);
+  const faces = founders.filter((f) => f.photo).slice(0, 5);
+  const onStage = pitches(startups);
 
   return (
     <section className={s.hero} aria-labelledby="hero-title">
@@ -68,17 +73,20 @@ export default async function Hero() {
               </Link>
             </div>
             <div className={`${s.proof} ${s.rise}`} style={at(720)}>
-              <span className={s.faces} aria-hidden="true">
-                {FOUNDERS.map((f) => (
-                  <Image
-                    key={f.slug}
-                    src={`/images/founders/${f.slug}.webp`}
-                    alt=""
-                    width={64}
-                    height={64}
-                  />
-                ))}
-              </span>
+              {faces.length > 0 && (
+                <span className={s.faces} aria-hidden="true">
+                  {faces.map((f) => (
+                    <Image
+                      key={f.slug}
+                      src={f.photo}
+                      alt=""
+                      width={64}
+                      height={64}
+                      unoptimized
+                    />
+                  ))}
+                </span>
+              )}
               <p>
                 <strong>25,000+ founders</strong> trained ·{" "}
                 <strong>180+</strong> investment firms
@@ -88,7 +96,7 @@ export default async function Hero() {
 
           {/* Featured founders */}
           <div className={`${s.showcase} ${s.rise}`} style={at(450)}>
-            <FoundersPanel />
+            <FoundersPanel founders={founders} />
           </div>
         </div>
       </div>
@@ -136,13 +144,13 @@ export default async function Hero() {
           </div>
 
           <ol className={s.pitches}>
-            {PITCHES.map((p, i) => (
+            {onStage.map((p, i) => (
               <li
-                key={p.name}
+                key={p.slug}
                 className={`${s.pitch} ${s.rise}`}
                 style={at(900 + i * 110)}
               >
-                <Link href="/demo-day" className={s.pitchLink}>
+                <Link href={`/startups/${p.slug}`} className={s.pitchLink}>
                   <Image
                     src={p.photo}
                     alt=""

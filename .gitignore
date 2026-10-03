@@ -47,6 +47,7 @@ next-env.d.ts
 # backend (Django)
 /backend/.venv/
 /backend/staticfiles/
+/backend/media/
 __pycache__/
 *.py[cod]
 .pytest_cache/

@@ -9,4 +9,5 @@ argon2-cffi>=25.1
 gunicorn>=26.2
 whitenoise>=6.12
 requests>=2.34
+Pillow>=12.3                # logos and founder photos: checked, resized, re-encoded
 sentry-sdk[django,celery]>=2.71

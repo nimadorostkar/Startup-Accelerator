@@ -34,6 +34,8 @@ services:
       - "127.0.0.1:${DEV_API_PORT:-8000}:8000"
     volumes:
       - ./backend:/app
+      # Uploaded images stay in the `media` volume (shared with the worker), not in the source tree.
+      - media:/app/media
     environment: &dev-env
       DATABASE_URL: postgres://${POSTGRES_USER:-fundup}:${POSTGRES_PASSWORD:-fundup}@db:5432/${POSTGRES_DB:-fundup}
       # runserver starts a thread per request, so kept-open connections pile up
@@ -57,6 +59,7 @@ services:
   worker:
     volumes:
       - ./backend:/app
+      - media:/app/media
     environment: *dev-env
     extra_hosts:
       - "host.docker.internal:host-gateway"

@@ -52,6 +52,10 @@ class Application(models.Model):
     )
     # Public directory address (/startups/<slug>), fixed when the application is first submitted.
     slug = models.SlugField(max_length=80, unique=True, null=True, blank=True)
+    # The startup's logo and the applicant's photo, shown in the public directory.
+    # Always WebP files made by images.process(), never the upload as it arrived.
+    logo = models.FileField(upload_to="startups", blank=True, default="", max_length=120)
+    photo = models.FileField(upload_to="founders", blank=True, default="", max_length=120)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
     submitted_at = models.DateTimeField(null=True, blank=True)

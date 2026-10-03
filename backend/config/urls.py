@@ -21,6 +21,7 @@ if settings.API_DOCS_PUBLIC:
         path("schema/", SpectacularAPIView.as_view(), name="schema"),
         path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
     ]
+api.append(re_path(r"^media/(?P<folder>startups|founders)/(?P<name>[0-9a-f]{32}\.webp)$", core.media))
 api.append(re_path(r"^.*$", core.not_found))  # last: anything else under /api/v1/
 
 urlpatterns = [

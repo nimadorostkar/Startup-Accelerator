@@ -317,6 +317,16 @@ STORAGES = {
     },
 }
 
+# ---------------------------------------------------------------- uploads
+
+# Startup logos and founder photos (apps/applications/images.py). In production
+# this is the `media` volume, which Caddy serves directly at MEDIA_URL; the API
+# serves it too (apps/core/views.media), which is what local development uses.
+MEDIA_ROOT = Path(env("MEDIA_ROOT", str(BASE_DIR / "media")))
+MEDIA_URL = "/api/v1/media/"
+# A multipart upload's fields besides the file; the file itself is capped in images.py.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
+
 # ---------------------------------------------------------------- i18n
 
 LANGUAGE_CODE = "en-us"

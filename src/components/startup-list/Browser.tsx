@@ -18,6 +18,7 @@ import Monogram from "../startups/Monogram";
 export type ListItem = {
   slug: string;
   name: string;
+  logo: string;
   tagline: string;
   industry: string;
   stageLabel: string;
@@ -98,6 +99,7 @@ function Row({ s, rank }: { s: ListItem; rank: number }) {
       <span className="relative mt-0.5 shrink-0">
         <Monogram
           name={s.name}
+          logo={s.logo}
           className="relative h-12 w-12 overflow-hidden rounded-[14px] text-[16px] transition-transform duration-500 ease-[cubic-bezier(0.34,1.8,0.64,1)] group-hover:scale-[1.06] group-hover:-rotate-6 sm:h-14 sm:w-14 sm:text-[18px]"
         />
         {/* Light sweep across the tile on hover */}

@@ -11,6 +11,9 @@ const securityHeaders = [
   },
 ];
 
+/** Where the API is (the same default as lib/api.ts). */
+const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8000").replace(/\/+$/, "");
+
 const nextConfig: NextConfig = {
   // A self-contained server (.next/standalone) for the Docker image.
   output: "standalone",
@@ -25,6 +28,14 @@ const nextConfig: NextConfig = {
     // This also switches off Next's disk cache of optimised images, so they are
     // cached by cache-handler.mjs instead (images.customCacheHandler below).
     isrFlushToDisk: false,
+    // A logo or founder photo (5 MB at most, checked by the API) with its form.
+    serverActions: { bodySizeLimit: "6mb" },
+  },
+  // Startup logos and founder photos live at /api/v1/media/…. In production Caddy
+  // serves them before a request gets here; in development (no Caddy) the website
+  // passes them on to the API.
+  async rewrites() {
+    return [{ source: "/api/v1/media/:path*", destination: `${BACKEND_URL}/api/v1/media/:path*` }];
   },
   images: {
     customCacheHandler: true,

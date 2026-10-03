@@ -208,6 +208,9 @@ export type Application = {
   profile: Profile;
   startup: Startup;
   team: Team;
+  /** Addresses of the uploaded logo and founder photo, or "". */
+  logo: string;
+  photo: string;
   events: TimelineEvent[];
   createdAt: string;
   updatedAt: string;

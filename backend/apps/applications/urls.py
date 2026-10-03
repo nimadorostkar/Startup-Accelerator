@@ -10,6 +10,8 @@ urlpatterns = [
     path("me/application/team", views.TeamSectionView.as_view()),
     path("me/application/team/members", views.MembersView.as_view()),
     path("me/application/team/members/<uuid:member_id>", views.MemberView.as_view()),
+    path("me/application/logo", views.ImageView.as_view(kind="logo")),
+    path("me/application/photo", views.ImageView.as_view(kind="photo")),
     path("me/application/submit", views.SubmitView.as_view()),
     path("me/application/withdraw", views.WithdrawView.as_view()),
     # Reviewers only; everyone else gets 404.

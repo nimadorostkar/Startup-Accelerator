@@ -3,6 +3,7 @@ import uuid
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -107,6 +108,34 @@ class MemberView(APIView):
     @extend_schema(responses={200: ApplicationSchema}, tags=["founder"])
     def delete(self, request, member_id):
         services.remove_member(request.user, str(member_id))
+        return founder_response(request.user)
+
+
+class ImageView(APIView):
+    """The startup's logo or the founder's photo: `kind` comes from the route."""
+
+    permission_classes = [IsSignedIn]
+    parser_classes = [MultiPartParser]
+    kind = "logo"
+
+    @extend_schema(
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {"file": {"type": "string", "format": "binary"}},
+            }
+        },
+        responses={200: ApplicationSchema},
+        tags=["founder"],
+        description="A PNG, JPEG or WebP of up to 5 MB, stored as a WebP of at most 512 × 512.",
+    )
+    def put(self, request):
+        services.set_image(request.user, self.kind, request.FILES.get("file"))
+        return founder_response(request.user)
+
+    @extend_schema(responses={200: ApplicationSchema}, tags=["founder"])
+    def delete(self, request):
+        services.remove_image(request.user, self.kind)
         return founder_response(request.user)
 
 

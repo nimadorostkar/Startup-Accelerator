@@ -10,7 +10,7 @@ from django.db.models import Prefetch
 
 from apps.core.utils import iso, now
 
-from . import rules
+from . import images, rules
 from .models import Application, ApplicationEvent, InternalNote, Scorecard
 
 
@@ -78,6 +78,8 @@ def application(app: Application, *, include_review: bool = False) -> dict:
         "profile": profile,
         "startup": app.startup_data,
         "team": app.team_data,
+        "logo": images.url(app.logo),
+        "photo": images.url(app.photo),
         "events": [event(e) for e in app.events.all()],
         "createdAt": iso(app.created_at),
         "updatedAt": iso(app.updated_at),
@@ -134,10 +136,17 @@ def queue_row(app: Application, at=None) -> dict:
 
 
 def public_card(app: Application) -> dict:
-    startup, team = app.startup_data, app.team_data
+    startup, profile, team = app.startup_data, app.profile_data, app.team_data
     return {
         "slug": app.slug,
         "name": startup["name"].strip(),
+        "logo": images.url(app.logo),
+        # The applicant: who the featured-founders cards show.
+        "founder": {
+            "name": profile["fullName"].strip(),
+            "role": profile["title"],
+            "photo": images.url(app.photo),
+        },
         "tagline": startup["tagline"],
         "industry": startup["industry"],
         "stage": startup["stage"],
@@ -190,6 +199,7 @@ def public_startup(app: Application) -> dict:
             "bio": profile["bio"],
             "experienceYears": profile["experienceYears"],
             "linkedin": profile["linkedin"],
+            "photo": images.url(app.photo),
         },
         # Dated milestones, titles only: the messages behind them stay private.
         "timeline": [

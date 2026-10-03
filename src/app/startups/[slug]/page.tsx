@@ -166,6 +166,7 @@ export default async function StartupPage({
             <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-start">
               <Monogram
                 name={s.name}
+                logo={s.logo}
                 className="h-20 w-20 rounded-[22px] text-[28px] sm:h-24 sm:w-24 sm:text-[32px]"
               />
               <div className="min-w-0 flex-1">
@@ -312,6 +313,7 @@ export default async function StartupPage({
                   <div className="mt-4 flex gap-4">
                     <FounderDot
                       name={founder.name}
+                      photo={founder.photo}
                       className="h-12 w-12 text-[14px]"
                     />
                     <div className="min-w-0">
@@ -385,6 +387,7 @@ export default async function StartupPage({
                       >
                         <FounderDot
                           name={m.name}
+                          photo={m.name === founder.name ? founder.photo : undefined}
                           className="h-10 w-10 text-[12px]"
                         />
                         <div className="min-w-0 flex-1">

@@ -23,7 +23,7 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
   return (
     <article className="card card-lift group relative flex h-full flex-col p-5 sm:p-6">
       <div className="flex items-start gap-4">
-        <Monogram name={s.name} />
+        <Monogram name={s.name} logo={s.logo} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             <h3 className="font-display text-[19px] leading-tight font-bold tracking-[-0.01em] text-ink">
@@ -81,6 +81,7 @@ export default function StartupCard({ s }: { s: StartupCardData }) {
               <FounderDot
                 key={f}
                 name={f}
+                photo={f === s.founder.name ? s.founder.photo : undefined}
                 className={`h-7 w-7 text-[10px] ${i > 0 ? "-ml-2" : ""}`}
               />
             ))}

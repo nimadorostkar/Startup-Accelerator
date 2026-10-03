@@ -18,6 +18,8 @@ As of 2026-10-03. How to run the whole site in production with Docker Compose, s
 
 Only Caddy is reachable from outside. **Never publish the API's port**: it trusts the forwarding headers that Caddy and the website set.
 
+**Connections between the containers:** Caddy drops an idle connection to the website or the API after 30 s, and both keep theirs open for 75 s (`keepalive` in the Caddyfile; `KEEP_ALIVE_TIMEOUT` in the website's Dockerfile; `keepalive` in [gunicorn.conf.py](../backend/gunicorn.conf.py)). Keep it that way round if you change any of them: when the website or the API closes first (both default to 5 s), Caddy now and then sends a request down a connection that is just closing and answers 502, and a form being submitted can't be retried, so the visitor gets an error page.
+
 Rate limits count each visitor by the address Caddy sees. With Docker's default networking, visitors arriving over **IPv6** reach Caddy as the Docker gateway's address and would share one count; if you publish an AAAA record, enable IPv6 in Docker (`"ipv6": true` in the daemon config) or put Caddy on the host network.
 
 ## Sizing
@@ -104,4 +106,4 @@ npm install && npm run dev
 
 That runs Postgres, Redis, the API (auto-reloading, at http://localhost:8000), a worker and Mailpit (every email lands at http://localhost:8025); the website runs on your machine at http://localhost:3000. `seed_dev_accounts` creates `founder@example.com`, `reviewer@example.com` and a back-office admin, `admin@example.com` (password in [the command](../backend/apps/accounts/management/commands/seed_dev_accounts.py)); `seed_demo` adds 23 sample applications for the review queue (`seed_demo --reset` removes them). If ports clash with other projects, move them with `DEV_DB_PORT`, `DEV_REDIS_PORT`, `DEV_API_PORT` and `DEV_MAIL_PORT` in `.env`, and point the website at the API with `BACKEND_URL`. The dev API keeps no database connections open between requests (`DATABASE_CONN_MAX_AGE=0`): Django's development server starts a thread per request, and kept-open connections from finished threads used to pile up until Postgres refused new ones ("too many clients"). Gunicorn's threads are long-lived, so production keeps them for 60 s.
 
-To try the production setup locally: set `SITE_URL=http://localhost`, `SITE_ADDRESS=http://localhost` and `COOKIE_SECURE=false` in `.env`, then `docker compose up -d --build` and open http://localhost.
+To try the production setup locally: set `SITE_URL=http://localhost`, `SITE_ADDRESS=http://localhost` and `COOKIE_SECURE=false` in `.env`, then `docker compose up -d --build` and open http://localhost. To run the end-to-end suite against the production build without touching `.env` or your dev data, use the test overlay instead: [testing.md → Against the production build](testing.md#against-the-production-build).

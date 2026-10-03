@@ -10,11 +10,13 @@ import { ArrowRight, CalendarIcon, CheckIcon } from "@/components/icons";
 import { STAGES } from "@/components/Journey";
 import Reveal from "@/components/motion/Reveal";
 import Navbar from "@/components/Navbar";
-import { FOUNDERS } from "@/components/portfolio/data";
+import { featured } from "@/components/hero/founders";
 import { LEFT, RIGHT } from "@/components/results/data";
 import TestimonialCard from "@/components/results/TestimonialCard";
 import ButtonLink from "@/components/ui/ButtonLink";
 import Eyebrow from "@/components/ui/Eyebrow";
+import { FounderDot } from "@/components/startups/Monogram";
+import { listPublicStartups } from "@/lib/application/public";
 import { nextDemoDay } from "@/lib/events";
 
 export const metadata: Metadata = {
@@ -110,8 +112,13 @@ const FAQS: QA[] = [
 export const revalidate = 60;
 
 export default async function DemoDayPage() {
-  const next = await nextDemoDay();
+  const [next, startups] = await Promise.all([nextDemoDay(), listPublicStartups()]);
   const nextDate = next && eventDate(next);
+  // Founders already in the cohort, from the API's directory (those with a photo first).
+  const onStage = featured(
+    startups.filter((s) => s.status === "cohort"),
+    5,
+  );
 
   return (
     <>
@@ -658,53 +665,61 @@ export default async function DemoDayPage() {
               ))}
             </ul>
 
-            <Reveal
-              delay={200}
-              className="mt-12 flex flex-col gap-6 rounded-[24px] border border-line-soft bg-white p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between"
-            >
-              <div>
-                <p className="font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase">
-                  Founders who have taken the stage
-                </p>
-                <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-4">
-                  {FOUNDERS.map((f) => (
-                    <li key={f.slug} className="flex items-center gap-3">
-                      <span className="relative shrink-0">
-                        <Image
-                          src={`/images/founders/${f.slug}.webp`}
-                          alt=""
-                          width={44}
-                          height={44}
-                          className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-[0_6px_16px_-8px_rgba(20,26,34,0.4)]"
-                        />
-                        <Image
-                          src={`/images/startups/${f.startup}-badge.webp`}
-                          alt=""
-                          width={18}
-                          height={18}
-                          className="absolute -right-1 -bottom-1 h-[18px] w-[18px] rounded-full bg-white ring-2 ring-white"
-                        />
-                      </span>
-                      <span className="leading-tight">
-                        <span className="block text-[14px] font-bold text-ink">
-                          {f.name}
-                        </span>
-                        <span className="block text-[12px] text-muted">
-                          {f.company}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <Link
-                href="/#founders"
-                className="group inline-flex shrink-0 items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 hover:text-brand-strong"
+            {onStage.length > 0 && (
+              <Reveal
+                delay={200}
+                className="mt-12 flex flex-col gap-6 rounded-[24px] border border-line-soft bg-white p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between"
               >
-                Meet the portfolio
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </Link>
-            </Reveal>
+                <div>
+                  <p className="font-display text-[13px] font-bold tracking-[0.14em] text-muted uppercase">
+                    Founders who have taken the stage
+                  </p>
+                  <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-4">
+                    {onStage.map((f) => (
+                      <li key={f.slug}>
+                        <Link
+                          href={`/startups/${f.slug}`}
+                          className="group flex items-center gap-3"
+                        >
+                          <span className="relative shrink-0">
+                            <FounderDot
+                              name={f.name}
+                              photo={f.photo}
+                              className="h-11 w-11 text-[13px] shadow-[0_6px_16px_-8px_rgba(20,26,34,0.4)]"
+                            />
+                            {f.logo && (
+                              <Image
+                                src={f.logo}
+                                alt=""
+                                width={18}
+                                height={18}
+                                unoptimized
+                                className="absolute -right-1 -bottom-1 h-[18px] w-[18px] rounded-full bg-white object-cover ring-2 ring-white"
+                              />
+                            )}
+                          </span>
+                          <span className="leading-tight">
+                            <span className="block text-[14px] font-bold text-ink transition-colors group-hover:text-brand-strong">
+                              {f.name}
+                            </span>
+                            <span className="block text-[12px] text-muted">
+                              {f.company}
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Link
+                  href="/#founders"
+                  className="group inline-flex shrink-0 items-center gap-2 font-display text-[12px] font-bold tracking-[0.06em] text-ink uppercase transition-colors duration-200 hover:text-brand-strong"
+                >
+                  Meet the portfolio
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Link>
+              </Reveal>
+            )}
           </div>
         </section>
 
