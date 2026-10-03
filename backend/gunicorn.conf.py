@@ -5,6 +5,9 @@ import os
 
 bind = f"0.0.0.0:{os.environ.get('PORT', '8000')}"
 workers = int(os.environ.get("WEB_CONCURRENCY", min(4, multiprocessing.cpu_count() * 2 + 1)))
+# Gunicorn 26's control socket (gunicornc) isn't used, and its default home,
+# /app/.gunicorn, isn't writable by the app user: it only logged an error.
+control_socket_disable = True
 worker_class = "gthread"
 threads = int(os.environ.get("WEB_THREADS", "4"))
 timeout = 30
