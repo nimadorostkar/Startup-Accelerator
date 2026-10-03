@@ -21,6 +21,12 @@ HOST_LABEL = re.compile(r"^[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?$", re.IGNOREC
 MAX_URL_LENGTH = 2000
 
 
+def text_length(value: str) -> int:
+    """Length the way the website counts it (JavaScript's `.length`, UTF-16 units: an emoji is 2),
+    so a minimum or maximum means the same thing on both sides."""
+    return len(value.encode("utf-16-le")) // 2
+
+
 class Fields:
     """Reads one JSON body the way the website's forms send it, collecting errors as it goes.
 
@@ -90,9 +96,9 @@ def format_number(n: float) -> str:
 def check_name(value: str) -> str | None:
     if not value:
         return "Enter your full name."
-    if len(value) < 2:
+    if text_length(value) < 2:
         return "That name looks too short."
-    if len(value) > 80:
+    if text_length(value) > 80:
         return "That name is too long."
     return None
 
@@ -100,7 +106,7 @@ def check_name(value: str) -> str | None:
 def check_email(value: str) -> str | None:
     if not value:
         return "Enter your email address."
-    if len(value) > 254 or not EMAIL.match(value):
+    if text_length(value) > 254 or not EMAIL.match(value):
         return "That doesn't look like a valid email address."
     return None
 
@@ -108,9 +114,9 @@ def check_email(value: str) -> str | None:
 def check_new_password(value: str) -> str | None:
     if not value:
         return "Choose a password."
-    if len(value) < 8:
+    if text_length(value) < 8:
         return "Use at least 8 characters."
-    if len(value) > 200:
+    if text_length(value) > 200:
         return "That password is too long."
     if not re.search(r"[a-zA-Z]", value):
         return "Include at least one letter."
@@ -124,7 +130,7 @@ def check_new_password(value: str) -> str | None:
 
 
 def max_length(value: str, limit: int) -> str | None:
-    return f"Keep this under {limit} characters." if len(value) > limit else None
+    return f"Keep this under {limit} characters." if text_length(value) > limit else None
 
 
 def optional_email(value: str) -> str | None:
@@ -141,7 +147,7 @@ def normalize_url(value: str) -> str:
 def optional_url(value: str) -> str | None:
     if not value:
         return None
-    if len(value) > MAX_URL_LENGTH:
+    if text_length(value) > MAX_URL_LENGTH:
         return max_length(value, MAX_URL_LENGTH)
     bad = "That doesn't look like a valid link."
     try:

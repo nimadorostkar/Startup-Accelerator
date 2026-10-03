@@ -16,7 +16,7 @@ from django.db import IntegrityError, transaction
 from apps.accounts.models import User
 from apps.core.exceptions import Conflict, Invalid, NotFound
 from apps.core.utils import now
-from apps.core.validation import Fields, max_length
+from apps.core.validation import Fields, max_length, text_length
 
 from . import directory, notifications, rules
 from .models import Application, ApplicationEvent, InternalNote, Scorecard, slugify
@@ -241,7 +241,7 @@ def decide(app_id, reviewer: User, data: dict) -> Application:
         raise Invalid(message="Pick a decision.")
     note = f.text("message")
     f.error("message", max_length(note, 2000))
-    if decision.message_required and len(note) < 20:
+    if decision.message_required and text_length(note) < 20:
         f.error("message", "Tell the founder what to change — at least a sentence or two.")
     if f.errors:
         raise Invalid(f.errors)

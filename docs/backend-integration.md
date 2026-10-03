@@ -65,7 +65,7 @@ Base path `/api/v1`. JSON in and out. Interactive docs (OpenAPI) at `/api/v1/doc
 | POST | `/auth/password-reset/confirm` | `{ token, password }` | 200 `{ user }` + cookie (signed in); ends every other session; 400 for an invalid, used or expired link (30 minutes, single use) |
 | POST | `/auth/verify-email` | `{ token }` | 200 `{ user }`; 400 if invalid or expired (3 days) |
 | POST | `/auth/verify-email/resend` | — (signed in) | 202 |
-| POST | `/auth/google` | `{ code }` | 200 `{ user }` + cookie. Exchanges the code Google sent to `SITE_URL/api/auth/callback/google`; joins an existing account with the same verified address |
+| POST | `/auth/google` | `{ code }` | 200 `{ user }` + cookie. Exchanges the code Google sent to `SITE_URL/api/auth/callback/google`; joins an existing account with the same address. If that account's address was never confirmed, its password, sessions and emailed links are cancelled first, so an account registered in advance by someone else can't be kept by them |
 | GET | `/me` | — | `{ user: { id, email, name, role, isReviewer, emailVerified, hasPassword, createdAt } }` |
 | PATCH | `/me` | `{ name }` | 200 `{ user }` |
 | POST | `/me/password` | `{ currentPassword, newPassword }` | 204; ends every other session |
@@ -122,7 +122,7 @@ PostgreSQL, created by Django migrations (`backend/apps/*/migrations/`).
 
 | Table | Holds | Notes |
 | --- | --- | --- |
-| `accounts_user` | Email (unique, stored lower-case), name, Argon2 password hash (none for Google-only accounts), role (`founder`/`reviewer`), Google id, `email_verified_at`, `terms_accepted_at`, back-office flags | **Reviewer access needs the role *and* a verified address** |
+| `accounts_user` | Email (unique, stored lower-case), name, Argon2 password hash (none for Google-only accounts), role (`founder`/`reviewer`), Google id, `email_verified_at`, `terms_accepted_at`, back-office flags | **Reviewer access needs the role *and* an address the user confirmed themselves** (the back office can set the role, never the confirmation) |
 | `accounts_authsession` | SHA-256 of the session token, expiry, revoked-at, last used, IP, user agent | Purged 30 days after expiry |
 | `accounts_usertoken` | SHA-256 of emailed tokens (password reset, email verification), expiry, used-at | Single use; a new one cancels the old |
 | `applications_application` | Status, `profile` / `startup` / `team` (JSON, read and written as whole sections), assignee, public `slug`, timestamps | Copies of `startup_name`, `stage`, `industry`, `founder_name`, `tagline` and `team_score` are kept in columns for the queue's filters and sorting |
@@ -186,21 +186,24 @@ Counted per client address in Redis, so every API worker shares one count. The a
 
 | Scope | Limit |
 | --- | --- |
-| Sign-in | 10 per minute per address, 20 per hour per email |
+| Sign-in | 10 per minute per address. Failed attempts only: 5 per account per address per 15 minutes, and 50 per account from anywhere per hour. A success clears the visitor's count; a password reset clears the account's |
+| Back-office sign-in | 10 failed attempts per address per 15 minutes |
 | Sign-up | 10 per hour per address |
-| Password reset | 5 per hour per address, 3 per hour per email |
+| Password reset | 5 requests per hour per address; at most 3 emails per hour per inbox (past that the request still answers 202 and the latest link keeps working, so nobody can block or flood someone's reset) |
 | Contact form / newsletter / event registration | 10 / 20 / 30 per hour per address |
 | Everything else | 300 per minute anonymous, 600 per minute signed in |
 
+The website's own reads of public data (from the private network, with no visitor address) aren't limited: they fill a shared cache, so they can't carry a visitor's address, and limiting them would let anyone take every public page down by requesting unknown slugs.
+
 ## Environment variables
 
-All in [.env.example](../.env.example), with what each one does. The ones you must set for production: `SITE_URL`, `SITE_ADDRESS`, `DJANGO_SECRET_KEY`, `POSTGRES_PASSWORD`, `REVALIDATE_SECRET`, and the `EMAIL_*` settings. Google sign-in needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, with `<SITE_URL>/api/auth/callback/google` as an authorised redirect URI.
+All in [.env.example](../.env.example), with what each one does. The ones you must set for production: `SITE_URL`, `SITE_ADDRESS`, `DJANGO_SECRET_KEY`, `POSTGRES_PASSWORD`, `REVALIDATE_SECRET`, and the `EMAIL_*` settings. The API answers to the domain in `SITE_URL` and to its internal names automatically; `DJANGO_ALLOWED_HOSTS` only adds extra names. `COOKIE_SECURE` defaults to `true`. Google sign-in needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, with `<SITE_URL>/api/auth/callback/google` as an authorised redirect URI.
 
 The website reads `BACKEND_URL` (where the API is; `http://backend:8000` in Docker), `GOOGLE_CLIENT_ID`, `REVALIDATE_SECRET`, `COOKIE_SECURE`, and `NEXT_PUBLIC_SITE_URL` (set at build time from `SITE_URL`).
 
 ## Tests
 
-`cd backend && pytest` runs 121 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections. The list that was checked by hand before the backend existed is now automated:
+`cd backend && pytest` runs 131 tests against a real PostgreSQL (row locks matter), including the concurrency tests that race two requests on separate connections. The list that was checked by hand before the backend existed is now automated:
 
 - [x] A founder can't read or change another founder's application.
 - [x] No founder payload contains scorecards, notes, assignee or `review`.

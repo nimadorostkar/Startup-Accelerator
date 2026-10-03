@@ -254,7 +254,7 @@ class StartupListView(APIView):
 class StartupDetailView(APIView):
     authentication_classes = []
 
-    @extend_schema(tags=["public"], operation_id="startups_retrieve", responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(tags=["public"], responses={200: OpenApiTypes.OBJECT})
     def get(self, request, slug):
         found = directory.find(slug)
         if found is None:

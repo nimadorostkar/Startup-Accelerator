@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.defaults import server_error as html_server_error
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, throttle_classes
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,16 @@ def ready(request):
         checks["cache"] = "error"
     healthy = all(v == "ok" for v in checks.values())
     return Response({"status": "ok" if healthy else "error", **checks}, status=200 if healthy else 503)
+
+
+@extend_schema(exclude=True)
+@api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
+@authentication_classes([])
+@permission_classes([])
+@throttle_classes([])
+def not_found(request, *args, **kwargs):
+    """Unknown API paths answer in the API's error shape, not with an HTML page."""
+    raise NotFound()
 
 
 def server_error(request, *args, **kwargs):

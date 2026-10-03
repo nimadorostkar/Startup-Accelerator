@@ -44,5 +44,17 @@ def client_ip(request) -> str:
     return hops[0] if hops else remote
 
 
+def is_internal(request) -> bool:
+    """A call from our own services rather than on behalf of a visitor: it comes from the
+    private network and names no client. That's the website filling its cache of public
+    data (those fetches can't carry a visitor's address, or they couldn't be shared) and
+    container health checks. Everything a visitor triggers through Caddy or the website's
+    forms arrives with X-Forwarded-For, so it is still counted per visitor."""
+    return (
+        _is_trusted(request.META.get("REMOTE_ADDR", "") or "")
+        and not request.META.get("HTTP_X_FORWARDED_FOR", "").strip()
+    )
+
+
 def user_agent(request) -> str:
     return (request.META.get("HTTP_USER_AGENT") or "")[:300]

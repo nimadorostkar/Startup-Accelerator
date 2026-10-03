@@ -159,7 +159,7 @@ Code: [src/app/events/page.tsx](../src/app/events/page.tsx), pieces in [src/comp
 | Recently | The 3 most recent past events, marked Ended |
 | Sign-up band | Newsletter sign-up (`source: events`), linking to `/newsletter` |
 
-- **Events come from the API** ([src/lib/events.ts](../src/lib/events.ts)) and are managed in the back office (Events): title, type, format, city, start and end, time zone, capacity, summary, about (paragraphs), what you'll get (one per line), the agenda, who it's for, and the private venue or joining link, which is only ever emailed to registered guests. Unpublished events are hidden. The launch set (the site's original placeholder events) is loaded by `seed_content`; replace it with the real calendar before launch.
+- **Events come from the API** ([src/lib/events.ts](../src/lib/events.ts)) and are managed in the back office (Events): title, type, format, city, start and end (entered and shown in the event's own time zone), time zone, capacity, summary, about (paragraphs), what you'll get (one per line), the agenda, who it's for, and the private venue or joining link, which is only ever emailed to registered guests. Unpublished events are hidden. The launch set (the site's original placeholder events) is loaded by `seed_content`; replace it with the real calendar before launch.
 - An event moves from Upcoming to Recently once its end time passes. The pages are static, refreshed every minute and as soon as an event is saved in the back office.
 - Times are shown in each event's own time zone (e.g. `4:00 PM – 8:00 PM PDT`).
 - The countdown shows dashes until the page loads in the browser, then ticks every second. It is hidden from screen readers because the date is always shown as text.
@@ -257,7 +257,7 @@ Accounts and sessions live in the API; [src/lib/auth.ts](../src/lib/auth.ts) is 
 - **Continue with Google** button above an "or with email" divider.
 - **Forgot password?** carries any email already typed into `/forgot-password?email=…`.
 - On success founders go to `/dashboard` (`AFTER_SIGN_IN`) and reviewers to `/admin`.
-- A wrong email or password gets one message for both, so the form never reveals who has an account. Sign-in is limited to 10 attempts a minute per address and 20 an hour per email; past that the banner says how long to wait.
+- A wrong email or password gets one message for both, so the form never reveals who has an account. Sign-in is limited to 10 attempts a minute per address, and 5 failed attempts per account per address per 15 minutes (50 per account per hour from anywhere); only failures count, so nobody can lock a founder out by trying their address. Past a limit the banner says how long to wait.
 - `?error=google…` (after a failed Google sign-in) shows why in the banner.
 
 ### Create account — `/register`
@@ -647,7 +647,7 @@ Every rule is enforced by the API, inside each request, not just by hiding butto
 | Other sites can't act with a visitor's cookie | Cookie-authenticated changes must come from the site's own origin |
 | Brute force | Rate limits on sign-in, sign-up, password reset and the public forms |
 
-**Who counts as a reviewer:** a user with the *reviewer* role **and** a confirmed email address. Set the role in the back office (Users → *Make reviewer*); back-office superusers are reviewers too.
+**Who counts as a reviewer:** a user with the *reviewer* role **and** an email address they confirmed themselves with the emailed link. Set the role in the back office (Users → *Make reviewer*, which sends a fresh link to anyone unconfirmed); the back office can't confirm an address on someone's behalf. Back-office superusers created with `createsuperuser` are reviewers too.
 
 **Passwords and sessions:** passwords are hashed with Argon2; sessions are random tokens stored only as hashes, revoked on sign-out and on a password reset, and can be ended from the back office (*Sign out of every device*).
 
@@ -665,7 +665,7 @@ Local development, test accounts and sample data: [deployment.md → Local devel
 
 The API's settings are listed in [.env.example](../.env.example) and [backend-integration.md](backend-integration.md#environment-variables).
 
-**Sample data (development only):** `python manage.py seed_demo` adds 23 invented applications covering every status, with overdue items, assignments, scorecards and notes (demo accounts use `@demo.fundup.example` addresses); `seed_demo --reset` removes them. `seed_dev_accounts` creates a test founder and a test reviewer.
+**Sample data (development only):** `python manage.py seed_demo` adds 23 invented applications covering every status, with overdue items, assignments, scorecards and notes (demo accounts use `@demo.fundup.example` addresses); `seed_demo --reset` removes them. `seed_dev_accounts` creates a test founder, a test reviewer and a back-office admin.
 
 ### Still to be decided or done
 

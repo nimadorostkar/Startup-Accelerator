@@ -27,7 +27,9 @@ def test_bad_json_is_a_400_with_a_message():
 
 
 def test_unknown_api_path_is_404():
-    assert APIClient().get("/api/v1/nope").status_code == 404
+    for method in ("get", "post", "delete"):
+        response = getattr(APIClient(), method)("/api/v1/nope/deeper")
+        assert response.status_code == 404 and response.json() == {"message": "Not found."}
 
 
 class FakeRequest:
@@ -66,3 +68,16 @@ def test_openapi_schema_generates():
 
     schema = SchemaGenerator().get_schema(request=None, public=True)
     assert "/api/v1/me/application/submit" in schema["paths"]
+
+
+def test_make_reviewer_never_confirms_an_address_on_the_owners_behalf(client):
+    from django.core import mail
+
+    from apps.accounts.models import User
+
+    client.force_login(User.objects.create_superuser("admin@example.com", "Admin", "admin-pass-123"))
+    newcomer = User.objects.create_user("new.reviewer@example.com", "New Reviewer", "some-pass-123")
+    client.post("/backoffice/accounts/user/", {"action": "make_reviewer", "_selected_action": [newcomer.pk]})
+    newcomer.refresh_from_db()
+    assert newcomer.role == "reviewer" and not newcomer.email_verified and not newcomer.is_reviewer
+    assert any("verify-email?token=" in m.body for m in mail.outbox if m.to == ["new.reviewer@example.com"])

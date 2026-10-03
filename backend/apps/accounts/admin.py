@@ -46,7 +46,8 @@ class UserAdmin(DjangoUserAdmin):
     )
     search_fields = ("email", "name")
     ordering = ("-created_at",)
-    readonly_fields = ("created_at", "last_login", "google_sub", "terms_accepted_at")
+    # Only the address's owner confirms it (the emailed link), never the back office.
+    readonly_fields = ("created_at", "last_login", "google_sub", "terms_accepted_at", "email_verified_at")
     fieldsets = (
         (None, {"fields": ("email", "name", "password")}),
         (
@@ -65,32 +66,37 @@ class UserAdmin(DjangoUserAdmin):
     add_fieldsets = (
         (None, {"classes": ("wide",), "fields": ("email", "name", "role", "password1", "password2")}),
     )
-    actions = ["make_reviewer", "make_founder", "mark_verified", "sign_out_everywhere"]
+    actions = ["make_reviewer", "make_founder", "sign_out_everywhere"]
 
     @admin.display(boolean=True, description="Verified", ordering="email_verified_at")
     def verified(self, obj):
         return obj.email_verified
 
-    @admin.action(description="Make reviewer (and verify email)")
+    @admin.action(description="Make reviewer")
     def make_reviewer(self, request, queryset):
-        now = timezone.now()
+        """Review access also needs a confirmed address, which only the inbox's owner can give:
+        anyone unconfirmed gets a fresh link. (Confirming on their behalf would hand the panel
+        to whoever registered the address first.)"""
+        from .services import send_verification
+
+        waiting = 0
         for user in queryset:
             user.role = User.Role.REVIEWER
-            user.email_verified_at = user.email_verified_at or now
-            user.save(update_fields=["role", "email_verified_at"])
+            user.save(update_fields=["role"])
+            if not user.email_verified:
+                send_verification(user)
+                waiting += 1
         self.message_user(
-            request, f"{queryset.count()} user(s) can now open the review panel.", messages.SUCCESS
+            request,
+            f"{queryset.count()} user(s) are now reviewers."
+            + (f" {waiting} must confirm their email first; a link is on its way." if waiting else ""),
+            messages.SUCCESS,
         )
 
     @admin.action(description="Make founder (remove review access)")
     def make_founder(self, request, queryset):
         count = queryset.update(role=User.Role.FOUNDER)
         self.message_user(request, f"{count} user(s) changed to founder.", messages.SUCCESS)
-
-    @admin.action(description="Mark email as verified")
-    def mark_verified(self, request, queryset):
-        count = queryset.filter(email_verified_at__isnull=True).update(email_verified_at=timezone.now())
-        self.message_user(request, f"{count} address(es) marked verified.", messages.SUCCESS)
 
     @admin.action(description="Sign out of every device")
     def sign_out_everywhere(self, request, queryset):

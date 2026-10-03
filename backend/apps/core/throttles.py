@@ -3,17 +3,15 @@
 Rates are configured in settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].
 """
 
-import hashlib
-
 from django.conf import settings
 from rest_framework import throttling
 
-from .net import client_ip
+from .net import client_ip, is_internal
 
 
 class _Switchable:
     def allow_request(self, request, view):
-        if not getattr(settings, "API_THROTTLING", True):
+        if not getattr(settings, "API_THROTTLING", True) or is_internal(request):
             return True
         return super().allow_request(request, view)
 
@@ -36,21 +34,5 @@ class IPRateThrottle(_Switchable, throttling.SimpleRateThrottle):
         return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
 
 
-class EmailRateThrottle(_Switchable, throttling.SimpleRateThrottle):
-    """Counts requests per email address in the body, so one inbox can't be flooded from many IPs."""
-
-    def get_cache_key(self, request, view):
-        data = request.data if isinstance(request.data, dict) else {}
-        email = data.get("email")
-        if not isinstance(email, str) or not email.strip():
-            return None
-        digest = hashlib.sha256(email.strip().lower().encode()).hexdigest()
-        return self.cache_format % {"scope": self.scope, "ident": digest}
-
-
 def ip_throttle(scope: str) -> type[IPRateThrottle]:
     return type(f"{scope.title().replace('_', '')}IPThrottle", (IPRateThrottle,), {"scope": scope})
-
-
-def email_throttle(scope: str) -> type[EmailRateThrottle]:
-    return type(f"{scope.title().replace('_', '')}EmailThrottle", (EmailRateThrottle,), {"scope": scope})

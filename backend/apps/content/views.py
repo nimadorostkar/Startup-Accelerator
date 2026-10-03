@@ -34,7 +34,7 @@ class SubscribeBody(serializers.Serializer):
     website = serializers.CharField(required=False, help_text="Leave empty (bot trap)")
 
 
-class TokenBody(serializers.Serializer):
+class UnsubscribeBody(serializers.Serializer):
     token = serializers.CharField()
 
 
@@ -124,7 +124,9 @@ class UnsubscribeView(APIView):
     throttle_classes = [ip_throttle("subscribe")]
 
     @extend_schema(
-        responses={200: OpenApiTypes.OBJECT, 201: OpenApiTypes.OBJECT}, request=TokenBody, tags=["newsletter"]
+        responses={200: OpenApiTypes.OBJECT, 201: OpenApiTypes.OBJECT},
+        request=UnsubscribeBody,
+        tags=["newsletter"],
     )
     def post(self, request):
         return Response({"email": services.unsubscribe(request.data)})

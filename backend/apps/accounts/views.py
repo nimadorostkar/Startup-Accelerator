@@ -5,19 +5,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.net import client_ip, user_agent
-from apps.core.throttles import email_throttle, ip_throttle
+from apps.core.throttles import ip_throttle
 
 from . import google, services
 from .cookies import clear_session_cookie, set_session_cookie
 from .models import AuthSession
 from .permissions import IsSignedIn
 from .schemas import (
+    AccountProfileBody,
     ChangePasswordBody,
     GoogleBody,
     LoginBody,
     PasswordResetBody,
     PasswordResetConfirmBody,
-    ProfileBody,
     RegisterBody,
     TokenBody,
     UserSchema,
@@ -46,11 +46,11 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     authentication_classes = []
-    throttle_classes = [ip_throttle("login"), email_throttle("login_email")]
+    throttle_classes = [ip_throttle("login")]  # failed attempts per account: services.authenticate
 
     @extend_schema(request=LoginBody, responses={200: UserSchema}, tags=["auth"])
     def post(self, request):
-        user, remember = services.authenticate(request.data)
+        user, remember = services.authenticate(request.data, ip=client_ip(request))
         return signed_in(request, user, remember=remember)
 
 
@@ -66,7 +66,7 @@ class LogoutView(APIView):
 
 class PasswordResetView(APIView):
     authentication_classes = []
-    throttle_classes = [ip_throttle("password_reset"), email_throttle("password_reset_email")]
+    throttle_classes = [ip_throttle("password_reset")]  # emails per inbox: services.email_password_reset
 
     @extend_schema(request=PasswordResetBody, responses={202: None}, tags=["auth"])
     def post(self, request):
@@ -127,7 +127,7 @@ class MeView(APIView):
     def get(self, request):
         return Response({"user": services.user_payload(request.user)})
 
-    @extend_schema(request=ProfileBody, responses={200: UserSchema}, tags=["account"])
+    @extend_schema(request=AccountProfileBody, responses={200: UserSchema}, tags=["account"])
     def patch(self, request):
         user = services.update_profile(request.user, request.data)
         return Response({"user": services.user_payload(user)})

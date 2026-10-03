@@ -78,8 +78,17 @@ if not SECRET_KEY:
 # the trusted-origin check on cookie-authenticated requests and Google sign-in.
 SITE_URL = (env("SITE_URL", "http://localhost:3000") or "").rstrip("/")
 
-# "backend" is the service name the frontend uses inside the Docker network.
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,backend")
+# Host names the API answers to: the site's own (from SITE_URL), the names used
+# inside the Docker network ("backend") and by health checks, plus any extras.
+ALLOWED_HOSTS = sorted(
+    {
+        urlsplit(SITE_URL).hostname or "localhost",
+        "localhost",
+        "127.0.0.1",
+        "backend",
+        *env_list("DJANGO_ALLOWED_HOSTS"),
+    }
+)
 CSRF_TRUSTED_ORIGINS = sorted({SITE_URL, *env_list("CSRF_TRUSTED_ORIGINS")})
 
 INSTALLED_APPS = [
@@ -99,6 +108,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "apps.core.middleware.RequestIdMiddleware",
+    "apps.core.middleware.BackofficeLoginThrottleMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -200,7 +210,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "EXCEPTION_HANDLER": "apps.core.exceptions.exception_handler",
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "apps.core.schema.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "apps.core.throttles.AnonRateThrottle",
         "apps.core.throttles.UserRateThrottle",
@@ -209,10 +219,8 @@ REST_FRAMEWORK = {
         "anon": env("THROTTLE_ANON", "300/min"),
         "user": env("THROTTLE_USER", "600/min"),
         "login": "10/min",
-        "login_email": "20/hour",
         "register": "10/hour",
         "password_reset": "5/hour",
-        "password_reset_email": "3/hour",
         "password_reset_confirm": "20/hour",
         "verify_email": "20/hour",
         "google": "30/hour",

@@ -1,8 +1,10 @@
 """Account operations. Views stay thin; the rules live here."""
 
+import hashlib
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -18,6 +20,30 @@ logger = logging.getLogger(__name__)
 WRONG_CREDENTIALS = "That email and password don't match. Try again, or reset your password."
 BAD_RESET_LINK = "This reset link is invalid or has expired. Request a new one below."
 BAD_VERIFY_LINK = "This confirmation link is invalid or has expired. Sign in to get a new one."
+
+# Failed sign-ins are counted per account. Only failures count, so nobody can lock
+# a founder out by spamming requests, and a success clears the visitor's count.
+LOGIN_PAIR_LIMIT, LOGIN_PAIR_WINDOW = 5, 15 * 60  # one visitor, one account
+LOGIN_ACCOUNT_LIMIT, LOGIN_ACCOUNT_WINDOW = 50, 60 * 60  # one account, from anywhere
+RESET_EMAILS_PER_HOUR = 3
+
+
+def _counter_key(kind: str, *parts: str) -> str:
+    return f"{kind}:" + hashlib.sha256("|".join(parts).encode()).hexdigest()
+
+
+def _bump(key: str, window: int) -> int:
+    if cache.add(key, 1, window):
+        return 1
+    try:
+        return cache.incr(key)
+    except ValueError:  # expired between the two calls
+        cache.set(key, 1, window)
+        return 1
+
+
+def _throttling() -> bool:
+    return getattr(settings, "API_THROTTLING", True)
 
 
 def user_payload(user: User) -> dict:
@@ -59,7 +85,7 @@ def register(data: dict) -> User:
     return user
 
 
-def authenticate(data: dict) -> tuple[User, bool]:
+def authenticate(data: dict, *, ip: str = "") -> tuple[User, bool]:
     f = Fields(data)
     email, password = f.text("email").lower(), f.text("password")
     f.error("email", check_email(email))
@@ -68,16 +94,41 @@ def authenticate(data: dict) -> tuple[User, bool]:
     if f.errors:
         raise Invalid(f.errors)
 
+    pair, account = _counter_key("login-fail", email, ip), _counter_key("login-fail", email)
+    if _throttling():
+        if (cache.get(pair) or 0) >= LOGIN_PAIR_LIMIT:
+            raise ApiError(
+                "Too many failed sign-ins for this account. Please wait 15 minutes, or reset your password.",
+                status_code=429,
+                retryAfter=LOGIN_PAIR_WINDOW,
+            )
+        if (cache.get(account) or 0) >= LOGIN_ACCOUNT_LIMIT:
+            raise ApiError(
+                "Too many failed sign-ins for this account. Please wait an hour, or reset your password.",
+                status_code=429,
+                retryAfter=LOGIN_ACCOUNT_WINDOW,
+            )
+
     user = User.objects.filter(email=email).first()
     if user is None:
         # Spend the same time hashing as a real check, so response times don't reveal accounts.
         User().set_password(password)
+        ok = False
+    else:
+        ok = user.has_usable_password() and user.check_password(password) and user.is_active
+    if not ok:
+        _bump(pair, LOGIN_PAIR_WINDOW)
+        _bump(account, LOGIN_ACCOUNT_WINDOW)
         raise ApiError(WRONG_CREDENTIALS, status_code=401)
-    if not user.has_usable_password() or not user.check_password(password) or not user.is_active:
-        raise ApiError(WRONG_CREDENTIALS, status_code=401)
+    cache.delete(pair)
     user.last_login = timezone.now()
     user.save(update_fields=["last_login"])
     return user, f.flag("remember")
+
+
+def clear_failed_logins(email: str) -> None:
+    """After a password reset the account starts afresh (per-visitor counts expire on their own)."""
+    cache.delete(_counter_key("login-fail", email))
 
 
 # ---------------------------------------------------------------- email verification
@@ -131,6 +182,10 @@ def email_password_reset(email: str) -> None:
     user = User.objects.filter(email=email, is_active=True).first()
     if user is None:
         return
+    # A few links an hour is plenty; past that the inbox already has a fresh one. Silently, so
+    # nobody can block someone's reset by asking for it on their behalf, or flood their inbox.
+    if _throttling() and _bump(_counter_key("reset-mail", email), 3600) > RESET_EMAILS_PER_HOUR:
+        return
     token = UserToken.issue(user, UserToken.Purpose.PASSWORD_RESET)
     queue_email(
         user.email,
@@ -159,6 +214,7 @@ def reset_password(data: dict) -> User:
     user.email_verified_at = user.email_verified_at or timezone.now()
     user.save(update_fields=["password", "email_verified_at"])
     AuthSession.revoke_all(user)  # a stolen session dies with the old password
+    clear_failed_logins(user.email)
     password_changed_notice(user)
     return user
 

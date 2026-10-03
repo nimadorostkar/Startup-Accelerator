@@ -276,7 +276,7 @@ def test_google_sign_in_creates_a_verified_account():
 
 @override_settings(**GOOGLE)
 def test_google_sign_in_joins_an_existing_account_and_refuses_bad_tokens():
-    existing = make_user("lena@example.com")
+    existing = make_user("lena@example.com", email_verified_at=timezone.now(), password="lena-own-pass-1")
     claims = {
         "aud": "client-123",
         "iss": "accounts.google.com",
@@ -289,10 +289,40 @@ def test_google_sign_in_joins_an_existing_account_and_refuses_bad_tokens():
         assert APIClient().post("/api/v1/auth/google", {"code": "abc"}, format="json").status_code == 200
     existing.refresh_from_db()
     assert existing.google_sub == "google-2" and existing.email_verified
+    assert existing.check_password("lena-own-pass-1")  # a confirmed owner keeps their password
 
     for bad in ({**claims, "aud": "someone-else"}, {**claims, "email_verified": False}, {**claims, "exp": 1}):
         with mock.patch("apps.accounts.google.requests.post", return_value=google_response(bad)):
             assert APIClient().post("/api/v1/auth/google", {"code": "abc"}, format="json").status_code == 400
+
+
+@override_settings(**GOOGLE)
+def test_google_sign_in_takes_back_an_account_someone_else_registered_first():
+    """Pre-registration attack: someone signs up with the victim's address and a password
+    of their choosing (never confirming it), waiting for the victim to arrive via Google."""
+    squatter = make_user("victim@example.com", "Not The Owner", password="squatters-pass-1")
+    squatter_session = client_for(squatter)
+    UserToken.issue(squatter, UserToken.Purpose.PASSWORD_RESET)
+    claims = {
+        "aud": "client-123",
+        "iss": "https://accounts.google.com",
+        "exp": 9_999_999_999,
+        "sub": "google-victim",
+        "email": "victim@example.com",
+        "email_verified": True,
+    }
+    with mock.patch("apps.accounts.google.requests.post", return_value=google_response(claims)):
+        assert APIClient().post("/api/v1/auth/google", {"code": "abc"}, format="json").status_code == 200
+
+    account = User.objects.get(email="victim@example.com")
+    assert account.email_verified and account.google_sub == "google-victim"
+    assert not account.has_usable_password()  # the squatter's password no longer works
+    assert squatter_session.get("/api/v1/me").status_code == 401  # nor their session
+    assert not UserToken.objects.filter(user=account, used_at__isnull=True).exists()  # nor their links
+    login = APIClient().post(
+        "/api/v1/auth/login", {"email": "victim@example.com", "password": "squatters-pass-1"}, format="json"
+    )
+    assert login.status_code == 401
 
 
 def test_google_sign_in_reports_missing_configuration():
@@ -304,14 +334,103 @@ def test_google_sign_in_reports_missing_configuration():
 
 
 @override_settings(API_THROTTLING=True)
-def test_login_is_rate_limited_per_address():
+def visitor(ip: str) -> APIClient:
+    """A client whose requests arrive through the proxy, on behalf of a visitor at `ip`."""
     client = APIClient()
-    for _ in range(10):
-        client.post("/api/v1/auth/login", {"email": "a@example.com", "password": "x"}, format="json")
-    response = client.post("/api/v1/auth/login", {"email": "a@example.com", "password": "x"}, format="json")
+    client.credentials(HTTP_X_FORWARDED_FOR=ip)
+    return client
+
+
+@override_settings(API_THROTTLING=True)
+def test_login_is_rate_limited_per_address():
+    client = visitor("203.0.113.7")
+    for n in range(10):
+        client.post("/api/v1/auth/login", {"email": f"a{n}@example.com", "password": "x"}, format="json")
+    response = client.post("/api/v1/auth/login", {"email": "b@example.com", "password": "x"}, format="json")
     assert response.status_code == 429
     assert response.json()["message"].startswith("Too many attempts")
     assert int(response["Retry-After"]) > 0
+    # Another visitor isn't affected.
+    other = visitor("203.0.113.8").post(
+        "/api/v1/auth/login", {"email": "b@example.com", "password": "x"}, format="json"
+    )
+    assert other.status_code == 401
+
+
+@override_settings(API_THROTTLING=True)
+def test_the_websites_own_cache_fills_are_never_rate_limited():
+    """Server-to-server reads from the private network without a visitor address."""
+    client = APIClient()  # REMOTE_ADDR 127.0.0.1, no X-Forwarded-For
+    for _ in range(320):  # past the anonymous limit of 300 a minute
+        assert client.get("/api/v1/options").status_code == 200
+
+
+@override_settings(API_THROTTLING=True)
+def test_failed_sign_ins_lock_the_attacker_out_not_the_owner():
+    make_user("maya@example.com", password="mayas-own-pass-1")
+    body = {"email": "maya@example.com", "password": "guess"}
+    attacker = [visitor("198.51.100.1")]
+    for _ in range(5):  # five failures on one account from one address
+        attacker[0].post("/api/v1/auth/login", body, format="json")
+    blocked = attacker[0].post("/api/v1/auth/login", {**body, "password": "mayas-own-pass-1"}, format="json")
+    assert blocked.status_code == 429 and "Too many failed sign-ins" in blocked.json()["message"]
+    assert int(blocked["Retry-After"]) == 900
+
+    # The owner, from their own address, still gets in, and that clears their own count.
+    owner = visitor("203.0.113.50")
+    ok = owner.post("/api/v1/auth/login", {**body, "password": "mayas-own-pass-1"}, format="json")
+    assert ok.status_code == 200
+
+
+@override_settings(API_THROTTLING=True)
+def test_a_flood_of_failures_from_many_addresses_locks_the_account_for_an_hour():
+    make_user("maya@example.com", password="mayas-own-pass-1")
+    for n in range(50):
+        visitor(f"198.51.100.{n}").post(
+            "/api/v1/auth/login", {"email": "maya@example.com", "password": "guess"}, format="json"
+        )
+    response = visitor("203.0.113.50").post(
+        "/api/v1/auth/login", {"email": "maya@example.com", "password": "mayas-own-pass-1"}, format="json"
+    )
+    assert response.status_code == 429 and "wait an hour" in response.json()["message"]
+
+
+@override_settings(API_THROTTLING=True)
+def test_password_reset_emails_are_capped_per_inbox_without_blocking_the_owner():
+    make_user("maya@example.com")
+    for n in range(6):  # from six different addresses
+        response = visitor(f"198.51.100.{n}").post(
+            "/api/v1/auth/password-reset", {"email": "maya@example.com"}, format="json"
+        )
+        assert response.status_code == 202
+    assert len(mail.outbox) == 3
+
+
+@override_settings(API_THROTTLING=True)
+def test_back_office_sign_in_is_rate_limited(client):
+    from django.core.cache import cache
+
+    make_user("admin@example.com", "Admin", password="right-pass-123", is_staff=True, is_superuser=True)
+    for _ in range(10):
+        response = client.post(
+            "/backoffice/login/",
+            {"username": "admin@example.com", "password": "wrong"},
+            REMOTE_ADDR="203.0.113.9",
+        )
+        assert response.status_code == 200  # the form again, with an error
+    blocked = client.post(
+        "/backoffice/login/",
+        {"username": "admin@example.com", "password": "right-pass-123"},
+        REMOTE_ADDR="203.0.113.9",
+    )
+    assert blocked.status_code == 429
+    cache.clear()
+    ok = client.post(
+        "/backoffice/login/",
+        {"username": "admin@example.com", "password": "right-pass-123"},
+        REMOTE_ADDR="203.0.113.9",
+    )
+    assert ok.status_code == 302
 
 
 def test_reviewer_payload_flags():

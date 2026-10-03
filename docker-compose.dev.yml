@@ -39,6 +39,7 @@ services:
       REDIS_URL: redis://redis:6379/1
       CELERY_BROKER_URL: redis://redis:6379/0
       DJANGO_DEBUG: "true"
+      API_DOCS_PUBLIC: "true"
       DJANGO_ALLOWED_HOSTS: "*"
       SITE_URL: http://localhost:3000
       COOKIE_SECURE: "false"

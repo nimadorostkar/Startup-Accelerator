@@ -5,6 +5,7 @@ cache is dropped whenever a public application changes.
 """
 
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import F
 
 from apps.core.signals import refresh_public_pages
@@ -19,11 +20,16 @@ def _version() -> int:
     return cache.get_or_set(VERSION_KEY, 1, None)
 
 
-def invalidate() -> None:
+def _bump() -> None:
     try:
         cache.incr(VERSION_KEY)
     except ValueError:
         cache.set(VERSION_KEY, 2, None)
+
+
+def invalidate() -> None:
+    # After the commit: a read in between would otherwise cache the old data under the new version.
+    transaction.on_commit(_bump, robust=True)
     refresh_public_pages("startups")
 
 

@@ -34,7 +34,7 @@ class GoogleBody(serializers.Serializer):
     code = serializers.CharField(help_text="The `code` Google sent to /api/auth/callback/google")
 
 
-class ProfileBody(serializers.Serializer):
+class AccountProfileBody(serializers.Serializer):
     name = serializers.CharField(max_length=80, required=False)
 
 

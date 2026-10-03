@@ -74,8 +74,10 @@ type Options = {
 async function forwardedHeaders(): Promise<Record<string, string>> {
   const incoming = await headers();
   const out: Record<string, string> = {};
+  // The whole chain: the API walks it from the right, past our own proxies, so an
+  // address a visitor made up at the left end is never taken for theirs.
   const forwarded = incoming.get("x-forwarded-for") ?? incoming.get("x-real-ip");
-  if (forwarded) out["X-Forwarded-For"] = forwarded.split(",")[0].trim();
+  if (forwarded) out["X-Forwarded-For"] = forwarded;
   const agent = incoming.get("user-agent");
   if (agent) out["User-Agent"] = agent.slice(0, 300);
   const requestId = incoming.get("x-request-id");

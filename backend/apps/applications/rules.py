@@ -23,6 +23,7 @@ from apps.core.validation import (
     optional_linkedin,
     optional_phone,
     optional_url,
+    text_length,
 )
 
 # ---------------------------------------------------------------- option lists
@@ -264,13 +265,13 @@ def missing_fields(profile: dict, startup: dict, team: dict) -> list[dict]:
             value = get(profile, startup, team)
             if value is None or value == "" or value is False:
                 out.append({"section": section, "field": field, "label": label})
-            elif minimum and isinstance(value, str) and len(value) < minimum:
+            elif minimum and isinstance(value, str) and text_length(value) < minimum:
                 out.append(
                     {
                         "section": section,
                         "field": field,
                         "label": label,
-                        "reason": f"{minimum - len(value)} more characters needed",
+                        "reason": f"{minimum - text_length(value)} more characters needed",
                     }
                 )
     return out

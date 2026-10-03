@@ -15,7 +15,7 @@ from django.utils import timezone
 
 from apps.core.exceptions import ApiError, Invalid
 
-from .models import User
+from .models import AuthSession, User, UserToken
 
 logger = logging.getLogger(__name__)
 
@@ -96,9 +96,17 @@ def sign_in(data: dict) -> User:
                     terms_accepted_at=timezone.now(),
                 )
             else:
+                if not user.email_verified:
+                    # Whoever set this account's password never proved they own the inbox:
+                    # it may have been registered by someone else in advance, waiting for
+                    # the real owner to arrive. Google has just proved ownership, so the
+                    # old password, sessions and emailed links stop working.
+                    user.set_unusable_password()
+                    AuthSession.revoke_all(user)
+                    UserToken.objects.filter(user=user, used_at__isnull=True).update(used_at=timezone.now())
+                    user.email_verified_at = timezone.now()
                 user.google_sub = sub
-                user.email_verified_at = user.email_verified_at or timezone.now()
-                user.save(update_fields=["google_sub", "email_verified_at"])
+                user.save(update_fields=["google_sub", "email_verified_at", "password"])
         if not user.is_active:
             raise ApiError("This account has been deactivated.", status_code=403)
         user.last_login = timezone.now()

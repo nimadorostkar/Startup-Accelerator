@@ -18,6 +18,8 @@ As of 2026-10-03. How to run the whole site in production with Docker Compose, s
 
 Only Caddy is reachable from outside. **Never publish the API's port**: it trusts the forwarding headers that Caddy and the website set.
 
+Rate limits count each visitor by the address Caddy sees. With Docker's default networking, visitors arriving over **IPv6** reach Caddy as the Docker gateway's address and would share one count; if you publish an AAAA record, enable IPv6 in Docker (`"ipv6": true` in the daemon config) or put Caddy on the host network.
+
 ## Sizing
 
 For ~1,000 registered users (a few hundred active a day, peaks of tens at once) one server is plenty:
@@ -33,16 +35,15 @@ To grow: raise `WEB_CONCURRENCY` to `2 × CPUs + 1` on a bigger server; move Pos
 1. **Server:** install Docker Engine with the Compose plugin. Open ports 80 and 443. Point your domain's DNS (A/AAAA) at the server.
 2. **Code:** `git clone` the repository onto the server.
 3. **Settings:** `cp .env.example .env`, then set at least:
-   - `SITE_URL=https://your-domain` and `SITE_ADDRESS=your-domain`
-   - `COOKIE_SECURE=true`
+   - `SITE_URL=https://your-domain` and `SITE_ADDRESS=your-domain` (the API answers to that domain automatically)
+   - `COOKIE_SECURE=true` (the default)
    - `DJANGO_SECRET_KEY`, `REVALIDATE_SECRET`: `openssl rand -hex 32` each
    - `POSTGRES_PASSWORD`: `openssl rand -hex 24` (letters and digits only)
-   - `DJANGO_ALLOWED_HOSTS=your-domain,backend`
    - the `EMAIL_*` settings and `DEFAULT_FROM_EMAIL` from your email provider, and `SUPPORT_EMAILS`
    - optionally `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and `SENTRY_DSN`
 4. **Start:** `docker compose up -d --build`. The first start creates the database tables and, with `SEED_CONTENT=1`, loads the launch events and newsletter issues. Caddy gets the certificate on the first request.
 5. **First admin:** `docker compose exec backend python manage.py createsuperuser`. Sign in to the back office at `https://your-domain/backoffice/`. A superuser is also a reviewer, so `/admin` (the review panel) works with the same account once you sign in on the website.
-6. **Reviewers:** have them create an account on the website, then in the back office → Users select them → *Make reviewer (and verify email)*.
+6. **Reviewers:** have them create an account on the website, then in the back office → Users select them → *Make reviewer*. The panel opens for them once they've confirmed their email with the emailed link (they're sent a fresh one if needed); the back office can't confirm an address for someone, so an account registered by someone else with their address can't become a reviewer.
 7. **Check:** `curl https://your-domain/api/v1/health/ready` answers `{"status":"ok",…}`; `docker compose ps` shows everything healthy.
 
 ## Email
@@ -83,9 +84,9 @@ Run it from cron, and copy `backups/` off the server (object storage). Restore i
 - [ ] Only ports 80/443 open on the server
 - [ ] Strong passwords for back-office accounts; few superusers
 - [ ] Off-server backups, restore tested
-- [ ] `API_DOCS_PUBLIC=false` (the default) unless you want the API docs public
+- [ ] `API_DOCS_PUBLIC` left empty or `false` (docs off in production) unless you want the API docs public
 
-Built in: Argon2 password hashing; sessions stored as hashes and revocable; rate limits on sign-in, sign-up, reset and the public forms; cross-site protection on cookie-authenticated writes; HSTS and other security headers; non-root containers; reviewer-only data never sent to founders; the public directory built from an allowlist.
+Built in: Argon2 password hashing; sessions stored as hashes and revocable; rate limits on sign-in (including the back office), sign-up, reset and the public forms, counting failures per account so nobody can lock a founder out; cross-site protection on cookie-authenticated writes; HSTS and other security headers; non-root containers; reviewer-only data never sent to founders; the public directory built from an allowlist.
 
 ## Local development
 
@@ -97,6 +98,6 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend pyth
 npm install && npm run dev
 ```
 
-That runs Postgres, Redis, the API (auto-reloading, at http://localhost:8000), a worker and Mailpit (every email lands at http://localhost:8025); the website runs on your machine at http://localhost:3000. `seed_dev_accounts` creates `founder@example.com` and `reviewer@example.com` (password in [the command](../backend/apps/accounts/management/commands/seed_dev_accounts.py)); `seed_demo` adds 23 sample applications for the review queue (`seed_demo --reset` removes them). If ports clash with other projects, move them with `DEV_DB_PORT`, `DEV_REDIS_PORT`, `DEV_API_PORT` and `DEV_MAIL_PORT` in `.env`, and point the website at the API with `BACKEND_URL`.
+That runs Postgres, Redis, the API (auto-reloading, at http://localhost:8000), a worker and Mailpit (every email lands at http://localhost:8025); the website runs on your machine at http://localhost:3000. `seed_dev_accounts` creates `founder@example.com`, `reviewer@example.com` and a back-office admin, `admin@example.com` (password in [the command](../backend/apps/accounts/management/commands/seed_dev_accounts.py)); `seed_demo` adds 23 sample applications for the review queue (`seed_demo --reset` removes them). If ports clash with other projects, move them with `DEV_DB_PORT`, `DEV_REDIS_PORT`, `DEV_API_PORT` and `DEV_MAIL_PORT` in `.env`, and point the website at the API with `BACKEND_URL`.
 
 To try the production setup locally: set `SITE_URL=http://localhost`, `SITE_ADDRESS=http://localhost` and `COOKIE_SECURE=false` in `.env`, then `docker compose up -d --build` and open http://localhost.

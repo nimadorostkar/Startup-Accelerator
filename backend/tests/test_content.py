@@ -238,3 +238,60 @@ def test_contact_bot_trap():
     }
     assert APIClient().post("/api/v1/contact", body, format="json").status_code == 201
     assert ContactMessage.objects.count() == 0 and not mail.outbox
+
+
+# ---------------------------------------------------------------- back office
+
+
+def test_back_office_event_times_are_in_the_events_own_time_zone(client):
+    from datetime import UTC, datetime
+
+    from apps.accounts.models import User
+
+    admin_user = User.objects.create_superuser("admin@example.com", "Admin", "admin-pass-123")
+    client.force_login(admin_user)
+    response = client.post(
+        "/backoffice/content/event/add/",
+        {
+            "title": "Winter Info Session",
+            "slug": "winter-info-session",
+            "type": "Info Session",
+            "format": "Online",
+            "is_published": "on",
+            "tz": "America/Los_Angeles",
+            "start_0": "2026-12-01",
+            "start_1": "09:00:00",
+            "end_0": "2026-12-01",
+            "end_1": "10:00:00",
+            "city": "Online",
+            "capacity": "50",
+            "summary": "All about the winter cohort.",
+            "about": "One paragraph.",
+            "agenda-TOTAL_FORMS": "0",
+            "agenda-INITIAL_FORMS": "0",
+            "agenda-MIN_NUM_FORMS": "0",
+            "agenda-MAX_NUM_FORMS": "1000",
+        },
+    )
+    assert response.status_code == 302, response.content.decode()[:500]
+    event = Event.objects.get(slug="winter-info-session")
+    assert event.start == datetime(2026, 12, 1, 17, 0, tzinfo=UTC)  # 9:00 PST
+
+    page = client.get(f"/backoffice/content/event/{event.pk}/change/").content.decode()
+    assert 'value="09:00:00"' in page  # shown as typed, in Los Angeles time
+
+
+def test_back_office_csv_keeps_empty_cells_empty(client):
+    from apps.accounts.models import User
+
+    client.force_login(User.objects.create_superuser("admin@example.com", "Admin", "admin-pass-123"))
+    Subscriber.objects.create(email="a@example.com", source="")
+    Subscriber.objects.create(email="b@example.com", source="=cmd")
+    response = client.post(
+        "/backoffice/content/subscriber/",
+        {"action": "export", "_selected_action": list(Subscriber.objects.values_list("pk", flat=True))},
+    )
+    rows = response.content.decode().lstrip("﻿").splitlines()
+    by_email = {row.split(",")[0]: row.split(",")[1] for row in rows[1:]}
+    assert by_email["a@example.com"] == ""
+    assert by_email["b@example.com"] == "'=cmd"

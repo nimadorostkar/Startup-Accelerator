@@ -75,7 +75,10 @@ def _wait_text(seconds: float) -> str:
 def exception_handler(exc, context):
     if isinstance(exc, ApiError):
         body = {"message": exc.message, **({"errors": exc.errors} if exc.errors else {}), **exc.extra}
-        return Response(body, status=exc.status_code)
+        response = Response(body, status=exc.status_code)
+        if exc.status_code == status.HTTP_429_TOO_MANY_REQUESTS and "retryAfter" in exc.extra:
+            response["Retry-After"] = str(exc.extra["retryAfter"])
+        return response
 
     if isinstance(exc, Http404):
         exc = exceptions.NotFound()

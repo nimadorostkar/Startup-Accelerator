@@ -1,7 +1,9 @@
 import csv
+import zoneinfo
 
 from django.conf import settings
 from django.contrib import admin, messages
+from django.db import models
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
@@ -12,12 +14,12 @@ from .models import AgendaItem, ContactMessage, Event, EventRegistration, Post, 
 def export_csv(filename: str, header: list[str], rows) -> HttpResponse:
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    response.write("﻿")
+    response.write("\ufeff")  # BOM, so Excel reads UTF-8
     writer = csv.writer(response)
     writer.writerow(header)
     for row in rows:
         # Defuse spreadsheet formulas in visitor-entered text.
-        writer.writerow([f"'{v}" if isinstance(v, str) and v[:1] in "=+-@\t\r" else v for v in row])
+        writer.writerow([f"'{v}" if isinstance(v, str) and v and v[0] in "=+-@\t\r" else v for v in row])
     return response
 
 
@@ -34,7 +36,7 @@ class EventAdmin(admin.ModelAdmin):
         "type",
         "format",
         "city",
-        "start",
+        "local_start",
         "registered",
         "capacity",
         "is_published",
@@ -45,13 +47,15 @@ class EventAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     date_hierarchy = "start"
     inlines = [AgendaInline]
+    # A joining link typed without a scheme gets https:// (Django 6's default).
+    formfield_overrides = {models.URLField: {"assume_scheme": "https"}}
     fieldsets = (
         (None, {"fields": ("title", "slug", "type", "format", "is_published")}),
         (
             "When and where",
             {
-                "fields": ("start", "end", "tz", "city", "capacity"),
-                "description": "Enter start and end in UTC; the website shows them in the event's time zone.",
+                "fields": ("tz", "start", "end", "city", "capacity"),
+                "description": "Start and end are in the event's own time zone (the first field).",
             },
         ),
         ("Private joining details", {"fields": ("venue", "online_url")}),
@@ -62,6 +66,29 @@ class EventAdmin(admin.ModelAdmin):
         from django.db.models import Count
 
         return super().get_queryset(request).annotate(n_registrations=Count("registrations"))
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        """Show and read start and end in the event's own time zone rather than UTC."""
+        name = request.POST.get("tz") if request.method == "POST" else None
+        if not name and object_id:
+            name = Event.objects.filter(pk=object_id).values_list("tz", flat=True).first()
+        try:
+            zone = zoneinfo.ZoneInfo(name) if name else None
+        except (zoneinfo.ZoneInfoNotFoundError, ValueError):
+            zone = None  # the form reports the bad zone itself
+        if zone is None:
+            return super().changeform_view(request, object_id, form_url, extra_context)
+        with timezone.override(zone):
+            response = super().changeform_view(request, object_id, form_url, extra_context)
+            # Render now: a TemplateResponse would otherwise render after the override ends.
+            if hasattr(response, "render") and not getattr(response, "is_rendered", True):
+                response.render()
+            return response
+
+    @admin.display(description="Starts (local time)", ordering="start")
+    def local_start(self, obj):
+        start = timezone.localtime(obj.start, zoneinfo.ZoneInfo(obj.tz))
+        return f"{start:%Y-%m-%d %H:%M} {start:%Z}"
 
     @admin.display(description="Registered", ordering="n_registrations")
     def registered(self, obj):

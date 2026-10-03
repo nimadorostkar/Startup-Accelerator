@@ -316,3 +316,13 @@ def test_founder_saves_leave_reviewer_data_untouched(submitted, founder_client, 
     assert app.assignee == reviewer
     assert Scorecard.objects.get().team == 4
     assert InternalNote.objects.get().body == "Keep me"
+
+
+def test_minimum_lengths_count_like_the_website_does(founder_client):
+    """JavaScript counts an emoji as two characters; the API must agree, or the dashboard
+    would show "ready" and the submit would be refused."""
+    fill_application(founder_client)
+    founder_client.patch("/api/v1/me/application/profile", {"bio": "🚀" * 30}, format="json")  # 60 in JS
+    app = founder_client.get("/api/v1/me/application").json()["application"]
+    assert not any(m["field"] == "bio" for m in app["progress"]["missing"])
+    assert submit(founder_client).status_code == 200

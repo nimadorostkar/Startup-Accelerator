@@ -17,7 +17,7 @@ from django.db.models import Prefetch
 from apps.core.emails import queue_email
 from apps.core.exceptions import ApiError, Conflict, Invalid, NotFound
 from apps.core.utils import now
-from apps.core.validation import Fields, check_email, check_name, max_length
+from apps.core.validation import Fields, check_email, check_name, max_length, text_length
 
 from . import ics, payloads
 from .models import CONTACT_TOPICS, AgendaItem, ContactMessage, Event, EventRegistration, Post, Subscriber
@@ -33,11 +33,16 @@ def _version() -> int:
     return cache.get_or_set(VERSION_KEY, 1, None)
 
 
-def invalidate() -> None:
+def _bump() -> None:
     try:
         cache.incr(VERSION_KEY)
     except ValueError:
         cache.set(VERSION_KEY, 2, None)
+
+
+def invalidate() -> None:
+    # After the commit: a read in between would otherwise cache the old data under the new version.
+    transaction.on_commit(_bump, robust=True)
 
 
 def _is_bot(f: Fields) -> bool:
@@ -283,7 +288,7 @@ def send_contact_message(data: dict, *, ip: str | None = None, user_agent: str =
         f.error("topic", "Choose what this is about.")
     if not message:
         f.error("message", "Write a short message.")
-    elif len(message) < 10:
+    elif text_length(message) < 10:
         f.error("message", "Tell us a little more (at least 10 characters).")
     else:
         f.error("message", max_length(message, 2000))

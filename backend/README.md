@@ -44,7 +44,7 @@ python manage.py runserver 8000
 | --- | --- |
 | `migrate_safely` | `migrate` under a Postgres advisory lock (what the container runs on start) |
 | `seed_content [--if-empty] [--update]` | Loads the launch events and newsletter issues |
-| `seed_dev_accounts` | Development only: `founder@example.com` and `reviewer@example.com` |
+| `seed_dev_accounts` | Development only: `founder@example.com`, `reviewer@example.com` and back-office admin `admin@example.com` |
 | `seed_demo [--reset]` | Development only: 23 sample applications across every status, for the review queue |
 | `createsuperuser` | A back-office admin (also a reviewer) |
 | `wait_for_db` | Blocks until Postgres answers (container start-up) |
