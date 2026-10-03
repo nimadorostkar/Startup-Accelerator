@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { api, BackendUnavailable } from "@/lib/api";
+import { signInHref } from "@/lib/session";
 
 /* Every application as a CSV, for the support team's own analysis. The API
    builds it (reviewers only — anyone else gets a 404, like the panel) with
@@ -14,8 +15,9 @@ export async function GET() {
     throw err;
   }
   if (!result.ok) {
-    // Signed out (or the session ended): sign in again, like the rest of the panel.
-    if (result.status === 401) redirect("/login");
+    // Signed out (or the session ended): sign in again and come back to the panel,
+    // like the rest of it (the download itself isn't a page to return to).
+    if (result.status === 401) redirect(signInHref("/admin"));
     if (result.status === 429) {
       return new Response(result.error.message ?? "Too many requests. Please try again shortly.", {
         status: 429,

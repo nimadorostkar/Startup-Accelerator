@@ -208,7 +208,7 @@ Code: [src/app/demo-day/page.tsx](../src/app/demo-day/page.tsx); the roadmap is 
 
 ## Startup directory (`/startups`)
 
-Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the API's public directory (`GET /api/v1/startups`): **every application that has been submitted appears; drafts never do.** A submission, withdrawal or decision shows up within seconds: the cached copy is marked out of date straight away, the next visitor still gets it while a fresh one is rendered, and everyone after that sees the change. (If the API is unreachable at that moment, the old copy keeps being served rather than an error.)
+Code: [src/app/startups/page.tsx](../src/app/startups/page.tsx), filters in [src/components/startups/Directory.tsx](../src/components/startups/Directory.tsx), cards in [src/components/startups/StartupCard.tsx](../src/components/startups/StartupCard.tsx). Built from the API's public directory (`GET /api/v1/startups`): **every application that has been submitted appears; drafts never do.** A submission, withdrawal or decision made on the website shows up on the next page anyone opens; a change made elsewhere (the back office) within seconds: the next visitor may still get the previous copy while a fresh one renders, and if the API is unreachable at that moment the previous copy keeps being served rather than an error.
 
 | Section | Content |
 | --- | --- |

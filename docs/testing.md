@@ -4,9 +4,9 @@ As of 2026-10-03. Three layers, from fastest to most complete:
 
 | Layer | Where | What it proves | Run it |
 | --- | --- | --- | --- |
-| API tests | `backend/tests/` (pytest, 131 tests) | Every rule, against a real PostgreSQL, including requests racing on separate connections | `cd backend && pytest` |
+| API tests | `backend/tests/` (pytest, 144 tests) | Every rule, against a real PostgreSQL, including requests racing on separate connections | `cd backend && pytest` |
 | End-to-end: API | `e2e/api/` (Playwright, 43 tests) | Every endpoint over real HTTP against a running stack: Postgres, Redis, the Celery worker, real emails (read back from Mailpit), rate limits, cache refresh | `npm run test:e2e:api` |
-| End-to-end: website | `e2e/web/` (Playwright, 18 tests) | The site in a real browser: public pages fed by the API, sign-up to sign-out, every form, and a whole application lifecycle with a founder and a reviewer side by side | `npm run test:e2e` (runs both) |
+| End-to-end: website | `e2e/web/` (Playwright, 23 tests) | The site in a real browser: public pages fed by the API, sign-up to sign-out, returning to the page asked for after signing in, account settings, every form, and a whole application lifecycle with a founder and a reviewer side by side | `npm run test:e2e` (runs both) |
 
 Plus `npx tsc --noEmit && npm run lint` for the website, and `ruff check . && ruff format --check .` in `backend/`.
 
@@ -39,7 +39,7 @@ The suite checks first that the website, the API (with its database and Redis), 
 
 The API tests give each test its own visitor address (`X-Forwarded-For`, which the API believes only from the private network) so their rate limits never collide; the website tests do the same through the browser (the `test` exported by `e2e/support/web.ts`), which the dev website passes on to the API. Through Caddy that header is replaced by the real address, so point `E2E_API_URL` at the API's own port rather than through the proxy; the website tests go through Caddy as visitors do. The emails need a Mailpit (or any server with Mailpit's API) receiving the stack's mail.
 
-On 2026-10-03 all 61 tests passed against the dev stack (twice in a row) and against the production setup: the production Next.js build behind Caddy, Gunicorn with `DJANGO_DEBUG=false`, the worker sending real SMTP.
+On 2026-10-03 all 61 tests passed against the dev stack (twice in a row) and against the production setup: the production Next.js build behind Caddy, Gunicorn with `DJANGO_DEBUG=false`, the worker sending real SMTP. After the integration review later that day, all 66 passed against the dev stack, and the production build was checked by hand for the proxy's sign-in redirect, the start-up wait for the API, and public pages staying up (serving their last copy) when the API is down.
 
 ## What the end-to-end suite covers
 
