@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { api, BackendUnavailable, UNAVAILABLE } from "@/lib/api";
@@ -74,8 +74,9 @@ async function send(
   revalidatePath("/admin", "layout");
   revalidatePath("/dashboard", "layout");
   // Only a decision changes what the public directory shows (assignments,
-  // scorecards and notes are the review team's own).
-  if (tail === "/decisions") revalidateTag("startups", "max");
+  // scorecards and notes are the review team's own). Expired at once, so the
+  // reviewer sees it there straight away; the API has just answered, so it's up.
+  if (tail === "/decisions") updateTag("startups");
   return { ok: true, message, savedAt: new Date().toISOString() };
 }
 

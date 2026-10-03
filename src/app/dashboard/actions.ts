@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { api, BackendUnavailable, UNAVAILABLE } from "@/lib/api";
@@ -178,7 +178,9 @@ export async function submitApplication(_prev: SaveState, form: FormData): Promi
     { confirm: true },
     "Submitted — the review team has your application.",
   );
-  if (state.ok) revalidateTag("startups", "max");
+  // The founder sees their own change on the public pages straight away (the
+  // API has just answered, so it is up to render them).
+  if (state.ok) updateTag("startups");
   return state;
 }
 
@@ -191,7 +193,7 @@ export async function withdrawApplication(): Promise<SaveState> {
     undefined,
     "Withdrawn — your application is back in draft.",
   );
-  if (state.ok) revalidateTag("startups", "max");
+  if (state.ok) updateTag("startups");
   return state;
 }
 

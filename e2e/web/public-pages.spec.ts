@@ -19,9 +19,13 @@ test("home: the next Demo Day and the startup count come from the API", async ({
   const demo = upcoming.find((e) => e.type === "Demo Day");
   const band = page.getByText(/Next edition ·/).first();
   await expect(band).toContainText(demo ? monthDay(demo.start, demo.tz) : "Date soon");
-  await expect(page.locator("#startups")).toContainText(
-    `${startups.length} ${startups.length === 1 ? "startup" : "startups"}`,
-  );
+  // Other tests submit startups through the API as this runs: the page catches up
+  // within seconds (the first visit after a change may still get the previous copy).
+  const count = `${startups.length} ${startups.length === 1 ? "startup" : "startups"}`;
+  await expect(async () => {
+    await page.reload();
+    await expect(page.locator("#startups")).toContainText(count, { timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
 });
 
 test("events: the list, one event with its agenda, and a 404 for unknown ones", async ({ page }) => {
@@ -49,14 +53,18 @@ test("newsletter: the latest issue, an article, a 404", async ({ page }) => {
   expect(missing?.status()).toBe(404);
 });
 
-test("startups: a new submission shows up at once, with only public details", async ({ page }) => {
+test("startups: a new submission shows up within seconds, with only public details", async ({ page }) => {
   const founder = await submittedFounder(`E2E Directory ${uid()}`);
   const r = await reviewer();
   const slug = await slugOf(r, founder.id);
 
-  await page.goto("/startups");
-  await page.getByRole("searchbox").fill(founder.startup);
-  await expect(page.getByRole("link", { name: founder.startup }).first()).toBeVisible();
+  // Submitted through the API: listed within seconds (the first visit after the
+  // change may still get the previous copy while a fresh one renders).
+  await expect(async () => {
+    await page.goto("/startups");
+    await page.getByRole("searchbox").fill(founder.startup);
+    await expect(page.getByRole("link", { name: founder.startup }).first()).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
 
   await page.goto(`/startups/${slug}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(founder.startup);

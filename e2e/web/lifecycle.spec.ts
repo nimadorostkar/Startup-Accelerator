@@ -101,6 +101,8 @@ test("apply, review, request changes, resubmit, accept", async ({ browser }) => 
 
   // ---------------------------------------------------------------- the reviewer scores, notes and accepts
   await rv.reload();
+  // The page streams in behind a loading skeleton: wait until the scorecard is on screen.
+  await expect(rv.getByRole("button", { name: /save scorecard|update scorecard/i })).toBeVisible();
   for (const [area, score] of [["problem", "5"], ["solution", "4"], ["market", "4"], ["team", "5"], ["traction", "3"]])
     await rv.locator(`input[name="score-${area}"][value="${score}"]`).check({ force: true });
   await rv.locator('input[name="recommendation"][value="accept"]').check({ force: true });

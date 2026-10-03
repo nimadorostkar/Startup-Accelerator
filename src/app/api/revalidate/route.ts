@@ -3,8 +3,12 @@ import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
 
 /* The API calls this when public data changes (an event or article edited in
-   the back office, a startup's status), so cached pages refresh at once
-   instead of within a minute. Guarded by REVALIDATE_SECRET, shared with the API. */
+   the back office, a startup's status), so cached pages refresh within seconds
+   instead of within a minute. Guarded by REVALIDATE_SECRET, shared with the API.
+
+   Stale-while-revalidate ("max"): the next visitor still gets the old copy while
+   a fresh one renders. If the API can't be reached for that render (a deploy, a
+   restart), the old copy keeps being served instead of an error page. */
 
 const KNOWN_TAGS = new Set(["events", "newsletter", "startups"]);
 
