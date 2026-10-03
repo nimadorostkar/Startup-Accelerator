@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Api, newFounder } from "../support/api";
-import { SITE } from "../support/env";
+import { API, SITE } from "../support/env";
 
 test.describe("security boundaries", () => {
   test("cookie sessions can only change data from the site itself", async () => {
@@ -31,13 +31,12 @@ test.describe("security boundaries", () => {
 
   test("bodies that aren't JSON are refused", async () => {
     const api = await Api.create();
-    const form = await api.ctx.post(`${process.env.E2E_API_URL ?? ""}`.length ? "" : "", {});
-    void form;
-    const response = await api.ctx.fetch(
-      `${(await import("../support/env")).API}/auth/login`,
-      { method: "POST", data: "email=a@b.co&password=x", headers: { "Content-Type": "application/x-www-form-urlencoded" } },
-    );
+    const response = await api.ctx.post(`${API}/auth/login`, {
+      data: "email=a@b.co&password=x",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
     expect(response.status()).toBe(415);
+    expect((await response.json()).message).toBeTruthy();
     await api.dispose();
   });
 });
